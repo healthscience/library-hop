@@ -1,0 +1,21 @@
+{
+  "name": "library-hop",
+  "version": "0.0.1",
+  "description": "manage interface with network library",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "mocha test/*.*"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "author": "aboynejames@gmail.com",
+  "license": "GPL-3.0-or-later",
+  "devDependencies": {
+    "mocha": "^10.0.0"
+  },
+  "dependencies": {
+  }
+}
