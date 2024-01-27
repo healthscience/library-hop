@@ -12,6 +12,7 @@
 import util from 'util'
 import EventEmitter from 'events'
 import LibComposer from 'librarycomposer'
+import ContractsUtil from './tools/contracts.js'
 
 class LibraryHop extends EventEmitter {
 
@@ -19,14 +20,295 @@ class LibraryHop extends EventEmitter {
     super()
     this.liveHolepunch = Holepunch
     this.liveComposer = new LibComposer()
+    this.liveContractsUtil = new ContractsUtil(this.liveComposer)
+    this.publicLibrary = {} // public library modules and reference contracts
+    this.peerLibdata = {}  // peers private library store
   }
 
   /**
+  * library manage message
+  * @method libraryManage
+  *
+  */
+  libraryManage = async function (message) {
+    console.log('LIB-HOP library manage')
+    console.log(message)
+    // need break this up  each action should have sub type
+    // nxp, contracts modules and reference
+    if (message.action.trim() === 'contracts') {
+      // type nxp module ref  public or private
+      // pass on to function to manage
+      this.contractsManage(message)
+    } else if (message.action.trim() === 'account') {
+      this.accountManage(message)
+    } else if (message.action.trim() === 'results') {
+      this.resultsManage(message)
+    } else if (message.action.trim() === 'ledger') {
+      this.ledgerManage(message)
+    } else if (message.action.trim() === 'models') {
+      this.modelsManage(message)
+    } else if (message.action.trim() === 'start') {
+      console.log('start path Library')
+      this.peerLibdata = await this.liveHolepunch.BeeData.getPeerLibraryRange(100)
+      let returnPeerData = this.liveContractsUtil.libraryQuerypath('query', 'peerlibrary', this.peerLibdata)
+      let outFlow = {}
+      outFlow.type = 'library-peerlibrary'
+      outFlow.text = message.text
+      outFlow.query = false
+      outFlow.data = returnPeerData
+      if (message.origin !== 'beebee') {
+        console.log('direct')
+        this.emit('libmessage', JSON.stringify(outFlow))
+      } else {
+        console.log('beeebeee')
+        return outFlow
+      }
+    }
+  }
+
+
+  /**
+  * options for contracts
+  * @method contractsManage
+  *
+  */
+  contractsManage = async function (message) {
+    // console.log('mangem Contract library')
+    // console.log(message)
+    if (message.task.trim() === 'GET') {
+      // public or private library?
+      if (message.privacy === 'private') { 
+        let privateALL = await this.liveHolepunch.BeeData.getPeerLibraryRange(100)
+        this.callbackPeerLibAllBoard(message.data, privateALL)
+      } else if (message.privacy === 'public') {
+      let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRange(100)
+      this.callbacklibrary(publibData)
+      }
+    } else if (message.task.trim() === 'PUT') {
+      // public or private library?
+      if (message.privacy === 'private') { 
+        // pass to save manager, file details extract, prep contract
+        let saveFeedback = await this.saveFileManager(message)
+        // this.emit('libmessage', JSON.stringify(saveFeedback))
+      } else if (message.privacy === 'public') {
+        // need check if composer needed to form contract and then save
+        let saveFeedback = await this.saveContractProtocol(message)
+        this.emit('libmessage', JSON.stringify(saveFeedback))
+      }
+    } else if (message.task.trim() === 'replicate') {
+
+    } else if (message.task.trim() === 'assemble') {
+      this.assembleExperiment(message.data)
+    } else if (message.task.trim() === 'remove') {
+
+    }
+  }
+
+  /**
+  * options for account
+  * @method accountManage
+  *
+  */
+  accountManage = async function (message) {
+    console.log('account')
+    if (message.reftype.trim() === 'GET') {
+
+    } else if (message.reftype.trim() === 'PUT') {
+
+    } else if (message.reftype.trim() === 'sample') {
+
+    } else if (message.reftype.trim() === 'remove') {
+
+    }
+  }
+
+  /**
+  * options for results
+  * @method resultsManage
+  *
+  */
+  resultsManage = async function (message) {
+    if (message.task.trim() === 'GET') {
+      const dataResults = await this.liveHolepunch.BeeData.peerResults(100)
+      this.callbackPeerResultsAll(dataResults)
+    } else if (message.reftype.trim() === 'PUT') {
+
+    } else if (message.reftype.trim() === 'challenge') {
+
+    } else if (message.reftype.trim() === 'remove') {
+
+    }
+  }
+
+  /**
+  * options for ledger
+  * @method ledgerManage
+  *
+  */
+  ledgerManage = async function (message) {
+    if (message.task.trim() === 'GET') {
+      const dataLedger = await this.liveHolepunch.BeeData.KBLentries(100)
+      this.callbackPeerKBL(dataLedger)
+    } else if (message.reftype.trim() === 'PUT') {
+
+    } else if (message.reftype.trim() === 'sample') {
+
+    } else if (message.reftype.trim() === 'remove') {
+
+    }
+  }
+
+  /**
+  * get starting ref contracts from public library
+  * @method publicLibraryGet
+  *
+  */
+  publicLibraryGet = async function () {
+    this.publicLibrary = await this.liveHolepunch.BeeData.getPublicLibraryRange()
+  }
+
+  /**
+  * manage forming of contract and saving
+  * @method saveContractProtocol
+  *
+  */
+  saveContractProtocol = async function (data) {
+    // pass through library composer
+    let formedContract = {}
+    if (data.reftype === 'datatype') {
+      // formedContract = this.liveComposer.datatypeComposer(localData)
+    } else if (data.reftype === 'compute') {
+      // formedContract = liveComposer.computeComposer(this.state.newComputeForm) 
+    } else if (data.reftype === 'packaging') {
+       // formedContract = this.liveComposer.packagingComposer(data.newPackingForm)
+    } else if (data.reftype === 'visualise') {
+       // formedContract = this.liveComposer.visualiseComposer(this.state.newVisualiseForm)
+    } else if (data.reftype === 'experiment') {
+      // formedContract = this.liveComposer. 
+    } else if (data.reftype === 'module') {
+      // liveLibrary.liveComposer.moduleComposer(data, 'update')
+      // liveComposer.experimentComposerGenesis(moduleGenesisList)
+      // liveComposer.experimentComposerJoin(moduleJoinedList)
+    }
+
+    let saveContract = await this.liveHolepunch.BeeData.savePubliclibrary(data, formedContract)
+    return saveContract
+  }
+
+  /**
+  * take nxp contract and expand its reference contract ids
+  * @method assembleExperiment
+  *
+  */
+  assembleExperiment = async function (libData) {
+    let libraryData = {}
+    libraryData.data = 'contracts'
+    libraryData.type = 'peerprivate'
+    // get public library and set
+    await this.publicLibraryGet()
+    // extract out reference contracts
+    let contractsPublic = this.splitMCfromRC()
+    let expandedRefContsSF = this.prepareSafeFlowStucture(libData, contractsPublic.reference)
+    let dataNXP = {}
+    dataNXP.type = 'nxp-contract'
+    dataNXP.action = 'safeflow'
+    dataNXP.data = expandedRefContsSF
+    this.emit('libsafeflow', dataNXP)
+    // return expandedRefContsSF
+  }
+  
+  /**
+  * split public library into modules and reference contracts
+  * @method splitMCfromRC
+  *
+  */
+  splitMCfromRC = function () {
+    // split into Module Contracts and Reference Contracts
+    let modContracts = []
+    let refContracts = []
+    for (let pubLib of this.publicLibrary) {
+      if (pubLib?.value.refcontract === 'module') {
+        modContracts.push(pubLib)
+      } else {
+        refContracts.push(pubLib)
+      }
+    }
+    let contractList = {}
+    contractList.modules = modContracts
+    contractList.reference = refContracts
+    /* for (let ref of refContracts) {
+      if (ref.value.refcontract === 'datatype') {
+        console.log('split')
+        console.log(ref)
+      }
+    } */
+    return contractList
+  }
+
+  /**
+  * prepare for NXP (network experiment already joined) query for SafeFlow
+  * @method prepareSafeFlowStucture
+  *
+  */
+  prepareSafeFlowStucture = function (moduleContracts, refContracts) {
+    // console.log(util.inspect(refContracts, {showHidden: false, depth: null}))
+    let safeFlowQuery = {}
+    let modKeys = []
+    safeFlowQuery = moduleContracts
+    // info structure
+    // let info = {}
+    // e.g. info.data = { key  value }  change data for name of contracts (is this good decision???)
+    // info.type = 'data
+    // need to form joined modle contract with expaneded to include reference contract
+    // structure needs to be modIn.type  modIn.data = temMC with refcontract embedded
+    let expandedModules = []
+    for (let tmc of moduleContracts.modules) {
+      let expandMod = tmc
+      if(tmc.value.type === 'question') {
+        expandedModules.push(expandMod)
+      } else if(tmc.value.type === 'data') {
+        let extractRC = refContracts.filter(e => e.value.refcontract === 'packaging')
+        expandMod.value.info.data = extractRC[0]
+        expandedModules.push(expandMod)
+      } else if (tmc.value.type === 'compute') {
+        let extractRC = refContracts.filter(e => e.value.refcontract === 'compute')
+        expandMod.value.info.compute = extractRC[0]
+        expandedModules.push(expandMod)
+      } else if (tmc.value.type === 'visualise') {
+        let extractRC = refContracts.filter(e => e.value.refcontract === 'visualise')
+        expandMod.value.info.visualise = extractRC[0]
+        expandedModules.push(expandMod)
+      }
+    }
+    safeFlowQuery.exp.value.modules = expandedModules
+    // console.log(util.inspect(modContracts, {showHidden: false, depth: null}))
+    // SafeFow Structure
+    //safeFlowQuery.modules = modKeys
+    safeFlowQuery.reftype = 'ignore'
+    safeFlowQuery.type = 'safeflow'
+    return safeFlowQuery
+  }
+
+
+  /**
+  * expand reference contracts ids with NXP module contract
+  * @method rextractRefContractsPublicLib
+  *
+  */
+  extractRefContractsPublicLib = function (refContracts, fileName) {
+    let refBuilds = []
+
+    return refBuilds
+  }
+
+
+  /**
   * process messages going to library
-  * @method library
+  * @method libraryPath
   *
   */
   libraryPath = async function (message) {
+
     if (message.action.trim() === 'save-file') {
       await this.saveFileManager(message)
     } else if (message.reftype.trim() === 'sync-nxp-data') {
@@ -500,7 +782,7 @@ class LibraryHop extends EventEmitter {
           }    
       }
       // match module reference to full ref. contract
-      let refContractPeer =  await this.liveHolepunch.BeeData.getPeerLibraryRange()
+      let refContractPeer =  await this.liveHolepunch.BeeData.getPeerLibraryRange(100)
       let refContLookup = []
       refContLookup = []
       for (let refc of extractRefList) {
@@ -647,7 +929,7 @@ class LibraryHop extends EventEmitter {
       this.emit('libmessage', JSON.stringify(savedFeedback))
       // this.wsocket.send(JSON.stringify(savedFeedback))
     } else if (message.reftype.trim() === 'newlifeboard') {
-      let lifeboardRefContract = this.liveComposer.LiveComposer.lifeboardComposer(message.data, 'new')
+      let lifeboardRefContract = this.liveComposer.lifeboardComposer(message.data, 'new')
       // const saveLB = this.liveHolepunch.saveLifeboard() // peerStoreLive.lifeboardStoreRefContract(lifeboardRefContract)
       this.emit('libmessage', JSON.stringify(saveLB))
       // this.wsocket.send(JSON.stringify(saveLB))
@@ -679,9 +961,7 @@ class LibraryHop extends EventEmitter {
     let fileCount = save.data.length
     for (let i = 0; i < fileCount; i++) {
       if (save.data[i].type === 'sqlite') {
-        console.log('a sqlite file eg. gadgetbridge')
-        console.log(save.data[i])
-        let fileInfo = await this.liveHolepunch.DriveFiles.hyperdriveFilesave(save.data[i].type, save.data[i].name, save.data[i].content)
+        let fileInfo = await this.liveHolepunch.DriveFiles.hyperdriveFilesave(save.data[i].type, save.data[i].file.name, save.data[i].content)
         let fileFeedback = {}
         fileFeedback.success = true
         fileFeedback.path = fileInfo.filename
@@ -696,10 +976,10 @@ class LibraryHop extends EventEmitter {
         } else if (save.data[i].source === 'web') {
           // liveParser.webJSONfile(o, ws)
         }
-      } else if (save.data[i].type === 'text/csv') {
+      } else if (save.data[i].type === 'text/csv' || save.data[i].type === 'csv') {
         console.log('cvs to path to json savefiles hyperdrive')
         // save protocol original file save and JSON for HOP
-        if (save.data[i].source === 'local') {
+        if (save.data[i].info.location === 'local') {
           let fileInfo = await this.liveHolepunch.DriveFiles.hyperdriveCSVmanager(save)
           let fileFeedback = {}
           fileFeedback.success = true
@@ -712,8 +992,17 @@ class LibraryHop extends EventEmitter {
           this.emit('libmessage', JSON.stringify(storeFeedback))
           // now inform SafeFlow that data needs charting
           this.emit('library-data', fileFeedback)
-        } else if (message.data.source === 'web') {
-          // liveParser.webFileParse(o, ws)
+        } else if (save.data[i].info.location === 'web') {
+          let saveFeedback = await this.liveHolepunch.DriveFiles.saveCSVfilecontent(save)
+          let fileFeedback = {}
+          fileFeedback.success = true
+          fileFeedback.data = saveFeedback
+          let storeFeedback = {}
+          storeFeedback.type = 'library'
+          storeFeedback.action = 'save-file'
+          storeFeedback.data = fileFeedback
+          this.emit('libmessage', JSON.stringify(storeFeedback))
+          // this.emit('library-data', fileFeedback)
         }
       } else if (save.data[i].type === 'spreadsheet') {
         // need to pass to pandasAI
@@ -1004,7 +1293,7 @@ class LibraryHop extends EventEmitter {
 
 
   /**
-  * call back peer library data all for network library
+  * call back peer library data all for peer private library
   * @method 
   */
   callbackPeerLibAllBoard = function (board, data) {
@@ -1040,9 +1329,10 @@ class LibraryHop extends EventEmitter {
   callbackPeerResultsAll = function (data) {
     // pass to sort data into ref contract types
     let libraryData = {}
-    libraryData.board = 'peer'
+    libraryData.type = 'library'
+    libraryData.action = 'results'
+    libraryData.privacy = 'private'
     libraryData.data = data
-    libraryData.type = 'results-all'
     this.emit('libmessage', JSON.stringify(libraryData))
     // this.wsocket.send(JSON.stringify(libraryData))
   }
@@ -1054,9 +1344,10 @@ class LibraryHop extends EventEmitter {
   callbackPeerKBL = function (data) {
     // pass to sort data into ref contract types
     let libraryData = {}
-    libraryData.board = 'peer'
+    libraryData.type = 'library'
+    libraryData.action = 'ledger'
+    libraryData.privacy = 'private'
     libraryData.data = data
-    libraryData.type = 'ledger'
     this.emit('libmessage', JSON.stringify(libraryData))
     // this.wsocket.send(JSON.stringify(libraryData))
   }
