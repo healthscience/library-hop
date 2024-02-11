@@ -31,8 +31,6 @@ class LibraryHop extends EventEmitter {
   *
   */
   libraryManage = async function (message) {
-    console.log('LIB-HOP library manage')
-    console.log(message)
     // need break this up  each action should have sub type
     // nxp, contracts modules and reference
     if (message.action.trim() === 'contracts') {
@@ -1015,9 +1013,28 @@ class LibraryHop extends EventEmitter {
   * @method bentoPath
   */
    bentoPath = async function (o) {
-    if (o.reftype.trim() === 'bentospace') {
+    if (o.reftype.trim() === 'chat-history') {
+      if (o.task.trim() === 'save') {
+        let bentoChat = await this.liveHolepunch.BeeData.saveBentochat(o.data)
+        this.callbackBentochat(bentoChat)
+      } else if (o.task.trim() === 'start') {
+        let bentoChatstart = await this.liveHolepunch.BeeData.getBentochatHistory()
+        this.callbackBentochathistory(bentoChatstart)
+      } else if (o.task.trim() === 'get') {
+      } else if (o.task.trim() === 'delete') {
+        let bentoDelete = await this.liveHolepunch.BeeData.deleteBentochat(o.data)
+        this.callbackDeleteBentochat(bentoDelete)
+      }
+    } else if (o.reftype.trim() === 'space-history') {
       // console.log(o)
-      if (o.action.trim() === 'save-position') {
+      if (o.action.trim() === 'save') {
+        let bentoSpace = await this.liveHolepunch.BeeData.saveBentospace(o.data)
+        this.callbackBentospace(bentoSpace)
+      } else if (o.action.trim() === 'delete') {
+        console.log('dele space')
+        let bentoDelete = await this.liveHolepunch.BeeData.deleteBentospace(o.data)
+        this.callbackDeleteBentospace(bentoDelete)
+      } else if (o.action.trim() === 'save-position') {
         let bentospace = await this.liveHolepunch.BeeData.saveBentospace(o.data)
         this.callbackBentospace(bentospace)
       } else if (o.action.trim() === 'list-position') {
@@ -1029,8 +1046,6 @@ class LibraryHop extends EventEmitter {
     } else if (o.reftype.trim() === 'solospace') {
       if (o.action.trim() === 'save-position') {
         let solospace = await this.liveHolepunch.BeeData.saveSolospace(o.data)
-        console.log('solo save')
-        console.log(solospace)
         this.callbacSolospace(solospace)
        } else if (o.action.trim() === 'list-position') {
         let ssspace = await this.liveHolepunch.BeeData.getSolospace(o.data)
@@ -1196,15 +1211,71 @@ class LibraryHop extends EventEmitter {
 
   /**
   * call back
+  * @method callbackBentochat
+  */
+  callbackBentochat = function (data) {
+    // pass to sort data into ref contract types
+    let bentoboxReturn = {}
+    bentoboxReturn.type = 'bentobox'
+    bentoboxReturn.reftype = 'chat-history'
+    bentoboxReturn.action = 'save'
+    bentoboxReturn.data = data
+    this.emit('libmessage', JSON.stringify(bentoboxReturn))
+  }
+
+  /**
+  * call back
+  * @method callbackDeleteBentochat
+  */
+  callbackDeleteBentochat = function (data) {
+    // pass to sort data into ref contract types
+    let bentoboxReturn = {}
+    bentoboxReturn.type = 'bentobox'
+    bentoboxReturn.reftype = 'chat-history'
+    bentoboxReturn.action = 'delete'
+    bentoboxReturn.data = data
+    this.emit('libmessage', JSON.stringify(bentoboxReturn))
+  }
+
+  /**
+  * call back
+  * @method callbackDeleteBentospace
+  */
+  callbackDeleteBentospace = function (data) {
+    // pass to sort data into ref contract types
+    let bentoboxReturn = {}
+    bentoboxReturn.type = 'bentobox'
+    bentoboxReturn.reftype = 'space-history'
+    bentoboxReturn.action = 'delete'
+    bentoboxReturn.data = data
+    this.emit('libmessage', JSON.stringify(bentoboxReturn))
+  }
+
+  /**
+  * call back
+  * @method callbackBentochathistory
+  */
+  callbackBentochathistory = function (data) {
+    // pass to sort data into ref contract types
+    let bentoboxReturn = {}
+    bentoboxReturn.type = 'bentobox'
+    bentoboxReturn.reftype = 'chat-history'
+    bentoboxReturn.action = 'start'
+    bentoboxReturn.data = data
+    this.emit('libmessage', JSON.stringify(bentoboxReturn))
+  }
+
+  /**
+  * call back
   * @method 
   */
   callbackBentospace = function (data) {
-    // pass to sort data into ref contract types
-    let blibraryData = {}
-    blibraryData.type = 'bentospaces'
-    blibraryData.data = data
-    this.emit('libmessage', JSON.stringify(blibraryData))
-    // this.wsocket.send(JSON.stringify(blibraryData))
+    let bentoboxReturn = {}
+    bentoboxReturn.type = 'bentobox'
+    bentoboxReturn.reftype = 'space-history'
+    bentoboxReturn.action = 'save'
+    bentoboxReturn.data = data
+    this.emit('libmessage', JSON.stringify(bentoboxReturn))
   }
 
   /**
