@@ -1028,8 +1028,8 @@ class LibraryHop extends EventEmitter {
     } else if (o.reftype.trim() === 'space-history') {
       // console.log(o)
       if (o.action.trim() === 'save') {
-        let bentoSpace = await this.liveHolepunch.BeeData.saveBentospace(o.data)
-        this.callbackBentospace(bentoSpace)
+        let bentoSpace = await this.liveHolepunch.BeeData.saveSpaceHistory(o.data)
+        this.callbackHistoryspace(bentoSpace)
       } else if (o.action.trim() === 'delete') {
         console.log('dele space')
         let bentoDelete = await this.liveHolepunch.BeeData.deleteBentospace(o.data)
@@ -1269,11 +1269,24 @@ class LibraryHop extends EventEmitter {
   * call back
   * @method 
   */
-  callbackBentospace = function (data) {
+  callbackHistoryspace = function (data) {
     let bentoboxReturn = {}
     bentoboxReturn.type = 'bentobox'
     bentoboxReturn.reftype = 'space-history'
     bentoboxReturn.action = 'save'
+    bentoboxReturn.data = data
+    this.emit('libmessage', JSON.stringify(bentoboxReturn))
+  }
+
+  /**
+  * call back
+  * @method 
+  */
+  callbackBentospace = function (data) {
+    let bentoboxReturn = {}
+    bentoboxReturn.type = 'bentobox'
+    bentoboxReturn.reftype = 'space-history'
+    bentoboxReturn.action = 'location-save'
     bentoboxReturn.data = data
     this.emit('libmessage', JSON.stringify(bentoboxReturn))
   }
