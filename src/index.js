@@ -46,7 +46,6 @@ class LibraryHop extends EventEmitter {
     } else if (message.action.trim() === 'models') {
       this.modelsManage(message)
     } else if (message.action.trim() === 'start') {
-      console.log('start path Library')
       this.peerLibdata = await this.liveHolepunch.BeeData.getPeerLibraryRange(100)
       let returnPeerData = this.liveContractsUtil.libraryQuerypath('query', 'peerlibrary', this.peerLibdata)
       let outFlow = {}
@@ -71,16 +70,14 @@ class LibraryHop extends EventEmitter {
   *
   */
   contractsManage = async function (message) {
-    // console.log('mangem Contract library')
-    // console.log(message)
     if (message.task.trim() === 'GET') {
       // public or private library?
       if (message.privacy === 'private') { 
         let privateALL = await this.liveHolepunch.BeeData.getPeerLibraryRange(100)
         this.callbackPeerLibAllBoard(message.data, privateALL)
       } else if (message.privacy === 'public') {
-      let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRange(100)
-      this.callbacklibrary(publibData)
+        let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRange(100)
+        this.callbacklibrary(publibData)
       }
     } else if (message.task.trim() === 'PUT') {
       // public or private library?
@@ -108,14 +105,19 @@ class LibraryHop extends EventEmitter {
   *
   */
   accountManage = async function (message) {
-    console.log('account')
+    console.log('accountMange')
     if (message.reftype.trim() === 'GET') {
 
-    } else if (message.reftype.trim() === 'PUT') {
+    } else if (message.task.trim() === 'PUT') {
 
-    } else if (message.reftype.trim() === 'sample') {
+    } else if (message.task.trim() === 'replicate') {
+      let replicatePubLib = await this.liveHolepunch.BeeData.replicatePubliclibrary(message.data.discoverykey)
+      console.log('replicate back')
+      console.log(replicatePubLib)
+      this.emit('libmessage', JSON.stringify(replicatePubLib))
+    } else if (message.task.trim() === 'sample') {
 
-    } else if (message.reftype.trim() === 'remove') {
+    } else if (message.task.trim() === 'remove') {
 
     }
   }
