@@ -5,7 +5,7 @@
 *
 * @class LibraryHop
 * @package    library-interface
-* @copyright  Copyright (c) 2022 James Littlejohn
+* @copyright  Copyright (c) 2024 James Littlejohn
 * @license    http://www.gnu.org/licenses/old-licenses/gpl-3.0.html
 * @version    $Id$
 */
@@ -23,6 +23,15 @@ class LibraryHop extends EventEmitter {
     this.liveContractsUtil = new ContractsUtil(this.liveComposer)
     this.publicLibrary = {} // public library modules and reference contracts
     this.peerLibdata = {}  // peers private library store
+  }
+
+  /**
+  * library manage message
+  * @method libraryManage
+  *
+  */
+  startLibrary = async function () {
+    await this.libraryRefContracts()
   }
 
   /**
@@ -63,6 +72,15 @@ class LibraryHop extends EventEmitter {
     }
   }
 
+  /**
+  * get starting ref contracts from public library
+  * @method libraryRefContracts
+  *
+  */
+  libraryRefContracts = async function () {
+    // load all the public library but need to select what is needed TODO
+    this.publicLibrary = await this.liveHolepunch.BeeData.getPublicLibraryRange()
+  }
 
   /**
   * options for contracts
@@ -96,6 +114,15 @@ class LibraryHop extends EventEmitter {
       this.assembleExperiment(message.data)
     } else if (message.task.trim() === 'remove') {
 
+    } else if (message.task.trim() === 'experiment-genesis') {
+      console.log('new genesis public contract')
+      let nxpContract = this.liveContractsUtil.experimentContractGenesis(message, this.publicLibrary)
+      let libraryPublicStart = {}
+      libraryPublicStart.type = 'library'
+      libraryPublicStart.action = 'new-experiment'
+      libraryPublicStart.privacy = 'public'
+      libraryPublicStart.data = nxpContract
+      this.emit('libmessage', JSON.stringify(libraryPublicStart))
     }
   }
 
@@ -112,8 +139,6 @@ class LibraryHop extends EventEmitter {
 
     } else if (message.task.trim() === 'replicate') {
       let replicatePubLib = await this.liveHolepunch.BeeData.replicatePubliclibrary(message.data.discoverykey)
-      console.log('replicate back')
-      console.log(replicatePubLib)
       this.emit('libmessage', JSON.stringify(replicatePubLib))
     } else if (message.task.trim() === 'sample') {
 
@@ -159,15 +184,6 @@ class LibraryHop extends EventEmitter {
   }
 
   /**
-  * get starting ref contracts from public library
-  * @method publicLibraryGet
-  *
-  */
-  publicLibraryGet = async function () {
-    this.publicLibrary = await this.liveHolepunch.BeeData.getPublicLibraryRange()
-  }
-
-  /**
   * manage forming of contract and saving
   * @method saveContractProtocol
   *
@@ -205,7 +221,7 @@ class LibraryHop extends EventEmitter {
     libraryData.data = 'contracts'
     libraryData.type = 'peerprivate'
     // get public library and set
-    await this.publicLibraryGet()
+    // await this.publicLibraryGet()
     // extract out reference contracts
     let contractsPublic = this.splitMCfromRC()
     let expandedRefContsSF = this.prepareSafeFlowStucture(libData, contractsPublic.reference)
@@ -303,7 +319,7 @@ class LibraryHop extends EventEmitter {
 
 
   /**
-  * process messages going to library
+  * process messages going to library (old from peer link)
   * @method libraryPath
   *
   */
@@ -596,7 +612,6 @@ class LibraryHop extends EventEmitter {
         const newRefContract = message.refContract
         let saveFeedback = await this.liveHolepunch.BeeData.savePubliclibrary(message)
         this.emit('libmessage', JSON.stringify(saveFeedback))
-        // this.wsocket.send(JSON.stringify(saveFeedback))
       }
     } else if (message.reftype.trim() === 'compute') {
       // query peer hypertrie for datatypes
