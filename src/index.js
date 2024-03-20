@@ -976,15 +976,20 @@ class LibraryHop extends EventEmitter {
     let fileCount = save.data.length
     for (let i = 0; i < fileCount; i++) {
       if (save.data[i].type === 'sqlite') {
-        let fileInfo = await this.liveHolepunch.DriveFiles.hyperdriveFilesave(save.data[i].type, save.data[i].file.name, save.data[i].content)
+        let fileInfo = await this.liveHolepunch.DriveFiles.saveSqliteFirst(save.data[i].type, save.data[i].name, save.data[i].content)
         let fileFeedback = {}
         fileFeedback.success = true
         fileFeedback.path = fileInfo.filename
+        fileFeedback.columns = fileInfo.header
+        fileFeedback.tables = fileInfo.tables
         let storeFeedback = {}
         storeFeedback.type = 'library'
-        storeFeedback.action = 'file-save'
+        storeFeedback.action = 'save-file'
+        storeFeedback.task = 'sqlite'
         storeFeedback.data = fileFeedback
         this.emit('libmessage', JSON.stringify(storeFeedback))
+        // next load sqlite db and ask for table names
+        // then pass on to BeeBee
       } else if (save.data[i].type === 'application/json') {
         if (save.data[i].source === 'local') {
           // await liveParser.localJSONfile(o, ws)
@@ -1000,9 +1005,11 @@ class LibraryHop extends EventEmitter {
           fileFeedback.success = true
           fileFeedback.path = fileInfo.filename
           fileFeedback.columns = fileInfo.header.splitwords
+          fileFeedback.file = save.data[i]
           let storeFeedback = {}
           storeFeedback.type = 'library'
           storeFeedback.action = 'save-file'
+          storeFeedback.task = 'sqlite'
           storeFeedback.data = fileFeedback
           this.emit('libmessage', JSON.stringify(storeFeedback))
           // now inform SafeFlow that data needs charting
