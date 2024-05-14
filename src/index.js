@@ -19,15 +19,15 @@ class LibraryHop extends EventEmitter {
   constructor(Holepunch) {
     super()
     this.liveHolepunch = Holepunch
-    this.liveComposer = new LibComposer()
-    this.liveContractsUtil = new ContractsUtil(this.liveComposer)
+    this.libComposer = new LibComposer()
+    this.liveContractsUtil = new ContractsUtil(this.liveHolepunch, this.libComposer)
     this.publicLibrary = {} // public library modules and reference contracts
     this.peerLibdata = {}  // peers private library store
   }
 
   /**
-  * library manage message
-  * @method libraryManage
+  * start library 
+  * @method startLibrary
   *
   */
   startLibrary = async function () {
@@ -58,15 +58,13 @@ class LibraryHop extends EventEmitter {
       this.peerLibdata = await this.liveHolepunch.BeeData.getPeerLibraryRange(100)
       let returnPeerData = this.liveContractsUtil.libraryQuerypath('query', 'peerlibrary', this.peerLibdata)
       let outFlow = {}
-      outFlow.type = 'library-peerlibrary'
+      outFlow.type = 'peer-library'
       outFlow.text = message.text
       outFlow.query = false
       outFlow.data = returnPeerData
       if (message.origin !== 'beebee') {
-        console.log('direct')
         this.emit('libmessage', JSON.stringify(outFlow))
       } else {
-        console.log('beeebeee')
         return outFlow
       }
     }
@@ -90,9 +88,10 @@ class LibraryHop extends EventEmitter {
   contractsManage = async function (message) {
     if (message.task.trim() === 'GET') {
       // public or private library?
-      if (message.privacy === 'private') { 
-        let privateALL = await this.liveHolepunch.BeeData.getPeerLibraryRange(100)
-        this.callbackPeerLibAllBoard(message.data, privateALL)
+      if (message.privacy === 'private') {
+        let peerLib = await this.liveHolepunch.BeeData.getPeerLibraryRange(100)
+        // this.callbackPeerLibAllBoard(message.data, privateALL)
+        this.callbackPeerLib(message.data, peerLib)
       } else if (message.privacy === 'public') {
         let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRange(100)
         this.callbacklibrary(publibData)
@@ -108,15 +107,39 @@ class LibraryHop extends EventEmitter {
         let saveFeedback = await this.saveContractProtocol(message)
         this.emit('libmessage', JSON.stringify(saveFeedback))
       }
+    } else if (message.task.trim() === 'DEL') {
+      if (message.privacy === 'private') {
+        // private
+        let delFeedback = this.liveHolepunch.BeeData.deleteRefcontPeerlibrary(message.data)
+      } else if (message.privacy === 'public') {
+        // public
+        let delFeedback = this.liveHolepunch.BeeData.deleteRefcontPubliclibrary(message.data)
+      }
     } else if (message.task.trim() === 'replicate') {
 
     } else if (message.task.trim() === 'assemble') {
       this.assembleExperiment(message.data)
+    } else if (message.task.trim() === 'join') {
+      // make or expand update settings
+      let updateSettings = this.liveContractsUtil.prepareUpdatesNXP(message.data)
+      let joinExperiment = await this.liveContractsUtil.prepareJoinNXP(updateSettings)
+      let joinComplete = {}
+      joinComplete.type = 'library'
+      joinComplete.action = 'join-experiment'
+      joinComplete.data = joinExperiment
+      this.emit('libmessage', JSON.stringify(joinComplete))
     } else if (message.task.trim() === 'remove') {
 
+    } else if (message.task.trim() === 'modules-genesis') {
+      let nxpContract = this.liveContractsUtil.moduleTempContractGenesis(message, this.publicLibrary)
+      let libraryPublicStart = {}
+      libraryPublicStart.type = 'library'
+      libraryPublicStart.action = 'new-modules'
+      libraryPublicStart.privacy = 'public'
+      libraryPublicStart.data = nxpContract
+      this.emit('libmessage', JSON.stringify(libraryPublicStart))
     } else if (message.task.trim() === 'experiment-genesis') {
-      console.log('new genesis public contract')
-      let nxpContract = this.liveContractsUtil.experimentContractGenesis(message, this.publicLibrary)
+      let nxpContract = await this.liveContractsUtil.experimentContractGenesis(message)
       let libraryPublicStart = {}
       libraryPublicStart.type = 'library'
       libraryPublicStart.action = 'new-experiment'
@@ -132,7 +155,6 @@ class LibraryHop extends EventEmitter {
   *
   */
   accountManage = async function (message) {
-    console.log('accountMange')
     if (message.reftype.trim() === 'GET') {
 
     } else if (message.task.trim() === 'PUT') {
@@ -191,23 +213,24 @@ class LibraryHop extends EventEmitter {
   saveContractProtocol = async function (data) {
     // pass through library composer
     let formedContract = {}
-    if (data.reftype === 'datatype') {
-      // formedContract = this.liveComposer.datatypeComposer(localData)
+    if (data.reftype === 'question') {
+      formedContract = this.libComposer.liveComposer.questionComposer(data.data)
+    } else if (data.reftype === 'datatype') {
+      formedContract = this.libComposer.liveComposer.datatypeComposer(data.data)
     } else if (data.reftype === 'compute') {
-      // formedContract = liveComposer.computeComposer(this.state.newComputeForm) 
+      formedContract = this.libComposer.liveComposer.computeComposer(data.data) 
     } else if (data.reftype === 'packaging') {
-       // formedContract = this.liveComposer.packagingComposer(data.newPackingForm)
+       formedContract = this.libComposer.liveComposer.packagingComposer(data.data)
     } else if (data.reftype === 'visualise') {
-       // formedContract = this.liveComposer.visualiseComposer(this.state.newVisualiseForm)
+       formedContract = this.libComposer.liveComposer.visualiseComposer(data.data)
     } else if (data.reftype === 'experiment') {
-      // formedContract = this.liveComposer. 
+      // formedContract = this.libComposer. 
     } else if (data.reftype === 'module') {
       // liveLibrary.liveComposer.moduleComposer(data, 'update')
       // liveComposer.experimentComposerGenesis(moduleGenesisList)
       // liveComposer.experimentComposerJoin(moduleJoinedList)
     }
-
-    let saveContract = await this.liveHolepunch.BeeData.savePubliclibrary(data, formedContract)
+    let saveContract = await this.liveHolepunch.BeeData.savePubliclibrary(formedContract)
     return saveContract
   }
 
@@ -267,6 +290,7 @@ class LibraryHop extends EventEmitter {
   *
   */
   prepareSafeFlowStucture = function (moduleContracts, refContracts) {
+    // console.log('LIBHOP--ASSem--pa sf quqery')
     // console.log(util.inspect(refContracts, {showHidden: false, depth: null}))
     let safeFlowQuery = {}
     let modKeys = []
@@ -282,17 +306,17 @@ class LibraryHop extends EventEmitter {
       let expandMod = tmc
       if(tmc.value.type === 'question') {
         expandedModules.push(expandMod)
-      } else if(tmc.value.type === 'data') {
+      } else if(tmc.value.style === 'packaging') {
         let extractRC = refContracts.filter(e => e.value.refcontract === 'packaging')
-        expandMod.value.info.data = extractRC[0]
+        expandMod.value.info.packaging = extractRC[0]
         expandedModules.push(expandMod)
-      } else if (tmc.value.type === 'compute') {
+      } else if (tmc.value.style === 'compute') {
         let extractRC = refContracts.filter(e => e.value.refcontract === 'compute')
         expandMod.value.info.compute = extractRC[0]
         expandedModules.push(expandMod)
-      } else if (tmc.value.type === 'visualise') {
+      } else if (tmc.value.style === 'visualise') {
         let extractRC = refContracts.filter(e => e.value.refcontract === 'visualise')
-        expandMod.value.info.visualise = extractRC[0]
+        expandMod.value.info.visualise = extractRC
         expandedModules.push(expandMod)
       }
     }
@@ -317,657 +341,11 @@ class LibraryHop extends EventEmitter {
     return refBuilds
   }
 
-
-  /**
-  * process messages going to library (old from peer link)
-  * @method libraryPath
-  *
-  */
-  libraryPath = async function (message) {
-
-    if (message.action.trim() === 'save-file') {
-      await this.saveFileManager(message)
-    } else if (message.reftype.trim() === 'sync-nxp-data') {
-      // query hopresults per key
-      const dataResults = this.liveHolepunch.BeeData.peerResults(message.data.uuid)
-      // then replicate part of hopResults hyerbee with the peer, first make hopresult hyperbee replicatabl?
-      // route to peerstore to replicate
-    } else if (message.reftype.trim() === 'results-all') {
-      const dataResults = await this.liveHolepunch.BeeData.peerResults()
-      this.callbackPeerResultsAll(dataResults)
-    } else if (message.reftype.trim() === 'ledger') {
-      const dataLedger = await this.liveHolepunch.BeeData.KBLentries()
-      this.callbackPeerKBL(dataLedger)
-    } else if (message.reftype.trim() === 'save-json-json') {
-    } else if (message.reftype.trim() === 'save-sqlite-file') {
-    } else if (message.reftype.trim() === 'viewpublickey') {
-      // two peer syncing reference contracts
-      // const pubkey = this.liveHolepunch. // peerStoreLive.singlePublicKey('', callbackKey)
-    } else if (message.reftype.trim() === 'openlibrary') {
-      // two peer syncing reference contracts
-      // const pubkey = this.liveHolepunch. // peerStoreLive.openLibrary(message.data, callbackOpenLibrary)
-    } else if (message.reftype.trim() === 'keymanagement') {
-      // this.liveHolepunch.
-      // peerStoreLive.keyManagement(callbackKey)
-    } else if (message.reftype.trim() === 'peer-add') {
-      // peerStoreLive.addPeer(message.data, callbackPeerNetwork)
-    } else if (message.reftype.trim() === 'warm-peers') {
-      // this.liveHolepunch.
-      // peerStoreLive.listWarmPeers(callbackWarmPeers, callbacklibrary)
-    } else if (message.reftype.trim() === 'addpubliclibraryentry') {
-      // take the ID of nxp selected to added to peers own public library
-      let addPubRefc = await this.liveHolepunch.BeeData.publicLibraryAddentry(message.data)
-      this.callbackPlibraryAdd(addPubRefc)
-    } else if (message.reftype.trim() === 'removetemppubliclibrary') {
-      // remove temp peers friends library
-      // this.liveHolepunch.
-      // peerStoreLive.publicLibraryRemoveTempNL(message.data, 'temp')
-    } else if (message.reftype.trim() === 'replicatekey') {
-      // two peer syncing public reference contracts
-      let repDataStatus = await this.liveHolepunch.BeeData.replicatePubliclibrary(message.publickey)
-      this.callbackReplicatereceive(repDataStatus)
-    } else if (message.reftype.trim() === 'view-replicatelibrary') {
-      let repData = await this.liveHolepunch.BeeData.getReplicatePublicLibrary(message.publickey)
-      this.callbackReplicatelibrary(repData)
-    } else if (message.reftype.trim() === 'publiclibrary-start') {
-      console.log('public library start')
-      // limit to ten and tell if more to offer up local or from the network
-      let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRange(10)
-      // now build out reference contracts and modules
-      this.callbacklibrary(publibData)
-    } else if (message.reftype.trim() === 'publiclibrary') {
-      let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRange(100)
-      this.callbacklibrary(publibData)
-    } else if (message.reftype.trim() === 'privatelibrary-all') {
-      let privateALL = await this.liveHolepunch.BeeData.getPeerLibraryRange()
-      this.callbackPeerLibAllBoard(message.data, privateALL)
-    } else if (message.reftype.trim() === 'privatelibrary-start') {
-      let privateALL = await this.liveHolepunch.BeeData.getPeerLibraryRange()
-      let expJoinList = []
-      for (let mod of privateALL) {
-        if (mod.value.refcontract === 'experiment-join') {
-          expJoinList.push(mod)
-        }
-      }
-      // now loop over and expand to include modules contracts
-      let expandedModules = {}
-      for (let bmod of expJoinList) {
-        expandedModules[bmod.key] = []
-        for (let module of bmod.value.modules) {
-          // match mod to its module contract
-          for (let item of privateALL) {
-            if (item.key === module) {
-              expandedModules[bmod.key].push(item)
-            }
-          }
-        }
-      }
-      // console.log('first expand INSERT')
-      // console.log(util.inspect(expandedModules, {showHidden: false, depth: null}))
-      // need to add reference contracts for data compute visualise  (no need for question)
-      // need to add to expand info object ///////////////////////////////////////
-      let extractRefList = {}
-      for (let board of expJoinList) {
-        let boardGroup = expandedModules[board.key]
-        extractRefList[board.key] = []
-        for (let modCont of boardGroup) {
-          if (modCont.value.type === 'data') {
-            let modRefc = {}
-            modRefc.type = 'data'
-            modRefc.referencecontract = modCont.value.info.data
-            extractRefList[board.key].push(modRefc)
-          } else if (modCont.value.type === 'compute') {
-            let modRefc = {}
-            modRefc.type = 'compute'
-            modRefc.referencecontract = modCont.value.info.compute
-            extractRefList[board.key].push(modRefc)
-          } else if (modCont.value.type === 'visualise') {
-            let modRefc = {}
-            modRefc.type = 'visualise'
-            modRefc.referencecontract = modCont.value.info.visualise
-            extractRefList[board.key].push(modRefc)
-          } else if (modCont.value.type === 'question') {
-            let modRefc = {}
-            modRefc.type = 'question'
-            modRefc.referencecontract = 'none'
-            extractRefList[board.key].push(modRefc)
-          }
-        }      
-      }
-      // match module reference to full ref. contract
-      let refContractPeer =  await this.liveHolepunch.BeeData.getPeerLibraryRange()
-      let refContLookup = {}
-      for (let board of expJoinList) {
-        refContLookup[board.key] = []
-        for (let refc of extractRefList[board.key]) {
-          // compute has a one to many modules relationship, e.g. order by date to get latest
-          if (refc.type !== 'compute') {
-            let refContract =  await this.liveHolepunch.BeeData.getPublicLibrary(refc.referencecontract)
-            refContLookup[board.key].push(refContract)
-          } else {
-            // match compute to base module for compute and track back to ref contract
-            for (let refm of refContractPeer) {
-              // console.log('compute matching modules to ref contracts')
-              // console.log(refm.value?.info?.moduleinfo?.refcont)
-              // console.log(refc.referencecontract)
-              if (refm.value?.info?.moduleinfo?.refcont === refc.referencecontract) {
-                refContLookup[board.key].push(refm)
-                // lastly loop up source of compute
-                for (let pubrc of refContractPeer) {
-                  if (pubrc.key === refm.value.info.refcont) {
-                    refm.value.info.refcont = pubrc
-                    // let addComputeSourceRefc = {}
-                    refContLookup[board.key].push(refm)
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-      // next replace refcontract keys with actual contract
-      let keyBoards = Object.keys(expandedModules)
-      for (let bd of keyBoards) {
-        for (let boardi of expandedModules[bd]) {
-          if(boardi.value?.type === 'data') {
-            for (let rfi of refContLookup[bd]) {
-              if (rfi?.key === boardi.value.info.data) {
-                boardi.value.info.data = rfi
-              }
-            }
-          } else if (boardi.value?.type === 'compute') {
-            for (let rfi of refContLookup[bd]) {
-              if (rfi?.key === boardi.value.info.compute) {
-                boardi.value.info.visualise = rfi
-              }
-            }
-
-          } else if (boardi.value?.type === 'visualise') {
-          for (let rfi of refContLookup[bd]) {
-              if (rfi?.key === boardi.value.info.visualise) {
-                boardi.value.info.visualise = rfi
-              }
-            }
-          }
-        }
-      }
-      // console.log(util.inspect(expandedModules, {showHidden: false, depth: null}))
-      // add expand to list of boards
-      let returnExpanded = []
-      for (let board of expJoinList) {
-        let fullExpand = {}
-        fullExpand = board
-        fullExpand.modules = expandedModules[board.key]
-        returnExpanded.push(fullExpand)
-      }
-      // console.log(util.inspect(returnExpanded, {showHidden: false, depth: null}))
-      // next sticked modules
-      this.callbackStartPeerLibBoard(message.data, returnExpanded)
-    } else if (message.reftype.trim() === 'privatelibrary') {
-      // console.log('private library -- bento space start flow----------')
-      let singleContract = await this.liveHolepunch.BeeData.getPeerLibrary(message.data)
-      // console.log('BentoBoard (npx) contract joined')
-      // console.log(singleContract)
-      let moduleBoard = []
-      for (let mods of singleContract.value.modules) {
-        // lookup modules and refcontracts
-        let cellContract = await this.liveHolepunch.BeeData.getPeerLibrary(mods)
-        moduleBoard.push(cellContract)
-      }
-      singleContract.modules = moduleBoard
-      // next extract the reference contracts per module
-      let extractContractKey = this.liveComposer.liveRefcontUtility.extractRefcontracts(moduleBoard, 'private')
-      let privateALL = await this.liveHolepunch.BeeData.getPeerLibraryRange()
-      let publiclibALL = await this.liveHolepunch.BeeData.getPublicLibraryRange()
-      // console.log('public libiar all lib------------------------')
-      // console.log(util.inspect(publiclibALL, {showHidden: false, depth: null}))
-      let peerPrivCompute = []
-      for (let prc of privateALL) {
-        if (prc.value.type === 'compute') {
-          peerPrivCompute.push(prc)
-        }
-        if (prc.value.type === 'compute') {
-          // refcontract
-        }
-      }
-      // match compute contract for this board contract
-      let computeContractHolder = []
-      let computeLink = []
-      for (let mod of singleContract.value.modules) {
-        for (let comprc of peerPrivCompute) {
-          if (mod === comprc.key) {
-            computeContractHolder = comprc
-          }
-          if (mod === comprc.value.link)
-            computeLink.push(comprc)
-        }
-      }
-      // console.log('copute holder start peer board')
-      // console.log(computeContractHolder)
-      // console.log(computeLink)
-      let computeHistory = {}
-      for (let refm of publiclibALL) {
-        if (refm.value?.info?.moduleinfo?.refcont === computeContractHolder.value.info.compute) {
-          computeHistory = refm
-        }
-      }
-      // get the compute reference contract
-      let computeSourceRC = {}
-      for (let refm of publiclibALL) {
-        if (refm.key === computeHistory.value.info.refcont) {
-          computeSourceRC = refm
-        }
-      }
-      let refContractList = []
-      for (let rc of extractContractKey) {
-        let typeCheck = typeof rc
-        if (typeCheck === 'string') {
-          let refcont = await this.liveHolepunch.BeeData.getPublicLibrary(rc)
-          // need to get all compute modules and public compute reference contracts and match up
-          refContractList.push(refcont)
-          // let privteCompute = await this.liveHolepunch.BeeData.getPeerLibrary(rc)
-         } 
-       }
-       // add compute to list
-       refContractList.push(computeSourceRC)
-      // need to integrate those reference contracts into the board (nxp) contract structure
-      // REPEAT CODE FROM above private lib start not bentospace list
-      // next replace refcontract keys with actual contract
-      for (let boardi of moduleBoard) {
-        if(boardi.value?.type === 'data') {
-          for (let rfi of refContractList) {
-            if (rfi?.key === boardi.value.info.data) {
-              boardi.value.info.data = rfi
-            }
-          }
-        } else if (boardi.value?.type === 'compute') {
-          // console.log('copute  module')
-          // console.log(boardi)
-          for (let rfi of refContractList) {
-            if (rfi?.key === boardi.value.info.compute) {
-              boardi.value.info.visualise = rfi
-            }
-          }
-
-        } else if (boardi.value?.type === 'visualise') {
-        for (let rfi of refContractList) {
-            if (rfi?.key === boardi.value.info.visualise) {
-              boardi.value.info.visualise = rfi
-            }
-          }
-        }
-      }
-      singleContract.modules = moduleBoard
-      this.callbackPeerLibBoard(message.data, singleContract)
-    } else if (message.reftype.trim() === 'remove-nxp') {
-      let removeNXPdashboard = await this.liveHolepunch.BeeData.deleteRefcontPeerlibrary(message.data)
-      this.callbackNXPDelete(removeNXPdashboard)
-    } else if (message.reftype.trim() === 'datatype') {
-      // query peer datastore or save dataatype ref contract
-      if (message.action === 'GET') {
-        const datatypeRC = await this.liveHolepunch.BeeData.getPublicLibrary(message.data)
-        this.callbackDatatype(datatypeRC)
-      } else {
-        // save a new refContract
-        const newRefContract = message.refContract
-        let saveFeedback = await this.liveHolepunch.BeeData.savePubliclibrary(message)
-        this.emit('libmessage', JSON.stringify(saveFeedback))
-      }
-    } else if (message.reftype.trim() === 'compute') {
-      // query peer hypertrie for datatypes
-      if (message.action === 'GET') {
-        const datatypeRC = await this.liveHolepunch.BeeData.getPublicLibrary(message)
-        this.callbackDatatype(datatypeRC)
-        // peerStoreLive.peerGETRefContracts('compute', callback)
-      } else {
-        // save a new refContract
-        const newRefContract = message.refContract
-        let saveFeedback = await this.liveHolepunch.BeeData.savePubliclibrary(message)
-        this.emit('libmessage', JSON.stringify(saveFeedback))
-        // this.wsocket.send(JSON.stringify(saveFeedback))
-      }
-    } else if (message.reftype.trim() === 'units') {
-      // query peer hypertrie for Units
-      if (message.action === 'GET') {
-        // peerStoreLive.peerGETRefContracts('units', callback)
-      } else {
-        // save a new refContract
-        const newRefContract = message.refContract
-        let saveFeedback = await this.liveHolepunch.BeeData.savePubliclibrary(message)
-        this.emit('libmessage', JSON.stringify(saveFeedback))
-        // this.wsocket.send(JSON.stringify(saveFeedback))
-      }
-    } else if (message.reftype.trim() === 'packaging') {
-      // query peer hypertrie for
-      if (message.action === 'GET') {
-        // peerStoreLive.peerGETRefContracts('packaging', callback)
-      } else {
-        // save a new refContract
-        // const savedFeedback = // peerStoreLive.libraryStoreRefContract(o)
-        // this.wsocket.send(JSON.stringify(savedFeedback))
-        const newRefContract = message.refContract
-        let saveFeedback = await this.liveHolepunch.BeeData.savePubliclibrary(message)
-        this.emit('libmessage', JSON.stringify(saveFeedback))
-        // this.wsocket.send(JSON.stringify(saveFeedback))
-      }
-    } else if (message.reftype.trim() === 'visualise') {
-      // query peer hypertrie for
-      if (message.action === 'GET') {
-        // peerStoreLive.peerGETRefContracts('visualise', callback)
-      } else {
-        // save a new refContract
-        const newRefContract = message.refContract
-        let saveFeedback = await this.liveHolepunch.BeeData.savePubliclibrary(message)
-        this.emit('libmessage', JSON.stringify(saveFeedback))
-        // this.wsocket.send(JSON.stringify(saveFeedback))
-      }
-    } else if (message.reftype.trim() === 'experiment') {
-      if (message.action === 'GET') {
-        const newRefContract = message.refContract
-        let contractInfo = await this.liveHolepunch.BeeData.getPeerLibrary(message.data.refcontract)
-        // look up module contracts
-        let expandedModContact = []
-        for (let mod of contractInfo.value.modules) {
-          let modFull = await this.liveHolepunch.BeeData.getPeerLibrary(mod)
-          expandedModContact.push(modFull)
-        }
-        // contractInfo.modules = expandedModContact
-        // lookup reference contracts wihin modules
-        let refContractsDetail = []
-        for (let modRef of expandedModContact) {
-          if (modRef.value.type === 'data') {
-            let refContract = await this.liveHolepunch.BeeData.getPublicLibrary(modRef.value.info.data)
-            modRef.value.info.data = refContract
-            refContractsDetail.push(modRef)
-          } else if (modRef.value.type === 'compute') {
-            let refContract = await this.liveHolepunch.BeeData.getPublicLibrary(modRef.value.info.compute)
-            modRef.value.info.data = refContract
-            refContractsDetail.push(modRef)
-          } else if (modRef.value.type === 'question') {
-            // let refContract = await this.liveHolepunch.BeeData.getPeerLibrary(modRef.value.info.question)
-            refContractsDetail.push(modRef)
-          } else if (modRef.value.type === 'visualise') {
-            let refContract = await this.liveHolepunch.BeeData.getPublicLibrary(modRef.value.info.visualise)
-            modRef.value.info.visualise = refContract
-            refContractsDetail.push(modRef)
-          }
-        }
-        contractInfo.modules = refContractsDetail
-        this.callbackPeerlibrary(contractInfo)
-      } else {
-        // save a new refContract
-        // const savedFeedback = // peerStoreLive.libraryStoreRefContract(o)
-        this.emit('libmessage', JSON.stringify(savedFeedback))
-        // this.wsocket.send(JSON.stringify(savedFeedback))
-      }
-    } else if (message.reftype.trim() === 'newexperimentmodule') {
-      // a new genesis network experiment to store to network library
-      let moduleGenesisList = []
-      let moduleGenesisExpanded = []
-      let newModCount = message.data.length
-      for (let mh of message.data) {
-        const moduleRefContract = this.liveComposer.liveComposer.moduleComposer(mh, '')
-        // const moduleRefContractReady = JSON.stringify(moduleRefContract)
-        const savedFeedback = await this.liveHolepunch.BeeData.savePubliclibrary(moduleRefContract)
-        moduleGenesisList.push(savedFeedback.key)
-        // stand key value format or query and get back ref contract double check TODO
-        let moduleContract = {}
-        moduleContract.key = savedFeedback.key
-        moduleContract.value = savedFeedback.contract
-        moduleGenesisExpanded.push(moduleContract) // .contract)
-        newModCount--
-      }
-      if (newModCount === 0) {
-        // aggregate all modules into exeriment contract
-        let genesisRefContract = this.liveComposer.liveComposer.experimentComposerGenesis(moduleGenesisList)
-        // double check they are created
-        const savedFeedback = await this.liveHolepunch.BeeData.savePubliclibrary(genesisRefContract)
-        savedFeedback.expanded = moduleGenesisExpanded
-        this.emit('libmessage', JSON.stringify(savedFeedback))
-        // this.wsocket.send(JSON.stringify(savedFeedback))
-      }
-    } else if (message.reftype.trim() === 'joinexperiment') {
-      let moduleJoinedList = []
-      let moduleJoinedExpanded = []
-      let newModCount = message.data.exp.modules.length
-      // for each module in experiment, add peer selections
-      // loop over list of module contract to make genesis ie first
-      for (let mh of message.data.exp.modules) {
-        let moduleKeyValue = {}
-        // prepare new modules for this peer  ledger
-        let peerModules = {}
-        // look up module template genesis contract
-        if (mh.value.info.moduleinfo.name === 'question') {
-          peerModules.type = 'question'
-          peerModules.question = mh.value.info.question
-        } else if (mh.value.info.moduleinfo.name === 'data') {
-          peerModules.type = 'data'
-          peerModules.data = message.data.options.data
-        } else if (mh.value.info.moduleinfo.name === 'compute') {
-          peerModules.type = 'compute'
-          peerModules.compute = mh.value.info.moduleinfo.refcont
-          peerModules.controls = message.data.options.compute
-          peerModules.settings = message.data.options.visualise
-        } else if (mh.value.info.moduleinfo.name === 'visualise') {
-          peerModules.type = 'visualise'
-          peerModules.visualise = mh.value.info.refcont
-          peerModules.settings = message.data.options.visualise
-        }
-        let moduleRefContract = this.liveComposer.liveComposer.moduleComposer(peerModules, 'join')
-        let savedFeedback = await this.liveHolepunch.BeeData.savePeerLibrary(moduleRefContract.data)
-        moduleJoinedList.push(savedFeedback.key)
-        // form key value refcont structure
-        moduleKeyValue.key = savedFeedback.key
-        moduleKeyValue.value = savedFeedback.contract
-        moduleJoinedExpanded.push(moduleKeyValue)
-        newModCount--
-      }
-      // check all modules are present and create peers network refcontract joined
-      let savedBoardNew = {}
-      if (newModCount === 0) {
-        // aggregate all modules into board module contract
-        // double check they are created
-        let joinRefContract = this.liveComposer.liveComposer.experimentComposerJoin(moduleJoinedList)
-        savedBoardNew = await this.liveHolepunch.BeeData.savePeerLibrary(joinRefContract.data)
-        savedBoardNew.expanded = moduleJoinedExpanded
-      }
-      // code repeat from below  - need to make suport utility library
-      let extractRefList = []
-      for (let modCont of savedBoardNew.expanded) {
-          if (modCont.value.type === 'data') {
-            let modRefc = {}
-            modRefc.type = 'data'
-            modRefc.referencecontract = modCont.value.info.data
-            extractRefList.push(modRefc)
-          } else if (modCont.value.type === 'compute') {
-            let modRefc = {}
-            modRefc.type = 'compute'
-            modRefc.referencecontract = modCont.value.info.compute
-            extractRefList.push(modRefc)
-          } else if (modCont.value.type === 'visualise') {
-            let modRefc = {}
-            modRefc.type = 'visualise'
-            modRefc.referencecontract = modCont.value.info.visualise
-            extractRefList.push(modRefc)
-          } else if (modCont.value.type === 'question') {
-            let modRefc = {}
-            modRefc.type = 'question'
-            modRefc.referencecontract = 'none'
-            extractRefList.push(modRefc)
-          }    
-      }
-      // match module reference to full ref. contract
-      let refContractPeer =  await this.liveHolepunch.BeeData.getPeerLibraryRange(100)
-      let refContLookup = []
-      refContLookup = []
-      for (let refc of extractRefList) {
-        // compute has a one to many modules relationship, e.g. order by date to get latest
-        if (refc.type !== 'compute') {
-          let refContract =  await this.liveHolepunch.BeeData.getPublicLibrary(refc.referencecontract)
-          refContLookup.push(refContract)
-        } else {
-          // console.log('compute trace back linked ')
-          // match compute to base module for compute and track back to ref contract
-          for (let refm of refContractPeer) {
-            // console.log('compute matching modules to ref contracts')
-            // console.log(refm)
-            // console.log(refm.value?.info?.compute)
-            // console.log(refc.referencecontract)
-            if (refm.value?.info?.compute === refc.referencecontract) {
-              refContLookup.push(refm)
-              // lastly loop up source of compute
-              for (let pubrc of refContractPeer) {
-                if (pubrc.key === refm.value.info.refcont) {
-                  refm.value.info.refcont = pubrc
-                  // let addComputeSourceRefc = {}
-                  refContLookup.push(refm)
-                }
-              }
-            }
-          }
-        }
-      }
-      // next replace refcontract keys with actual contract
-      console.log('module contractss list')
-      console.log(savedBoardNew)
-      // let keyBoards = Object.keys()
-      // console.log(keyBoards)
-      for (let modi of savedBoardNew.expanded) {
-         // for (let boardi of savedBoardNew.expanded[bd]) {
-          if(modi.value?.type === 'data') {
-            for (let rfi of refContLookup) {
-              if (rfi?.key === modi.value.info.data) {
-                modi.value.info.data = rfi
-              }
-            }
-          } else if (modi.value?.type === 'compute') {
-            for (let rfi of refContLookup) {
-              if (rfi?.key === modi.value.info.compute) {
-                modi.value.info.visualise = rfi
-              }
-            }
-
-          } else if (modi.value?.type === 'visualise') {
-          for (let rfi of refContLookup) {
-              if (rfi?.key === modi.value.info.visualise) {
-                modi.value.info.visualise = rfi
-              }
-            }
-          }
-        // }
-      }
-      console.log('keyp aboards----')
-      console.log(savedBoardNew)
-      // console.log(util.inspect(expandedModules, {showHidden: false, depth: null}))
-      // add expand to list of boards
-      let fullExpand = {}
-      fullExpand.board = savedBoardNew
-      fullExpand.modules = savedBoardNew.expanded
-      // console.log(util.inspect(returnExpanded, {showHidden: false, depth: null}))
-      // next sticked modules
-      this.callbackNewJoinPeerLibBoard(savedBoardNew.key, fullExpand)    
-    } else if (message.reftype.trim() === 'genesisexperiment') {
-      let genesisRefContract = this.liveComposer.liveComposer.experimentComposerGenesis(message.data)
-      const savedFeedback = await this.liveHolepunch.BeeData.savePeerLibrary(genesisRefContract)
-      this.emit('libmessage', JSON.stringify(savedFeedback))
-      // this.wsocket.send(JSON.stringify(savedFeedback))
-    } else if (message.reftype.trim() === 'kbid') {
-      // query peer hypertrie for
-      if (message.action === 'GET') {
-        kbidStoreLive.peerGETkbids('kbid', callback)
-      } else {
-        // save a new refContract
-        const savedFeedback = kbidStoreLive.peerStoreKBIDentry(o)
-        this.emit('libmessage', JSON.stringify(savedFeedback))
-        // this.wsocket.send(JSON.stringify(savedFeedback))
-      }
-    } else if (message.action === 'extractexperimentmodules') {
-      let joinExpDisplay = {}
-      joinExpDisplay.type = 'extractexperimentmodules'
-      joinExpDisplay.data = this.liveComposer.liveRefcontUtility.extractData(message.data.modules, 'data')
-      joinExpDisplay.compute = this.liveComposer.liveRefcontUtility.extractCompute(message.data.modules, 'compute')
-      joinExpDisplay.visualise = this.liveComposer.liveRefcontUtility.extractVisualise(message.data.modules, 'visualise')
-      // look up option contracts for each ref contract type
-      let dataOptions = []
-      for (let optionD of joinExpDisplay.data) {
-        const refcontract = this.liveComposer.liveRefcontUtility.refcontractLookup(optionD.option.key, joinExpDisplay.data)
-        dataOptions.push(refcontract)
-      }
-      let computeOptions = []
-      for (let optionD of joinExpDisplay.compute) {
-        const refcontract = this.liveComposer.liveRefcontUtility.refcontractLookup(optionD.option.key, joinExpDisplay.compute)
-        computeOptions.push(refcontract)
-      }
-      let visOptions = []
-      for (let optionD of joinExpDisplay.visualise) {
-        const refcontract = this.liveComposer.liveRefcontUtility.refcontractLookup(optionD.option.key, joinExpDisplay.visualise)
-        visOptions.push(refcontract)
-      }
-      let experimentOptions = {}
-      experimentOptions.data = dataOptions
-      experimentOptions.compute = computeOptions
-      experimentOptions.visualise = visOptions
-      joinExpDisplay.options = experimentOptions
-      this.emit('libmessage', JSON.stringify(joinExpDisplay))
-      // this.wsocket.send(JSON.stringify(joinExpDisplay))
-    } else if (message.reftype.trim() === 'module') {
-      // query peer hypertrie
-      if (message.action === 'GET') {
-        // peerStoreLive.peerGETRefContracts('module', callback)
-      } else {
-        // save a new refContract
-        const savedFeedback = this.liveHolepunch.BeeData.savePeerLibrary(o)
-        this.emit('libmessage', JSON.stringify(savedFeedback))
-        // this.wsocket.send(JSON.stringify(savedFeedback))
-      }
-    } else if (message.reftype.trim() === 'moduletemp') {
-      // create new temp modules for new experiment
-      let modCount = 1
-      let moduleHolder = []
-      for (const mc of message.data) {
-        const prepareModule = this.liveComposer.liveComposer.moduleComposer(mc, '')
-        let moduleContainer = {}
-        moduleContainer.name = prepareModule.data.contract.concept.type
-        moduleContainer.id = modCount
-        moduleContainer.refcont = prepareModule.data.hash
-        moduleHolder.push(moduleContainer)
-        modCount++
-      }
-      let moduleTempData = {}
-      moduleTempData.type = 'modulesTemp'
-      moduleTempData.data = moduleHolder
-      this.emit('libmessage', JSON.stringify(moduleTempData))
-      // this.wsocket.send(JSON.stringify(moduleTempData))
-    } else if (message.reftype.trim() === 'newmodules') {
-      let moduleRefContract = this.liveComposer.LiveComposer.moduleComposer(message.data, 'join')
-      const savedFeedback = this.liveHolepunch.BeeData.savePeerLibrary(moduleRefContract)
-      this.emit('libmessage', JSON.stringify(savedFeedback))
-      // this.wsocket.send(JSON.stringify(savedFeedback))
-    } else if (message.reftype.trim() === 'newlifeboard') {
-      let lifeboardRefContract = this.liveComposer.lifeboardComposer(message.data, 'new')
-      // const saveLB = this.liveHolepunch.saveLifeboard() // peerStoreLive.lifeboardStoreRefContract(lifeboardRefContract)
-      this.emit('libmessage', JSON.stringify(saveLB))
-      // this.wsocket.send(JSON.stringify(saveLB))
-    } else if (message.reftype.trim() === 'addlifeboard') {
-      let lifeboardMember = this.liveComposer.LiveComposer.lifeboardComposer(message.data, 'member')
-      // const saveLBmember = this.liveHolepunch.saveLifeboard // peerStoreLive.lifeboardStoreRefContract(lifeboardMember)
-      this.emit('libmessage', JSON.stringify(saveLBmember))
-      // this.wsocket.send(JSON.stringify(saveLBmember))
-    } else if (message.reftype.trim() === 'peerLifeboard') {
-      // this.liveHolepunch.
-      // peerStoreLive.peerGETLifeboards('all', callbackLifeboard)
-    } else {
-      console.log('network library no match')
-    }
-  }
-
   /**
   * save file manager
   * @method saveFileManager
   */
   saveFileManager = async function (save) {
-    console.log('Library--save manager')
-    // console.log(save)
     let fileList = []
     fileList.push(save.data)
     save.data = fileList
@@ -997,7 +375,6 @@ class LibraryHop extends EventEmitter {
           // liveParser.webJSONfile(o, ws)
         }
       } else if (save.data[i].type === 'text/csv' || save.data[i].type === 'csv') {
-        console.log('cvs to path to json savefiles hyperdrive')
         // save protocol original file save and JSON for HOP
         if (save.data[i].info.location === 'local') {
           let fileInfo = await this.liveHolepunch.DriveFiles.hyperdriveCSVmanager(save)
@@ -1050,12 +427,10 @@ class LibraryHop extends EventEmitter {
         this.callbackDeleteBentochat(bentoDelete)
       }
     } else if (o.reftype.trim() === 'space-history') {
-      // console.log(o)
       if (o.action.trim() === 'save') {
         let bentoSpace = await this.liveHolepunch.BeeData.saveSpaceHistory(o.data)
         this.callbackHistoryspace(bentoSpace)
       } else if (o.action.trim() === 'delete') {
-        console.log('dele space')
         let bentoDelete = await this.liveHolepunch.BeeData.deleteBentospace(o.data)
         this.callbackDeleteBentospace(bentoDelete)
       } else if (o.action.trim() === 'save-position') {
@@ -1149,14 +524,14 @@ class LibraryHop extends EventEmitter {
     let libraryData = {}
     libraryData.data = 'contracts'
     libraryData.type = 'publiclibrary'
-    const segmentedRefContracts = this.liveComposer.liveRefcontUtility.refcontractSperate(data)
+    const segmentedRefContracts = this.libComposer.liveRefcontUtility.refcontractSperate(data)
     libraryData.referenceContracts = segmentedRefContracts
     // need to split for genesis and peer joined NXPs
-    const nxpSplit = this.liveComposer.liveRefcontUtility.experimentSplit(segmentedRefContracts.experiment)
+    const nxpSplit = this.libComposer.liveRefcontUtility.experimentSplit(segmentedRefContracts.experiment)
     libraryData.splitExperiments = nxpSplit
     // look up modules for this experiments
-    libraryData.networkExpModules = this.liveComposer.liveRefcontUtility.expMatchModuleGenesis(libraryData.referenceContracts.module, nxpSplit.genesis)
-    libraryData.networkPeerExpModules = this.liveComposer.liveRefcontUtility.expMatchModuleJoined(libraryData.referenceContracts.module, nxpSplit.joined)
+    libraryData.networkExpModules = this.libComposer.liveRefcontUtility.expMatchModuleGenesis(libraryData.referenceContracts.module, nxpSplit.genesis)
+    libraryData.networkPeerExpModules = this.libComposer.liveRefcontUtility.expMatchModuleJoined(libraryData.referenceContracts.module, nxpSplit.joined)
     this.emit('libmessage', JSON.stringify(libraryData))
     // this.wsocket.send(JSON.stringify(libraryData))
   }
@@ -1166,7 +541,16 @@ class LibraryHop extends EventEmitter {
   * @method callbackPeerlibrary
   */
   callbackPeerlibrary = function (data) {
+    // format raw data
     let libraryData = {}
+    const segmentedRefContracts = this.libComposer.liveRefcontUtility.refcontractSperate(data)
+    libraryData.referenceContracts = segmentedRefContracts
+    // need to split for genesis and peer joined NXPs
+    const nxpSplit = this.libComposer.liveRefcontUtility.experimentSplit(segmentedRefContracts.experiment)
+    libraryData.splitExperiments = nxpSplit
+    // look up modules for this experiments
+    libraryData.networkExpModules = this.libComposer.liveRefcontUtility.expMatchModuleGenesis(libraryData.referenceContracts.module, nxpSplit.genesis)
+    libraryData.networkPeerExpModules = this.libComposer.liveRefcontUtility.expMatchModuleJoined(libraryData.referenceContracts.module, nxpSplit.joined)
     libraryData.type = 'peerlibrary'
     libraryData.refcontract = 'experiment-new'
     libraryData.data = data
@@ -1195,14 +579,14 @@ class LibraryHop extends EventEmitter {
     libraryData = {}
     libraryData.data = 'contracts'
     libraryData.type = 'replicatedata-publiclibrary'
-    const segmentedRefContracts = this.liveComposer.liveRefcontUtility.refcontractSperate(data)
+    const segmentedRefContracts = this.libComposer.liveRefcontUtility.refcontractSperate(data)
     libraryData.referenceContracts = segmentedRefContracts
     // need to split for genesis and peer joined NXPs
-    const nxpSplit = this.liveComposer.liveRefcontUtility.experimentSplit(segmentedRefContracts.experiment)
+    const nxpSplit = this.libComposer.liveRefcontUtility.experimentSplit(segmentedRefContracts.experiment)
     libraryData.splitExperiments = nxpSplit
     // look up modules for this experiments
-    libraryData.networkExpModules = this.liveComposer.liveRefcontUtility.expMatchModuleGenesis(libraryData.referenceContracts.module, nxpSplit.genesis)
-    libraryData.networkPeerExpModules = this.liveComposer.liveRefcontUtility.expMatchModuleJoined(libraryData.referenceContracts.module, nxpSplit.joined)
+    libraryData.networkExpModules = this.libComposer.liveRefcontUtility.expMatchModuleGenesis(libraryData.referenceContracts.module, nxpSplit.genesis)
+    libraryData.networkPeerExpModules = this.libComposer.liveRefcontUtility.expMatchModuleJoined(libraryData.referenceContracts.module, nxpSplit.joined)
     this.emit('libmessage', JSON.stringify(libraryData))
     // this.wsocket.send(JSON.stringify(libraryData))
   }
@@ -1409,9 +793,9 @@ class LibraryHop extends EventEmitter {
     let libraryData = {}
     libraryData.board = board
     libraryData.data = data
-    libraryData.type = 'peerprivate-returnall'
+    libraryData.type = 'library'
+    libraryData.action = 'peer-library'
     this.emit('libmessage', JSON.stringify(libraryData))
-    // this.wsocket.send(JSON.stringify(libraryData))
   }
 
 
@@ -1465,19 +849,21 @@ class LibraryHop extends EventEmitter {
   * call back peer library data
   * @method 
   */
-  callbackPeerLib = function (data) {
+  callbackPeerLib = function (context, data) {
     // pass to sort data into ref contract types
     let libraryData = {}
     libraryData.data = 'contracts'
-    libraryData.type = 'peerprivate'
-    const segmentedRefContracts = this.liveComposer.liveRefcontUtility.refcontractSperate(data)
+    libraryData.type = 'library'
+    libraryData.action = 'peer-library'
+    libraryData.context = context
+    const segmentedRefContracts = this.libComposer.liveRefcontUtility.refcontractSperate(data)
     libraryData.referenceContracts = segmentedRefContracts
     // need to split for genesis and peer joined NXPs
-    const nxpSplit = this.liveComposer.liveRefcontUtility.experimentSplit(segmentedRefContracts.experiment)
+    const nxpSplit = this.libComposer.liveRefcontUtility.experimentSplit(segmentedRefContracts.experiment)
     libraryData.splitExperiments = nxpSplit
     // look up modules for this experiments
-    libraryData.networkExpModules = this.liveComposer.liveRefcontUtility.expMatchModuleGenesis(libraryData.referenceContracts.module, nxpSplit.genesis)
-    libraryData.networkPeerExpModules = this.liveComposer.liveRefcontUtility.expMatchModuleJoined(libraryData.referenceContracts.module, nxpSplit.joined)
+    libraryData.networkExpModules = this.libComposer.liveRefcontUtility.expMatchModuleGenesis(libraryData.referenceContracts.module, nxpSplit.genesis)
+    libraryData.networkPeerExpModules = this.libComposer.liveRefcontUtility.expMatchModuleJoined(libraryData.referenceContracts.module, nxpSplit.joined)
     this.emit('libmessage', JSON.stringify(libraryData))
     // this.wsocket.send(JSON.stringify(libraryData))
   }
