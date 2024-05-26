@@ -5,7 +5,7 @@
 *
 * @class LibContracts
 * @package    network-library
-* @copyright  Copyright (c) 2023 James Littlejohn
+* @copyright  Copyright (c) 2024 James Littlejohn
 * @license    http://www.gnu.org/licenses/old-licenses/gpl-3.0.html
 * @version    $Id$
 */
@@ -246,7 +246,8 @@ class LibContracts extends EventEmitter {
     let deviceInfo = {}
     deviceInfo.id = this.defautDeviceOptions(fileName)
     newPackagingMap.device = deviceInfo
-    let packagingRef = this.libComposer.liveComposer.packagingRefLive.packagingPrepare(newPackagingMap)
+    // blind prepare
+    let packagingRef = this.libComposer.liveComposer.packagingRefLive.packagingBlindPrepare(newPackagingMap)
     refBuilds.push(packagingRef.data)
     // need to create question as blind  done via module?
     let questionBlind = {}

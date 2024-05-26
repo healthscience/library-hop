@@ -35,6 +35,18 @@ class LibraryHop extends EventEmitter {
   }
 
   /**
+  * start library 
+  * @method systemsContracts
+  *
+  */
+  systemsContracts = async function () {
+    console.log('LIB--star styem contracts')
+    let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRange(100)
+    this.callbackSFsystems(publibData)
+  }
+  
+
+  /**
   * library manage message
   * @method libraryManage
   *
@@ -78,6 +90,7 @@ class LibraryHop extends EventEmitter {
   libraryRefContracts = async function () {
     // load all the public library but need to select what is needed TODO
     this.publicLibrary = await this.liveHolepunch.BeeData.getPublicLibraryRange()
+    await this.systemsContracts()
   }
 
   /**
@@ -115,10 +128,14 @@ class LibraryHop extends EventEmitter {
         // public
         let delFeedback = this.liveHolepunch.BeeData.deleteRefcontPubliclibrary(message.data)
       }
+  
+    } else if (message.task.trim() === 'safeflow-systems') {
+      let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRange(100)
+      this.callbackSFsystems(publibData)
     } else if (message.task.trim() === 'replicate') {
-
     } else if (message.task.trim() === 'assemble') {
-      this.assembleExperiment(message.data)
+      console.log(message)
+      this.assembleExperiment(message.bbid, message.data)
     } else if (message.task.trim() === 'join') {
       // make or expand update settings
       let updateSettings = this.liveContractsUtil.prepareUpdatesNXP(message.data)
@@ -129,7 +146,6 @@ class LibraryHop extends EventEmitter {
       joinComplete.data = joinExperiment
       this.emit('libmessage', JSON.stringify(joinComplete))
     } else if (message.task.trim() === 'remove') {
-
     } else if (message.task.trim() === 'modules-genesis') {
       let nxpContract = this.liveContractsUtil.moduleTempContractGenesis(message, this.publicLibrary)
       let libraryPublicStart = {}
@@ -210,28 +226,32 @@ class LibraryHop extends EventEmitter {
   * @method saveContractProtocol
   *
   */
-  saveContractProtocol = async function (data) {
+  saveContractProtocol = async function (saveData) {
     // pass through library composer
     let formedContract = {}
-    if (data.reftype === 'question') {
-      formedContract = this.libComposer.liveComposer.questionComposer(data.data)
-    } else if (data.reftype === 'datatype') {
-      formedContract = this.libComposer.liveComposer.datatypeComposer(data.data)
-    } else if (data.reftype === 'compute') {
-      formedContract = this.libComposer.liveComposer.computeComposer(data.data) 
-    } else if (data.reftype === 'packaging') {
-       formedContract = this.libComposer.liveComposer.packagingComposer(data.data)
-    } else if (data.reftype === 'visualise') {
-       formedContract = this.libComposer.liveComposer.visualiseComposer(data.data)
-    } else if (data.reftype === 'experiment') {
+    if (saveData.reftype === 'question') {
+      formedContract = this.libComposer.liveComposer.questionComposer(saveData.data)
+    } else if (saveData.reftype === 'datatype') {
+      formedContract = this.libComposer.liveComposer.datatypeComposer(saveData.data)
+    } else if (saveData.reftype === 'compute') {
+      formedContract = this.libComposer.liveComposer.computeComposer(saveData.data) 
+    } else if (saveData.reftype === 'packaging') {
+       formedContract = this.libComposer.liveComposer.packagingComposer(saveData.data)
+    } else if (saveData.reftype === 'visualise') {
+       formedContract = this.libComposer.liveComposer.visualiseComposer(saveData.data)
+    } else if (saveData.reftype === 'experiment') {
       // formedContract = this.libComposer. 
-    } else if (data.reftype === 'module') {
-      // liveLibrary.liveComposer.moduleComposer(data, 'update')
-      // liveComposer.experimentComposerGenesis(moduleGenesisList)
-      // liveComposer.experimentComposerJoin(moduleJoinedList)
+    } else if (saveData.reftype === 'module') {
     }
+    // console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
     let saveContract = await this.liveHolepunch.BeeData.savePubliclibrary(formedContract)
-    return saveContract
+    // format message for return
+    let saveMessage = {}
+    saveMessage.type = 'library'
+    saveMessage.action = 'referenc-contract'
+    saveMessage.task = 'save-complete'
+    saveMessage.data = saveContract
+    return saveMessage
   }
 
   /**
@@ -239,7 +259,7 @@ class LibraryHop extends EventEmitter {
   * @method assembleExperiment
   *
   */
-  assembleExperiment = async function (libData) {
+  assembleExperiment = async function (bbid, libData) {
     let libraryData = {}
     libraryData.data = 'contracts'
     libraryData.type = 'peerprivate'
@@ -252,10 +272,31 @@ class LibraryHop extends EventEmitter {
     dataNXP.type = 'nxp-contract'
     dataNXP.action = 'safeflow'
     dataNXP.data = expandedRefContsSF
+    dataNXP.bbid = bbid
     this.emit('libsafeflow', dataNXP)
     // return expandedRefContsSF
   }
   
+  /**
+  * take in query and update accordingly
+  * @method updateQueryExperiment
+  *
+  */
+  updateQueryExperiment = async function (bbid, libData) {
+    console.log('update of HOP query')
+    console.log(libData)
+    console.log(bbid)
+    let contractsPublic = this.splitMCfromRC()
+    let updateQuery = {} // this.(libData, contractsPublic.reference)
+    let dataNXP = {}
+    dataNXP.type = 'safeflow'
+    dataNXP.action = 'updatenetworkexperiment'
+    dataNXP.data = updateQuery
+    dataNXP.bbid = bbid
+    this.emit('libsafeflow', dataNXP)
+  }
+
+
   /**
   * split public library into modules and reference contracts
   * @method splitMCfromRC
@@ -536,7 +577,15 @@ class LibraryHop extends EventEmitter {
     // this.wsocket.send(JSON.stringify(libraryData))
   }
 
-    /**
+  /**
+  * call back
+  * @method callbackSFsystems
+  */
+  callbackSFsystems = function (data) {
+    this.emit('systemssafeflow', JSON.stringify(data))
+  }
+
+  /**
   * call back
   * @method callbackPeerlibrary
   */
