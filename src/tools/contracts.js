@@ -108,15 +108,43 @@ class LibContracts extends EventEmitter {
   * @method prepareUpdatesNXP
   *
   */
-  prepareUpdatesNXP = function (genesisNXP) {
+  prepareUpdatesNXP = function (updateMods) {
+    console.log('update compute and vis settings')
+    console.log(updateMods.updates)
     // loop over modules and make updates
-    let updateGen = genesisNXP.genesisnxp
+    let updateGen = updateMods.updates
     let moduleUpdate = []
-    for (let mod of updateGen.modules) {
-      moduleUpdate.push(mod)
+    for (let mod of updateMods.genesisnxp.modules) {
+      if (mod.value.style === 'compute') {
+        let currentContract = mod
+        console.log(currentContract)
+        console.log(currentContract.value.info.controls)
+        console.log(currentContract.value.info.settings)
+        currentContract.value.info.controls.date = updateGen.time
+        currentContract.value.info.controls.rangedate = []
+        currentContract.value.info.controls.rangedate.push(updateGen.time)
+        currentContract.value.info.settings.devices.push(updateGen.devices)
+        currentContract.value.info.settings.axis = updateGen.xaxis
+        currentContract.value.info.settings.yaxis = updateGen.yaxis
+        currentContract.value.info.settings.category = updateGen
+        moduleUpdate.push(currentContract)
+        // set compute controls and settings
+      } else if (mod.value.style === 'visualise') {
+        let currentContract = mod
+        console.log(currentContract)
+        console.log(currentContract.value.info.settings)
+        currentContract.value.info.settings.devices.push(updateGen.devices)
+        currentContract.value.info.settings.axis = updateGen.xaxis
+        currentContract.value.info.settings.yaxis = updateGen.yaxis
+        currentContract.value.info.settings.category = updateGen
+        moduleUpdate.push(currentContract)
+      } else {
+        moduleUpdate.push(mod)
+      }
     }
-    updateGen.modules = moduleUpdate
-    return updateGen
+    let currentNXP = updateMods.genesisnxp
+    currentNXP.modules = moduleUpdate
+    return currentNXP
   }
 
   /**
@@ -234,12 +262,6 @@ class LibContracts extends EventEmitter {
       } else if (rc?.value?.refcontract === 'visualise' && rc?.value?.computational?.name === 'chartjs') {
         refBuilds.push(rc)
       }
-      /* else if (rc.value.refcontract === 'packaging') {
-        console.log('reccc')
-        console.log(rc)
-        console.log(rc.value)
-        refBuilds.push(rc)
-      } */
     }
     // need to build a custom data packaging ref contract
     const newPackagingMap = this.defautPackagingOptions(fileName)

@@ -58,6 +58,8 @@ class LibraryHop extends EventEmitter {
       // type nxp module ref  public or private
       // pass on to function to manage
       this.contractsManage(message)
+    } else if (message.action.trim() === 'source') {
+      this.sourcedataMange(message)
     } else if (message.action.trim() === 'account') {
       this.accountManage(message)
     } else if (message.action.trim() === 'results') {
@@ -139,6 +141,7 @@ class LibraryHop extends EventEmitter {
     } else if (message.task.trim() === 'join') {
       // make or expand update settings
       let updateSettings = this.liveContractsUtil.prepareUpdatesNXP(message.data)
+      console.log(updateSettings)
       let joinExperiment = await this.liveContractsUtil.prepareJoinNXP(updateSettings)
       let joinComplete = {}
       joinComplete.type = 'library'
@@ -163,6 +166,27 @@ class LibraryHop extends EventEmitter {
       libraryPublicStart.data = nxpContract
       this.emit('libmessage', JSON.stringify(libraryPublicStart))
     }
+  }
+
+  /**
+  * gain access to file source data
+  * @method sourcedataMange
+  *
+  */
+  sourcedataMange = async function (message) {
+    if (message.task === 'GET') {
+      if (message.reftype === 'sqlite') {
+        if (message.data.query === 'tables') {
+          let columnData = await this.liveHolepunch.DriveFiles.SQLiteSourceSetup(message.data)
+          // return columns
+          this.callbackColumns(columnData, message.reftype)
+        } else if (message.data.query === 'devices') {
+          let deviceData = await this.liveHolepunch.DriveFiles.SQLiteDeviceSetup(message.data)
+          this.callbackColumns(deviceData, message.reftype)
+        }
+      }
+    }
+
   }
 
   /**
@@ -260,6 +284,7 @@ class LibraryHop extends EventEmitter {
   *
   */
   assembleExperiment = async function (bbid, libData) {
+    console.log(libData)
     let libraryData = {}
     libraryData.data = 'contracts'
     libraryData.type = 'peerprivate'
@@ -331,8 +356,9 @@ class LibraryHop extends EventEmitter {
   *
   */
   prepareSafeFlowStucture = function (moduleContracts, refContracts) {
-    // console.log('LIBHOP--ASSem--pa sf quqery')
+    console.log('LIBHOP--ASSem--pa sf quqery')
     // console.log(util.inspect(refContracts, {showHidden: false, depth: null}))
+    console.log(util.inspect(moduleContracts, {showHidden: false, depth: null}))
     let safeFlowQuery = {}
     let modKeys = []
     safeFlowQuery = moduleContracts
@@ -914,8 +940,23 @@ class LibraryHop extends EventEmitter {
     libraryData.networkExpModules = this.libComposer.liveRefcontUtility.expMatchModuleGenesis(libraryData.referenceContracts.module, nxpSplit.genesis)
     libraryData.networkPeerExpModules = this.libComposer.liveRefcontUtility.expMatchModuleJoined(libraryData.referenceContracts.module, nxpSplit.joined)
     this.emit('libmessage', JSON.stringify(libraryData))
-    // this.wsocket.send(JSON.stringify(libraryData))
   }
+
+  /**
+  * call back kb ledger
+  * @method 
+  */
+  callbackColumns = function (data,fileType) {
+    // pass to sort data into ref contract types
+    let libraryData = {}
+    libraryData.type = 'library'
+    libraryData.action = 'source'
+    libraryData.privacy = 'private'
+    libraryData.reftype =  fileType
+    libraryData.data = data
+    this.emit('libmessage', JSON.stringify(libraryData))
+  }
+    
 
 }
 
