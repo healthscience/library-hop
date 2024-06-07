@@ -136,7 +136,6 @@ class LibraryHop extends EventEmitter {
       this.callbackSFsystems(publibData)
     } else if (message.task.trim() === 'replicate') {
     } else if (message.task.trim() === 'assemble') {
-      console.log(message)
       this.assembleExperiment(message.bbid, message.data)
     } else if (message.task.trim() === 'join') {
       // make or expand update settings
@@ -165,6 +164,9 @@ class LibraryHop extends EventEmitter {
       libraryPublicStart.privacy = 'public'
       libraryPublicStart.data = nxpContract
       this.emit('libmessage', JSON.stringify(libraryPublicStart))
+    } else if (message.task.trim() === 'update-hopquery') {
+      console.log('--------update to exisign ENITTY----')
+     this.updateQueryContracts(message.bbid, message)
     }
   }
 
@@ -301,7 +303,38 @@ class LibraryHop extends EventEmitter {
     this.emit('libsafeflow', dataNXP)
     // return expandedRefContsSF
   }
-  
+
+  /**
+  * assess update to query and prepare HOP query module contracts
+  * @method updateQueryContracts
+  *
+  */
+  updateQueryContracts = async function (bbid, queryUpdate) {
+    console.log('LIB--queryupdate')
+    console.log(queryUpdate)
+    // update controls and settings usually
+    let modulesUpdate = queryUpdate.data.update.modules
+    let changes = queryUpdate.data.update.changes
+    console.log(modulesUpdate)
+    console.log(changes)
+    for (let mod of modulesUpdate) {
+      if (mod.value.style === 'compute') {
+        // update controls
+        console.log('compute')
+        console.log(mod.value)
+        mod.value.info.controls = changes.compute.controls
+        console.log('uupdudpdudpu')
+        console.log(mod.value)
+      }
+    }
+    let dataNXP = {}
+    dataNXP.type = 'update-hopquery'
+    dataNXP.action = 'safeflow'
+    dataNXP.data = queryUpdate.data
+    dataNXP.bbid = bbid
+    this.emit('libsafeflow-update', dataNXP)
+  }
+
   /**
   * take in query and update accordingly
   * @method updateQueryExperiment
