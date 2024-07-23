@@ -40,7 +40,6 @@ class LibraryHop extends EventEmitter {
   *
   */
   systemsContracts = async function () {
-    console.log('LIB--star styem contracts')
     let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRange(100)
     this.callbackSFsystems(publibData)
   }
@@ -55,7 +54,6 @@ class LibraryHop extends EventEmitter {
     // need break this up  each action should have sub type
     // nxp, contracts modules and reference
     if (message.action.trim() === 'contracts') {
-      // type nxp module ref  public or private
       // pass on to function to manage
       this.contractsManage(message)
     } else if (message.action.trim() === 'source') {
@@ -140,7 +138,6 @@ class LibraryHop extends EventEmitter {
     } else if (message.task.trim() === 'join') {
       // make or expand update settings
       let updateSettings = this.liveContractsUtil.prepareUpdatesNXP(message.data)
-      console.log(updateSettings)
       let joinExperiment = await this.liveContractsUtil.prepareJoinNXP(updateSettings)
       let joinComplete = {}
       joinComplete.type = 'library'
@@ -165,7 +162,7 @@ class LibraryHop extends EventEmitter {
       libraryPublicStart.data = nxpContract
       this.emit('libmessage', JSON.stringify(libraryPublicStart))
     } else if (message.task.trim() === 'update-hopquery') {
-      console.log('--------update to exisign ENITTY----')
+      console.log('LIB_HOP--------update to exisign ENITTY----')
      this.updateQueryContracts(message.bbid, message)
     }
   }
@@ -286,7 +283,6 @@ class LibraryHop extends EventEmitter {
   *
   */
   assembleExperiment = async function (bbid, libData) {
-    console.log(libData)
     let libraryData = {}
     libraryData.data = 'contracts'
     libraryData.type = 'peerprivate'
@@ -310,21 +306,51 @@ class LibraryHop extends EventEmitter {
   *
   */
   updateQueryContracts = async function (bbid, queryUpdate) {
-    console.log('LIB--queryupdate')
+    console.log('LIB-hop---update preop')
     console.log(queryUpdate)
-    // update controls and settings usually
     let modulesUpdate = queryUpdate.data.update.modules
+    // need to source latest compute module contract from library as need latest contract
+    let latestComputeModule = {}
+    for (let mod of modulesUpdate) {
+      if (mod.value.style === 'compute') {
+        // latestComputeModule = await this.liveContractsUtil.latestModuleContract('compute', mod)
+      }
+    }
+    // update controls selected and settings all options for toolbars
     let changes = queryUpdate.data.update.changes
-    console.log(modulesUpdate)
+    console.log('changes from last compute')
     console.log(changes)
+    console.log(changes.compute.controls.rangedate)
+    let changeItems = Object.keys(queryUpdate.data.update.changes.compute.controls)
+    // console.log(changes)
+    // console.log(changeItems)
+    let cloneControls = {}
     for (let mod of modulesUpdate) {
       if (mod.value.style === 'compute') {
         // update controls
-        console.log('compute')
-        console.log(mod.value)
-        mod.value.info.controls = changes.compute.controls
-        console.log('uupdudpdudpu')
-        console.log(mod.value)
+        console.log('================  update contract  ========')
+        // console.log(latestComputeModule)
+        // what are exsting controls set?  keep and update
+        console.log(mod.value.info.controls)
+        let controlKeys = Object.keys(mod.value.info.controls)
+        if (controlKeys.length > 0) {
+          // item already set and need updating?
+          for (let ck of changeItems) {
+            let checkSetck = controlKeys.includes(ck)
+            if (checkSetck === true) {
+              mod.value.info.controls[ck] = changes.compute.controls[ck]
+            } else {
+              mod.value.info.controls[ck] = changes.compute.controls[ck] // queryUpdate.data.update.changes.compute.controls[ck]
+            }
+          }
+        } else {
+          mod.value.info.controls = changes.compute.controls
+        }
+        cloneControls = mod.value.info.controls
+        console.log('__________updateged controls-----------------')
+        console.log(mod.value.info.controls)
+      } else if (mod.value.style === 'visualise') {
+        mod.value.info.controls = cloneControls
       }
     }
     let dataNXP = {}
@@ -341,9 +367,6 @@ class LibraryHop extends EventEmitter {
   *
   */
   updateQueryExperiment = async function (bbid, libData) {
-    console.log('update of HOP query')
-    console.log(libData)
-    console.log(bbid)
     let contractsPublic = this.splitMCfromRC()
     let updateQuery = {} // this.(libData, contractsPublic.reference)
     let dataNXP = {}
@@ -389,9 +412,8 @@ class LibraryHop extends EventEmitter {
   *
   */
   prepareSafeFlowStucture = function (moduleContracts, refContracts) {
-    console.log('LIBHOP--ASSem--pa sf quqery')
     // console.log(util.inspect(refContracts, {showHidden: false, depth: null}))
-    console.log(util.inspect(moduleContracts, {showHidden: false, depth: null}))
+    // console.log(util.inspect(moduleContracts, {showHidden: false, depth: null}))
     let safeFlowQuery = {}
     let modKeys = []
     safeFlowQuery = moduleContracts
@@ -407,7 +429,8 @@ class LibraryHop extends EventEmitter {
       if(tmc.value.type === 'question') {
         expandedModules.push(expandMod)
       } else if(tmc.value.style === 'packaging') {
-        let extractRC = refContracts.filter(e => e.value.refcontract === 'packaging')
+        // need a better filter. match to contract ID coming in not the first TODO      
+        let extractRC = refContracts.filter(e => e.key === tmc.value.info.key)
         expandMod.value.info.packaging = extractRC[0]
         expandedModules.push(expandMod)
       } else if (tmc.value.style === 'compute') {

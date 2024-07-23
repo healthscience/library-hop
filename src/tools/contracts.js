@@ -42,6 +42,40 @@ class LibContracts extends EventEmitter {
     return libraryData
   }
 
+
+  /**
+  * new module contracts (temporary for creation of new )
+  * @method latestModuleContract
+  *
+  */
+  latestModuleContract = async function (modStyle, module) {
+    console.log('get latest module contract')
+    console.log(modStyle)
+    console.log(module)
+    console.log(module.key)
+    if (modStyle === 'compute') {
+      const getModulesComputeLINK = await this.liveHolepunch.BeeData.getPeerLibComputeModules(module.key)
+      // console.log('back from HPO query compute')
+      for await (const { seq, value } of getModulesComputeLINK) {
+        // console.log(seq)
+        // console.log(value.link)
+      }
+      let allComputesperKey = []
+      for await (const { key, value } of getModulesComputeLINK) {
+        if (value.link === module.key) {
+          // console.log('data from query')
+          // console.log(key)
+          // console.log(value)
+          allComputesperKey.push({ key: key, value: value})
+        }
+      }
+      return allComputesperKey[0]
+    } else if (modStyle === 'visualisation') {
+      console.log('visualisation')
+    }
+  }
+
+
   /**
   * new module contracts (temporary for creation of new )
   * @method moduleContractGenesis
@@ -109,34 +143,48 @@ class LibContracts extends EventEmitter {
   *
   */
   prepareUpdatesNXP = function (updateMods) {
-    console.log('update compute and vis settings')
+    console.log('LIBHOP---update compute and vis settings')
     console.log(updateMods.updates)
+    console.log(updateMods.updates.opendata)
     // loop over modules and make updates
     let updateGen = updateMods.updates
     let moduleUpdate = []
     for (let mod of updateMods.genesisnxp.modules) {
       if (mod.value.style === 'compute') {
         let currentContract = mod
-        console.log(currentContract)
-        console.log(currentContract.value.info.controls)
-        console.log(currentContract.value.info.settings)
+        // console.log(currentContract)
+        // console.log(currentContract.value.info.controls)
+        // console.log(currentContract.value.info.settings)
+        currentContract.value.info.controls.devices = updateGen.devices
+        currentContract.value.info.controls.xaxis = updateGen.xaxis
+        currentContract.value.info.controls.yaxis = updateGen.yaxis
+        currentContract.value.info.controls.category = updateGen.category
         currentContract.value.info.controls.date = updateGen.time
         currentContract.value.info.controls.rangedate = []
         currentContract.value.info.controls.rangedate.push(updateGen.time)
+        currentContract.value.info.controls.tidy = updateGen.tidy
+        currentContract.value.info.controls.category = updateGen.category
+        currentContract.value.info.controls.resolution = updateGen.resolution
+        currentContract.value.info.controls.timeformat = updateGen.timeformat
+        currentContract.value.info.controls.chartstyle = updateGen.chartstyle
+        // settings all available options
         currentContract.value.info.settings.devices.push(updateGen.devices)
-        currentContract.value.info.settings.axis = updateGen.xaxis
+        currentContract.value.info.settings.deviceOptions = updateGen.opendata.devices
+        currentContract.value.info.settings.xaxis = updateGen.xaxis
         currentContract.value.info.settings.yaxis = updateGen.yaxis
-        currentContract.value.info.settings.category = updateGen
+        currentContract.value.info.settings.category = updateGen.category
+        currentContract.value.info.settings.timeformat = updateGen.timeformat
         moduleUpdate.push(currentContract)
         // set compute controls and settings
       } else if (mod.value.style === 'visualise') {
         let currentContract = mod
-        console.log(currentContract)
-        console.log(currentContract.value.info.settings)
+        // console.log(currentContract)
+        // console.log(currentContract.value.info.settings)
         currentContract.value.info.settings.devices.push(updateGen.devices)
         currentContract.value.info.settings.axis = updateGen.xaxis
         currentContract.value.info.settings.yaxis = updateGen.yaxis
-        currentContract.value.info.settings.category = updateGen
+        currentContract.value.info.settings.category = updateGen.category
+        currentContract.value.info.settings.timeformat = updateGen.selectedTimeFormat
         moduleUpdate.push(currentContract)
       } else {
         moduleUpdate.push(mod)
@@ -144,6 +192,8 @@ class LibContracts extends EventEmitter {
     }
     let currentNXP = updateMods.genesisnxp
     currentNXP.modules = moduleUpdate
+    console.log('controls select and all settings availabe')
+    console.log(currentNXP)
     return currentNXP
   }
 
@@ -362,7 +412,7 @@ class LibContracts extends EventEmitter {
           xaxis: '',
           yaxis: [ 'blind1234555554321' ],
           resolution: '',
-          setTimeFormat: ''
+          timeformat: ''
         }
         dataMCRC.controls = controls
         dataMCRC.settings = settings
@@ -383,7 +433,7 @@ class LibContracts extends EventEmitter {
           xaxis: '',
           yaxis: [ '' ],
           resolution: '',
-          setTimeFormat: '',
+          timeformat: '',
           single: true,
           multidata: false
         }
@@ -609,7 +659,7 @@ class LibContracts extends EventEmitter {
       xaxis: '',
       yaxis: [ 'blind1234555554321' ],
       resolution: '',
-      setTimeFormat: '',
+      timeformat: '',
       single: true,
       multidata: false
     }
@@ -634,7 +684,7 @@ class LibContracts extends EventEmitter {
       xaxis: '',
       yaxis: [],
       resolution: '',
-      setTimeFormat: ''
+      timeformat: ''
     }
     return settings
   }
