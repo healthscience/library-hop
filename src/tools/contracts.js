@@ -49,29 +49,18 @@ class LibContracts extends EventEmitter {
   *
   */
   latestModuleContract = async function (modStyle, module) {
-    console.log('get latest module contract')
-    console.log(modStyle)
-    console.log(module)
-    console.log(module.key)
     if (modStyle === 'compute') {
       const getModulesComputeLINK = await this.liveHolepunch.BeeData.getPeerLibComputeModules(module.key)
-      // console.log('back from HPO query compute')
       for await (const { seq, value } of getModulesComputeLINK) {
-        // console.log(seq)
-        // console.log(value.link)
       }
       let allComputesperKey = []
       for await (const { key, value } of getModulesComputeLINK) {
         if (value.link === module.key) {
-          // console.log('data from query')
-          // console.log(key)
-          // console.log(value)
           allComputesperKey.push({ key: key, value: value})
         }
       }
       return allComputesperKey[0]
     } else if (modStyle === 'visualisation') {
-      console.log('visualisation')
     }
   }
 
@@ -85,8 +74,6 @@ class LibContracts extends EventEmitter {
     let minStartlist = this.minModulesetup()
     // take the genesis and make new instances of the Module Contracts i.e. unique keys
     let tempModContracts = this.tempModuleContractsCreate(minStartlist, inputSpec)
-    // console.log('temp modules')
-    // console.log(tempModContracts)
     // extract data, compute and visualisation ref contracts
     let contractsPublic = this.splitMCfromRC(publicLib)
     // extract out observaation compute and charting ref contracts,  packaging more work required, need save data and then create new data packaging contract, add settings controls to compute ref and settings to vis ref. contract
@@ -143,18 +130,12 @@ class LibContracts extends EventEmitter {
   *
   */
   prepareUpdatesNXP = function (updateMods) {
-    console.log('LIBHOP---update compute and vis settings')
-    console.log(updateMods.updates)
-    console.log(updateMods.updates.opendata)
     // loop over modules and make updates
     let updateGen = updateMods.updates
     let moduleUpdate = []
     for (let mod of updateMods.genesisnxp.modules) {
       if (mod.value.style === 'compute') {
         let currentContract = mod
-        // console.log(currentContract)
-        // console.log(currentContract.value.info.controls)
-        // console.log(currentContract.value.info.settings)
         currentContract.value.info.controls.devices = updateGen.devices
         currentContract.value.info.controls.xaxis = updateGen.xaxis
         currentContract.value.info.controls.yaxis = updateGen.yaxis
@@ -178,8 +159,6 @@ class LibContracts extends EventEmitter {
         // set compute controls and settings
       } else if (mod.value.style === 'visualise') {
         let currentContract = mod
-        // console.log(currentContract)
-        // console.log(currentContract.value.info.settings)
         currentContract.value.info.settings.devices.push(updateGen.devices)
         currentContract.value.info.settings.axis = updateGen.xaxis
         currentContract.value.info.settings.yaxis = updateGen.yaxis
@@ -192,8 +171,6 @@ class LibContracts extends EventEmitter {
     }
     let currentNXP = updateMods.genesisnxp
     currentNXP.modules = moduleUpdate
-    console.log('controls select and all settings availabe')
-    console.log(currentNXP)
     return currentNXP
   }
 

@@ -106,8 +106,12 @@ class LibraryHop extends EventEmitter {
         // this.callbackPeerLibAllBoard(message.data, privateALL)
         this.callbackPeerLib(message.data, peerLib)
       } else if (message.privacy === 'public') {
-        let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRange(100)
-        this.callbacklibrary(publibData)
+        if (message.reftype === 'refresh-publiclibrary') {
+          this.startLibrary()
+        } else {
+          let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRange(100)
+          this.callbacklibrary(publibData)
+        }
       }
     } else if (message.task.trim() === 'PUT') {
       // public or private library?
@@ -116,9 +120,13 @@ class LibraryHop extends EventEmitter {
         let saveFeedback = await this.saveFileManager(message)
         // this.emit('libmessage', JSON.stringify(saveFeedback))
       } else if (message.privacy === 'public') {
-        // need check if composer needed to form contract and then save
-        let saveFeedback = await this.saveContractProtocol(message)
-        this.emit('libmessage', JSON.stringify(saveFeedback))
+        if (message?.reftype === 'confirm-add') {
+          this.liveHolepunch.BeeData.addConfrimPublicLibrary(message.data)
+        } else {
+          // need check if composer needed to form contract and then save
+          let saveFeedback = await this.saveContractProtocol(message)
+          this.emit('libmessage', JSON.stringify(saveFeedback))
+        }
       }
     } else if (message.task.trim() === 'DEL') {
       if (message.privacy === 'private') {
@@ -306,8 +314,6 @@ class LibraryHop extends EventEmitter {
   *
   */
   updateQueryContracts = async function (bbid, queryUpdate) {
-    console.log('LIB-hop---update preop')
-    console.log(queryUpdate)
     let modulesUpdate = queryUpdate.data.update.modules
     // need to source latest compute module contract from library as need latest contract
     let latestComputeModule = {}
@@ -318,20 +324,13 @@ class LibraryHop extends EventEmitter {
     }
     // update controls selected and settings all options for toolbars
     let changes = queryUpdate.data.update.changes
-    console.log('changes from last compute')
-    console.log(changes)
-    console.log(changes.compute.controls.rangedate)
     let changeItems = Object.keys(queryUpdate.data.update.changes.compute.controls)
-    // console.log(changes)
-    // console.log(changeItems)
     let cloneControls = {}
     for (let mod of modulesUpdate) {
       if (mod.value.style === 'compute') {
         // update controls
-        console.log('================  update contract  ========')
         // console.log(latestComputeModule)
         // what are exsting controls set?  keep and update
-        console.log(mod.value.info.controls)
         let controlKeys = Object.keys(mod.value.info.controls)
         if (controlKeys.length > 0) {
           // item already set and need updating?
@@ -347,8 +346,6 @@ class LibraryHop extends EventEmitter {
           mod.value.info.controls = changes.compute.controls
         }
         cloneControls = mod.value.info.controls
-        console.log('__________updateged controls-----------------')
-        console.log(mod.value.info.controls)
       } else if (mod.value.style === 'visualise') {
         mod.value.info.controls = cloneControls
       }
