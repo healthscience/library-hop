@@ -13,6 +13,7 @@ import util from 'util'
 import EventEmitter from 'events'
 import LibComposer from 'librarycomposer'
 import ContractsUtil from './tools/contracts.js'
+import { start } from 'repl'
 
 class LibraryHop extends EventEmitter {
 
@@ -99,6 +100,8 @@ class LibraryHop extends EventEmitter {
   *
   */
   contractsManage = async function (message) {
+    console.log('contract mangaer')
+    console.log(message)
     if (message.task.trim() === 'GET') {
       // public or private library?
       if (message.privacy === 'private') {
@@ -128,6 +131,12 @@ class LibraryHop extends EventEmitter {
           this.emit('libmessage', JSON.stringify(saveFeedback))
         }
       }
+    } else if (message.task.trim() === 'PUT-stream') {
+      if (message.privacy === 'private') {
+        await this.saveStreamFileManager(message)
+       } else if (message.privacy === 'privacy') {
+
+       }
     } else if (message.task.trim() === 'DEL') {
       if (message.privacy === 'private') {
         // private
@@ -193,7 +202,6 @@ class LibraryHop extends EventEmitter {
         }
       }
     }
-
   }
 
   /**
@@ -530,6 +538,36 @@ class LibraryHop extends EventEmitter {
   }
 
   /**
+  * save stream file manager
+  * @method saveStreamFileManager
+  */
+  saveStreamFileManager = async function (saveData) {
+    console.log('file stream manaager')
+    console.log(saveData.data.firstchunk)
+    console.log(saveData.data.offset)
+    if (saveData.data.filesize === saveData.data.offset) {
+      await this.liveHolepunch.DriveFiles.streamSaveComplete(saveData.data.chunk)
+    } else if (saveData.data.firstchunk === true) {
+      console.log('first chunck')
+      await this.liveHolepunch.DriveFiles.hyperdriveStreamSave('/test/large.csv', saveData.data.chunk, true)
+    } else {
+      // stream chunk to save
+      await this.liveHolepunch.DriveFiles.streamSavedata('/test/large.csv', saveData.data.chunk)
+    }
+
+    /*
+      let fileFeedback = {}
+      fileFeedback.success = true
+      fileFeedback.data = saveFeedback
+      let storeFeedback = {}
+      storeFeedback.type = 'library'
+      storeFeedback.action = 'save-file'
+      storeFeedback.data = fileFeedback
+      this.emit('libmessage', JSON.stringify(storeFeedback))
+    */
+  }
+
+  /**
   * bentobox info gathering
   * @method bentoPath
   */
@@ -702,7 +740,6 @@ class LibraryHop extends EventEmitter {
   * @method 
   */
   callbackReplicatelibrary = function (data) {
-
     // pass to sort data into ref contract types
     libraryData = {}
     libraryData.data = 'contracts'
