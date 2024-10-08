@@ -57,6 +57,8 @@ class LibraryHop extends EventEmitter {
     if (message.action.trim() === 'contracts') {
       // pass on to function to manage
       this.contractsManage(message)
+    } else if (message.action.trim() === 'cues') {
+      this.cueManage(message)
     } else if (message.action.trim() === 'source') {
       this.sourcedataMange(message)
     } else if (message.action.trim() === 'account') {
@@ -181,6 +183,46 @@ class LibraryHop extends EventEmitter {
     } else if (message.task.trim() === 'update-hopquery') {
       console.log('LIB_HOP--------update to exisign ENITTY----')
      this.updateQueryContracts(message.bbid, message)
+    }
+  }
+
+  /**
+  * mange cues from bentoboxDS
+  * @method 
+  *
+  */
+  cueManage = async function (message) {
+    console.log('cues mange')
+    if (message.task.trim() === 'GET') {
+      // public or private library?
+      if (message.privacy === 'private') {
+        let cuesLib = await this.liveHolepunch.BeeData.getCues(100)
+        // this.callbackCuesLib(message.data, cuesLib)
+      } else if (message.privacy === 'public') {
+        if (message.reftype === 'gift') {
+          // this.startCues()
+        } else {
+          // let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRange(100)
+          // this.callbacklibrary(publibData)
+        }
+      }
+    } else if (message.task.trim() === 'PUT') {
+      if (message.privacy === 'private') { 
+        // pass to save manager, file details extract, prep contract
+        // let saveFeedback = await this.saveCueManager(message)
+        // this.emit('libmessage', JSON.stringify(saveFeedback))
+      } else if (message.privacy === 'public') {
+        if (message?.reftype === 'confirm-add') {
+          // this.liveHolepunch.BeeData.addConfrimCues(message.data)
+        } else {
+          // need check if composer needed to form contract and then save
+          let saveFeedback = {}
+          saveFeedback.type = 'library'
+          saveFeedback.action = 'save-cue'
+          // let saveFeedback = await this.saveCuerelationship(message)
+          this.emit('libmessage', JSON.stringify(saveFeedback))
+        }
+      }
     }
   }
 
@@ -417,8 +459,8 @@ class LibraryHop extends EventEmitter {
   *
   */
   prepareSafeFlowStucture = function (moduleContracts, refContracts) {
-    // console.log(util.inspect(refContracts, {showHidden: false, depth: null}))
-    // console.log(util.inspect(moduleContracts, {showHidden: false, depth: null}))
+    console.log(util.inspect(refContracts, {showHidden: false, depth: null}))
+    console.log(util.inspect(moduleContracts, {showHidden: false, depth: null}))
     let safeFlowQuery = {}
     let modKeys = []
     safeFlowQuery = moduleContracts
@@ -434,8 +476,11 @@ class LibraryHop extends EventEmitter {
       if(tmc.value.type === 'question') {
         expandedModules.push(expandMod)
       } else if(tmc.value.style === 'packaging') {
+        console.log('packaging input')
+        console.log(tmc.value.info.key)
         // need a better filter. match to contract ID coming in not the first TODO      
         let extractRC = refContracts.filter(e => e.key === tmc.value.info.key)
+        console.log(extractRC)
         expandMod.value.info.packaging = extractRC[0]
         expandedModules.push(expandMod)
       } else if (tmc.value.style === 'compute') {
@@ -542,13 +587,9 @@ class LibraryHop extends EventEmitter {
   * @method saveStreamFileManager
   */
   saveStreamFileManager = async function (saveData) {
-    console.log('file stream manaager')
-    console.log(saveData.data.firstchunk)
-    console.log(saveData.data.offset)
     if (saveData.data.filesize === saveData.data.offset) {
       await this.liveHolepunch.DriveFiles.streamSaveComplete(saveData.data.chunk)
     } else if (saveData.data.firstchunk === true) {
-      console.log('first chunck')
       await this.liveHolepunch.DriveFiles.hyperdriveStreamSave('/test/large.csv', saveData.data.chunk, true)
     } else {
       // stream chunk to save
