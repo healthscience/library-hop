@@ -13,7 +13,11 @@ import util from 'util'
 import EventEmitter from 'events'
 import LibComposer from 'librarycomposer'
 import ContractsUtil from './tools/contracts.js'
-import { start } from 'repl'
+import CuesUtil from './cues/makeContract.js'
+import MediaUtil from './media/makeContract.js'
+import ResearchUtil from './research/makeContract.js'
+import MarkerUtil from './marker/makeContract.js'
+import ProductUtil from './product/makeContract.js'
 
 class LibraryHop extends EventEmitter {
 
@@ -22,6 +26,11 @@ class LibraryHop extends EventEmitter {
     this.liveHolepunch = Holepunch
     this.libComposer = new LibComposer()
     this.liveContractsUtil = new ContractsUtil(this.liveHolepunch, this.libComposer)
+    this.liveCuesUtil = new CuesUtil(this.liveHolepunch, this.libComposer)
+    this.liveMediaUtil = new MediaUtil(this.liveHolepunch, this.libComposer)
+    this.liveResearchUtil = new ResearchUtil(this.liveHolepunch, this.libComposer)
+    this.liveMarkerUtil = new MarkerUtil(this.liveHolepunch, this.libComposer)
+    this.liveProductUtil = new ProductUtil(this.liveHolepunch, this.libComposer)
     this.publicLibrary = {} // public library modules and reference contracts
     this.peerLibdata = {}  // peers private library store
   }
@@ -58,7 +67,7 @@ class LibraryHop extends EventEmitter {
       // pass on to function to manage
       this.contractsManage(message)
     } else if (message.action.trim() === 'cues') {
-      this.cueManage(message)
+      this.liveCuesUtil.cueManage(message)
     } else if (message.action.trim() === 'source') {
       this.sourcedataMange(message)
     } else if (message.action.trim() === 'account') {
@@ -69,6 +78,14 @@ class LibraryHop extends EventEmitter {
       this.ledgerManage(message)
     } else if (message.action.trim() === 'models') {
       this.modelsManage(message)
+    } else if (message.action.trim() === 'media') {
+      this.liveMediaUtils.mediaManage(message)
+    } else if (message.action.trim() === 'research') {
+      this.liveResearchUtil.researchManage(message)
+    } else if (message.action.trim() === 'marker') {
+      this.liveResearchUtil.markerManage(message)
+    } else if (message.action.trim() === 'products') {
+      this.liveProductUtil.productManage(message)
     } else if (message.action.trim() === 'start') {
       this.peerLibdata = await this.liveHolepunch.BeeData.getPeerLibraryRange(100)
       let returnPeerData = this.liveContractsUtil.libraryQuerypath('query', 'peerlibrary', this.peerLibdata)
@@ -187,23 +204,22 @@ class LibraryHop extends EventEmitter {
   }
 
   /**
-  * mange cues from bentoboxDS
-  * @method 
+  * mange media
+  * @method mediaManage
   *
   */
-  cueManage = async function (message) {
-    console.log('cues mange')
+  mediaManage = async function (message) {
     if (message.task.trim() === 'GET') {
       // public or private library?
       if (message.privacy === 'private') {
-        let cuesLib = await this.liveHolepunch.BeeData.getCues(100)
+        let cuesLib = await this.liveHolepunch.BeeData.getMedia(100)
         // this.callbackCuesLib(message.data, cuesLib)
       } else if (message.privacy === 'public') {
-        if (message.reftype === 'gift') {
+        if (message.reftype === 'start-media') {
           // this.startCues()
         } else {
-          // let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRange(100)
-          // this.callbacklibrary(publibData)
+          let publibCues = await this.liveHolepunch.BeeData.saveMedia(message.data)
+          this.callbackmedia(publibCues)
         }
       }
     } else if (message.task.trim() === 'PUT') {
@@ -212,16 +228,126 @@ class LibraryHop extends EventEmitter {
         // let saveFeedback = await this.saveCueManager(message)
         // this.emit('libmessage', JSON.stringify(saveFeedback))
       } else if (message.privacy === 'public') {
-        if (message?.reftype === 'confirm-add') {
-          // this.liveHolepunch.BeeData.addConfrimCues(message.data)
+        // need check if composer needed to form contract and then save
+        let saveContract = await this.saveMediaProtocol(message)
+        let saveMessage = {}
+        saveMessage.type = 'library'
+        saveMessage.action = 'media-contract'
+        saveMessage.task = 'save-complete'
+        saveMessage.data = saveContract
+        this.emit('libmessage', JSON.stringify(saveFeedback))
+      }
+    }
+  }
+
+
+  /**
+  * mange research
+  * @method researchManage
+  *
+  */
+  researchManage = async function (message) {
+    if (message.task.trim() === 'GET') {
+      // public or private library?
+      if (message.privacy === 'private') {
+        let cuesLib = await this.liveHolepunch.BeeData.getResearch(100)
+        // this.callbackCuesLib(message.data, cuesLib)
+      } else if (message.privacy === 'public') {
+        if (message.reftype === 'start-research') {
+          // this.startCues()
         } else {
-          // need check if composer needed to form contract and then save
-          let saveFeedback = {}
-          saveFeedback.type = 'library'
-          saveFeedback.action = 'save-cue'
-          // let saveFeedback = await this.saveCuerelationship(message)
-          this.emit('libmessage', JSON.stringify(saveFeedback))
+          let publibCues = await this.liveHolepunch.BeeData.saveResearch(message.data)
+          this.callbackresearch(publibCues)
         }
+      }
+    } else if (message.task.trim() === 'PUT') {
+      if (message.privacy === 'private') { 
+        // pass to save manager, file details extract, prep contract
+        // let saveFeedback = await this.saveCueManager(message)
+        // this.emit('libmessage', JSON.stringify(saveFeedback))
+      } else if (message.privacy === 'public') {
+        // need check if composer needed to form contract and then save
+        let saveContract = await this.saveResearchProtocol(message)
+        let saveMessage = {}
+        saveMessage.type = 'library'
+        saveMessage.action = 'research-contract'
+        saveMessage.task = 'save-complete'
+        saveMessage.data = saveContract
+        this.emit('libmessage', JSON.stringify(saveFeedback))
+      }
+    }
+  }
+
+  /**
+  * mange marker
+  * @method markerManage
+  *
+  */
+  markerManage = async function (message) {
+    if (message.task.trim() === 'GET') {
+      // public or private library?
+      if (message.privacy === 'private') {
+        let cuesLib = await this.liveHolepunch.BeeData.getMarker(100)
+        // this.callbackCuesLib(message.data, cuesLib)
+      } else if (message.privacy === 'public') {
+        if (message.reftype === 'start-media') {
+          // this.startCues()
+        } else {
+          let publibCues = await this.liveHolepunch.BeeData.saveMarker(message.data)
+          this.callbackmedia(publibCues)
+        }
+      }
+    } else if (message.task.trim() === 'PUT') {
+      if (message.privacy === 'private') { 
+        // pass to save manager, file details extract, prep contract
+        // let saveFeedback = await this.saveCueManager(message)
+        // this.emit('libmessage', JSON.stringify(saveFeedback))
+      } else if (message.privacy === 'public') {
+        // need check if composer needed to form contract and then save
+        let saveContract = await this.saveMarkerProtocol(message)
+        let saveMessage = {}
+        saveMessage.type = 'library'
+        saveMessage.action = 'marker-contract'
+        saveMessage.task = 'save-complete'
+        saveMessage.data = saveContract
+        this.emit('libmessage', JSON.stringify(saveFeedback))
+      }
+    }
+  }
+
+  /**
+  * mange product
+  * @method productManage
+  *
+  */
+  productManage = async function (message) {
+    if (message.task.trim() === 'GET') {
+      // public or private library?
+      if (message.privacy === 'private') {
+        let cuesLib = await this.liveHolepunch.BeeData.getProduct(100)
+        // this.callbackCuesLib(message.data, cuesLib)
+      } else if (message.privacy === 'public') {
+        if (message.reftype === 'start-produt') {
+          // this.startCues()
+        } else {
+          let publibCues = await this.liveHolepunch.BeeData.saveProduct(message.data)
+          this.callbackmedia(publibCues)
+        }
+      }
+    } else if (message.task.trim() === 'PUT') {
+      if (message.privacy === 'private') { 
+        // pass to save manager, file details extract, prep contract
+        // let saveFeedback = await this.saveCueManager(message)
+        // this.emit('libmessage', JSON.stringify(saveFeedback))
+      } else if (message.privacy === 'public') {
+        // need check if composer needed to form contract and then save
+        let saveContract = await this.saveProdutProtocol(message)
+        let saveMessage = {}
+        saveMessage.type = 'library'
+        saveMessage.action = 'product-contract'
+        saveMessage.task = 'save-complete'
+        saveMessage.data = saveContract
+        this.emit('libmessage', JSON.stringify(saveFeedback))
       }
     }
   }
@@ -329,7 +455,7 @@ class LibraryHop extends EventEmitter {
     // format message for return
     let saveMessage = {}
     saveMessage.type = 'library'
-    saveMessage.action = 'referenc-contract'
+    saveMessage.action = 'reference-contract'
     saveMessage.task = 'save-complete'
     saveMessage.data = saveContract
     return saveMessage
@@ -712,6 +838,18 @@ class LibraryHop extends EventEmitter {
     libraryData.type = 'datatype-rc'
     libraryData.data = data
     this.emit('libmessage', JSON.stringify(libraryData))
+  }
+
+  /**
+  * call back save cues
+  * @method callbackcues
+  */
+  callbackcues = function (data) {
+    let libraryCues = {}
+    libraryCues.data = 'contracts'
+    libraryCues.type = 'cues'
+    libraryCues.data = data
+    this.emit('libmessage', JSON.stringify(libraryCues))
   }
 
   /**

@@ -214,7 +214,7 @@ class LibContracts extends EventEmitter {
   * @method minModulesetup
   *
   */
-  minModulesetup = function (beebeeIN, publicLib, fileInfo) {
+  minModulesetup = function () {
     let ModulesMinrequired = ['question', 'packaging', 'compute', 'visualise']
     let minStartlist = []
     for (const mtype of ModulesMinrequired) {
@@ -444,8 +444,41 @@ class LibContracts extends EventEmitter {
   */
   modulesGenesis = function () {  
     const moduleContracts = []
+    // Module holder to contain reference contracts
+    const modCueBundle = {}
+    modCueBundle.reftype = 'module'
+    modCueBundle.style = 'cue'
+    modCueBundle.primary = 'genesis'
+    modCueBundle.description = 'attends to intelligence signals'
+    modCueBundle.concept = ''
+    modCueBundle.relationship = []
+    modCueBundle.grid = []
+    moduleContracts.push(modCueBundle)
+    // Module holder to contains stages cues, prompts, order
+    const modPathsBundle = {}
+    modPathsBundle.reftype = 'module'
+    modPathsBundle.style = 'paths'
+    modPathsBundle.primary = 'genesis'
+    modPathsBundle.description = 'flow through cues & data'
+    modPathsBundle.concept = ''
+    modPathsBundle.stages = []
+    modPathsBundle.relationship = []
+    modPathsBundle.grid = []
+    moduleContracts.push(modPathsBundle)
+    // Module holder for decision making
+    const modDecisionBundle = {}
+    modDecisionBundle.reftype = 'module'
+    modDecisionBundle.style = 'paths'
+    modDecisionBundle.primary = 'genesis'
+    modDecisionBundle.description = 'flow through cues & data'
+    modDecisionBundle.concept = ''
+    modDecisionBundle.oracle = []
+    modDecisionBundle.balance = []
+    modDecisionBundle.relationship = []
+    modDecisionBundle.grid = []
+    moduleContracts.push(modDecisionBundle)
+    // Module holder to contain reference contracts
     const dataCNRLbundle = {}
-    // CNRL implementation contract e.g. from mobile phone sqlite table structure
     dataCNRLbundle.reftype = 'module'
     dataCNRLbundle.style = 'question'
     dataCNRLbundle.primary = 'genesis'
@@ -453,7 +486,7 @@ class LibContracts extends EventEmitter {
     dataCNRLbundle.concept = ''
     dataCNRLbundle.grid = []
     moduleContracts.push(dataCNRLbundle)
-    // CNRL implementation contract e.g. from mobile phone sqlite table structure
+    // Module holder to contain reference contracts
     const dataCNRLbundle2 = {}
     dataCNRLbundle2.reftype = 'module'
     dataCNRLbundle2.style = 'packaging'
@@ -492,14 +525,14 @@ class LibContracts extends EventEmitter {
     dataCNRLbundle6.automation = false
     dataCNRLbundle6.time = { realtime: 0, timeseg: [], startperiod: '' }
     moduleContracts.push(dataCNRLbundle6)
-    // CNRL implementation contract e.g. from mobile phone sqlite table structure
+    // Module holder to contain reference contracts
     const dataCNRLbundle5 = {}
     dataCNRLbundle5.reftype = 'module'
     dataCNRLbundle5.style = 'visualise'
     dataCNRLbundle5.primary = 'genesis'
     dataCNRLbundle5.grid = []
     moduleContracts.push(dataCNRLbundle5)
-    // CNRL implementation contract e.g. from mobile phone sqlite table structure
+    // Module holder to contain reference contracts
     const dataCNRLbundle7 = {}
     dataCNRLbundle7.reftype = 'module'
     dataCNRLbundle7.style = 'education'
