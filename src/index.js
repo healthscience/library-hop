@@ -61,6 +61,8 @@ class LibraryHop extends EventEmitter {
   *
   */
   libraryManage = async function (message) {
+    console.log('mesageeININI')
+    console.log(message)
     // need break this up  each action should have sub type
     // nxp, contracts modules and reference
     if (message.action.trim() === 'contracts') {
@@ -79,11 +81,11 @@ class LibraryHop extends EventEmitter {
     } else if (message.action.trim() === 'models') {
       this.modelsManage(message)
     } else if (message.action.trim() === 'media') {
-      this.liveMediaUtils.mediaManage(message)
+      this.liveMediaUtil.mediaManage(message)
     } else if (message.action.trim() === 'research') {
       this.liveResearchUtil.researchManage(message)
     } else if (message.action.trim() === 'marker') {
-      this.liveResearchUtil.markerManage(message)
+      this.liveMarkerUtil.markerManage(message)
     } else if (message.action.trim() === 'products') {
       this.liveProductUtil.productManage(message)
     } else if (message.action.trim() === 'start') {
@@ -204,44 +206,6 @@ class LibraryHop extends EventEmitter {
   }
 
   /**
-  * mange media
-  * @method mediaManage
-  *
-  */
-  mediaManage = async function (message) {
-    if (message.task.trim() === 'GET') {
-      // public or private library?
-      if (message.privacy === 'private') {
-        let cuesLib = await this.liveHolepunch.BeeData.getMedia(100)
-        // this.callbackCuesLib(message.data, cuesLib)
-      } else if (message.privacy === 'public') {
-        if (message.reftype === 'start-media') {
-          // this.startCues()
-        } else {
-          let publibCues = await this.liveHolepunch.BeeData.saveMedia(message.data)
-          this.callbackmedia(publibCues)
-        }
-      }
-    } else if (message.task.trim() === 'PUT') {
-      if (message.privacy === 'private') { 
-        // pass to save manager, file details extract, prep contract
-        // let saveFeedback = await this.saveCueManager(message)
-        // this.emit('libmessage', JSON.stringify(saveFeedback))
-      } else if (message.privacy === 'public') {
-        // need check if composer needed to form contract and then save
-        let saveContract = await this.saveMediaProtocol(message)
-        let saveMessage = {}
-        saveMessage.type = 'library'
-        saveMessage.action = 'media-contract'
-        saveMessage.task = 'save-complete'
-        saveMessage.data = saveContract
-        this.emit('libmessage', JSON.stringify(saveFeedback))
-      }
-    }
-  }
-
-
-  /**
   * mange research
   * @method researchManage
   *
@@ -300,7 +264,7 @@ class LibraryHop extends EventEmitter {
     } else if (message.task.trim() === 'PUT') {
       if (message.privacy === 'private') { 
         // pass to save manager, file details extract, prep contract
-        // let saveFeedback = await this.saveCueManager(message)
+        // let saveFeedback = await this.saver(message)
         // this.emit('libmessage', JSON.stringify(saveFeedback))
       } else if (message.privacy === 'public') {
         // need check if composer needed to form contract and then save
@@ -337,7 +301,7 @@ class LibraryHop extends EventEmitter {
     } else if (message.task.trim() === 'PUT') {
       if (message.privacy === 'private') { 
         // pass to save manager, file details extract, prep contract
-        // let saveFeedback = await this.saveCueManager(message)
+        // let saveFeedback = await this.saver(message)
         // this.emit('libmessage', JSON.stringify(saveFeedback))
       } else if (message.privacy === 'public') {
         // need check if composer needed to form contract and then save
@@ -744,8 +708,15 @@ class LibraryHop extends EventEmitter {
         let bentoChat = await this.liveHolepunch.BeeData.saveBentochat(o.data)
         this.callbackBentochat(bentoChat)
       } else if (o.task.trim() === 'start') {
+        // self verified get Account Info, cues, markers, bentoboxes etc.  Get most used (all for now)
+        // all bentobox settings TODO split into specific queries
         let bentoChatstart = await this.liveHolepunch.BeeData.getBentochatHistory()
         this.callbackBentochathistory(bentoChatstart)
+        // get the Cues
+        let bentoCuesLive = await this.liveHolepunch.BeeData.getCuesHistory()
+        this.callbackBentoCueshistory(bentoCuesLive)
+        // get the markers
+
       } else if (o.task.trim() === 'get') {
       } else if (o.task.trim() === 'delete') {
         let bentoDelete = await this.liveHolepunch.BeeData.deleteBentochat(o.data)
@@ -1012,6 +983,20 @@ class LibraryHop extends EventEmitter {
     let bentoboxReturn = {}
     bentoboxReturn.type = 'bentobox'
     bentoboxReturn.reftype = 'chat-history'
+    bentoboxReturn.action = 'start'
+    bentoboxReturn.data = data
+    this.emit('libmessage', JSON.stringify(bentoboxReturn))
+  }
+
+  /**
+  * call back
+  * @method callbackBentoCueshistory
+  */
+  callbackBentoCueshistory = function (data) {
+    // pass to sort data into ref contract types
+    let bentoboxReturn = {}
+    bentoboxReturn.type = 'bentobox'
+    bentoboxReturn.reftype = 'cues-history'
     bentoboxReturn.action = 'start'
     bentoboxReturn.data = data
     this.emit('libmessage', JSON.stringify(bentoboxReturn))

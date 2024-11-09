@@ -31,22 +31,22 @@ class MediaContracts extends EventEmitter {
   }
 
   /**
-  * mange cues from bentoboxDS
-  * @method cueManage
+  * mange media
+  * @method mediaManage
   *
   */
-  cueManage = async function (message) {
+  mediaManage = async function (message) {
     if (message.task.trim() === 'GET') {
       // public or private library?
       if (message.privacy === 'private') {
-        let cuesLib = await this.liveHolepunch.BeeData.getCues(100)
+        let cuesLib = await this.liveHolepunch.BeeData.getMedia(100)
         // this.callbackCuesLib(message.data, cuesLib)
       } else if (message.privacy === 'public') {
-        if (message.reftype === 'start-cues') {
-          // this.startCues()
+        if (message.reftype === 'start-media') {
+          // this.startMedia()
         } else {
-          let publibCues = await this.liveHolepunch.BeeData.saveCues(message.data)
-          this.callbackcues(publibCues)
+          let publibCues = await this.liveHolepunch.BeeData.saveMedia(message.data)
+          this.callbackmedia(publibCues)
         }
       }
     } else if (message.task.trim() === 'PUT') {
@@ -56,26 +56,26 @@ class MediaContracts extends EventEmitter {
         // this.emit('libmessage', JSON.stringify(saveFeedback))
       } else if (message.privacy === 'public') {
         // need check if composer needed to form contract and then save
-        let saveContract = await this.saveCuesProtocol(message)
+        let saveContract = await this.saveMediaProtocol(message)
         let saveMessage = {}
         saveMessage.type = 'library'
-        saveMessage.action = 'cue-contract'
+        saveMessage.action = 'media-contract'
         saveMessage.task = 'save-complete'
         saveMessage.data = saveContract
         this.emit('libmessage', JSON.stringify(saveFeedback))
       }
     }
-  }  
+  } 
 
   /**
-  * save a cues wheel
-  * @method saveCuesProtocol
+  * save a media
+  * @method saveMediaProtocol
   *
   */
-  saveCuesProtocol = async function (saveData) {
-    let formedContract = this.libComposer.liveCues.cuesPrepare(saveData)
+  saveMediaProtocol = async function (saveData) {
+    let formedContract = this.libComposer.liveMedia.mediaPrepare(saveData)
     // console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
-    let saveContract = await this.liveHolepunch.BeeData.saveCues(formedContract)
+    let saveContract = await this.liveHolepunch.BeeData.saveMedia(formedContract)
     // format message for return
     let saveMessage = {}
     saveMessage.type = 'library'

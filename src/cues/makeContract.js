@@ -36,6 +36,8 @@ class CuesContracts extends EventEmitter {
   *
   */
   cueManage = async function (message) {
+    console.log('cues mange')
+    console.log(message)
     if (message.task.trim() === 'GET') {
       // public or private library?
       if (message.privacy === 'private') {
@@ -62,7 +64,15 @@ class CuesContracts extends EventEmitter {
         saveMessage.action = 'cue-contract'
         saveMessage.task = 'save-complete'
         saveMessage.data = saveContract
-        this.emit('libmessage', JSON.stringify(saveFeedback))
+        this.emit('libmessage', JSON.stringify(saveMessage))
+      }
+    } else if (message.task.trim() === 'DEL') {
+      if (message.privacy === 'private') {
+        // private
+        let delFeedback = this.liveHolepunch.BeeData.deleteBentocue(message.data)
+      } else if (message.privacy === 'public') {
+        // public
+        let delFeedback = this.liveHolepunch.BeeData.deleteBentocue(message.data)
       }
     }
   }  
@@ -74,15 +84,9 @@ class CuesContracts extends EventEmitter {
   */
   saveCuesProtocol = async function (saveData) {
     let formedContract = this.libComposer.liveCues.cuesPrepare(saveData)
-    // console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
+    console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
     let saveContract = await this.liveHolepunch.BeeData.saveCues(formedContract)
-    // format message for return
-    let saveMessage = {}
-    saveMessage.type = 'library'
-    saveMessage.action = 'reference-contract'
-    saveMessage.task = 'save-complete'
-    saveMessage.data = saveContract
-    return saveMessage
+    return saveContract
   }
 
 }
