@@ -31,22 +31,22 @@ class ResearchContracts extends EventEmitter {
   }
 
   /**
-  * mange cues from bentoboxDS
-  * @method cueManage
+  * mange research
+  * @method researchManage
   *
   */
-  cueManage = async function (message) {
+  researchManage = async function (message) {
     if (message.task.trim() === 'GET') {
       // public or private library?
       if (message.privacy === 'private') {
-        let cuesLib = await this.liveHolepunch.BeeData.getCues(100)
+        let cuesLib = await this.liveHolepunch.BeeData.getResearch(100)
         // this.callbackCuesLib(message.data, cuesLib)
       } else if (message.privacy === 'public') {
-        if (message.reftype === 'start-cues') {
+        if (message.reftype === 'start-research') {
           // this.startCues()
         } else {
-          let publibCues = await this.liveHolepunch.BeeData.saveCues(message.data)
-          this.callbackcues(publibCues)
+          let publibCues = await this.liveHolepunch.BeeData.saveResearch(message.data)
+          this.callbackresearch(publibCues)
         }
       }
     } else if (message.task.trim() === 'PUT') {
@@ -56,30 +56,38 @@ class ResearchContracts extends EventEmitter {
         // this.emit('libmessage', JSON.stringify(saveFeedback))
       } else if (message.privacy === 'public') {
         // need check if composer needed to form contract and then save
-        let saveContract = await this.saveCuesProtocol(message)
+        let saveContract = await this.saveResearchProtocol(message)
         let saveMessage = {}
         saveMessage.type = 'library'
-        saveMessage.action = 'cue-contract'
+        saveMessage.action = 'research-contract'
         saveMessage.task = 'save-complete'
         saveMessage.data = saveContract
-        this.emit('libmessage', JSON.stringify(saveFeedback))
+        this.emit('libmessage', JSON.stringify(saveMessage))
+      }
+    } else if (message.task.trim() === 'DEL') {
+      if (message.privacy === 'private') {
+        // private
+        let delFeedback = this.liveHolepunch.BeeData.deleteBentoResearch(message.data)
+      } else if (message.privacy === 'public') {
+        // public
+        let delFeedback = this.liveHolepunch.BeeData.deleteBentoResearch(message.data)
       }
     }
-  }  
+  } 
 
   /**
-  * save a cues wheel
-  * @method saveCuesProtocol
+  * save a research
+  * @method saveResearchProtocol
   *
   */
-  saveCuesProtocol = async function (saveData) {
-    let formedContract = this.libComposer.liveCues.cuesPrepare(saveData)
+  saveResearchProtocol = async function (saveData) {
+    let formedContract = this.libComposer.liveResearch.researchPrepare(saveData)
     // console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
-    let saveContract = await this.liveHolepunch.BeeData.saveCues(formedContract)
+    let saveContract = await this.liveHolepunch.BeeData.saveResearch(formedContract)
     // format message for return
     let saveMessage = {}
     saveMessage.type = 'library'
-    saveMessage.action = 'reference-contract'
+    saveMessage.action = 'research-contract'
     saveMessage.task = 'save-complete'
     saveMessage.data = saveContract
     return saveMessage

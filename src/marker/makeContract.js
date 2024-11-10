@@ -31,55 +31,63 @@ class MarkerContracts extends EventEmitter {
   }
 
   /**
-  * mange cues from bentoboxDS
-  * @method cueManage
+  * mange marker
+  * @method markerManage
   *
   */
-  cueManage = async function (message) {
+  markerManage = async function (message) {
     if (message.task.trim() === 'GET') {
       // public or private library?
       if (message.privacy === 'private') {
-        let cuesLib = await this.liveHolepunch.BeeData.getCues(100)
+        let cuesLib = await this.liveHolepunch.BeeData.getMarker(100)
         // this.callbackCuesLib(message.data, cuesLib)
       } else if (message.privacy === 'public') {
-        if (message.reftype === 'start-cues') {
+        if (message.reftype === 'start-marker') {
           // this.startCues()
         } else {
-          let publibCues = await this.liveHolepunch.BeeData.saveCues(message.data)
-          this.callbackcues(publibCues)
+          let publibCues = await this.liveHolepunch.BeeData.saveMarker(message.data)
+          this.callbackmarker(publibCues)
         }
       }
     } else if (message.task.trim() === 'PUT') {
       if (message.privacy === 'private') { 
         // pass to save manager, file details extract, prep contract
-        // let saveFeedback = await this.saveCueManager(message)
+        // let saveFeedback = await this.saver(message)
         // this.emit('libmessage', JSON.stringify(saveFeedback))
       } else if (message.privacy === 'public') {
         // need check if composer needed to form contract and then save
-        let saveContract = await this.saveCuesProtocol(message)
+        let saveContract = await this.saveMarkerProtocol(message)
         let saveMessage = {}
         saveMessage.type = 'library'
-        saveMessage.action = 'cue-contract'
+        saveMessage.action = 'marker-contract'
         saveMessage.task = 'save-complete'
         saveMessage.data = saveContract
         this.emit('libmessage', JSON.stringify(saveFeedback))
+      } else if (message.task.trim() === 'DEL') {
+        if (message.privacy === 'private') {
+          // private
+          let delFeedback = this.liveHolepunch.BeeData.deleteBentoMarker(message.data)
+        } else if (message.privacy === 'public') {
+          // public
+          let delFeedback = this.liveHolepunch.BeeData.deleteBentoMarker(message.data)
+        }
       }
     }
-  }  
+  }
 
   /**
   * save a cues wheel
-  * @method saveCuesProtocol
+  * @method saveMarkerProtocol
   *
   */
-  saveCuesProtocol = async function (saveData) {
-    let formedContract = this.libComposer.liveCues.cuesPrepare(saveData)
+  saveMarkerProtocol = async function (saveData) {
+    let formedContract = this.libComposer.liveMarker.markerPrepare(saveData)
     // console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
-    let saveContract = await this.liveHolepunch.BeeData.saveCues(formedContract)
+    let saveContract = await this.liveHolepunch.BeeData.saveMarker(formedContract)
     // format message for return
     let saveMessage = {}
     saveMessage.type = 'library'
-    saveMessage.action = 'reference-contract'
+    saveMessage.action = 'marker-contract'
     saveMessage.task = 'save-complete'
     saveMessage.data = saveContract
     return saveMessage

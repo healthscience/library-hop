@@ -206,117 +206,6 @@ class LibraryHop extends EventEmitter {
   }
 
   /**
-  * mange research
-  * @method researchManage
-  *
-  */
-  researchManage = async function (message) {
-    if (message.task.trim() === 'GET') {
-      // public or private library?
-      if (message.privacy === 'private') {
-        let cuesLib = await this.liveHolepunch.BeeData.getResearch(100)
-        // this.callbackCuesLib(message.data, cuesLib)
-      } else if (message.privacy === 'public') {
-        if (message.reftype === 'start-research') {
-          // this.startCues()
-        } else {
-          let publibCues = await this.liveHolepunch.BeeData.saveResearch(message.data)
-          this.callbackresearch(publibCues)
-        }
-      }
-    } else if (message.task.trim() === 'PUT') {
-      if (message.privacy === 'private') { 
-        // pass to save manager, file details extract, prep contract
-        // let saveFeedback = await this.saveCueManager(message)
-        // this.emit('libmessage', JSON.stringify(saveFeedback))
-      } else if (message.privacy === 'public') {
-        // need check if composer needed to form contract and then save
-        let saveContract = await this.saveResearchProtocol(message)
-        let saveMessage = {}
-        saveMessage.type = 'library'
-        saveMessage.action = 'research-contract'
-        saveMessage.task = 'save-complete'
-        saveMessage.data = saveContract
-        this.emit('libmessage', JSON.stringify(saveFeedback))
-      }
-    }
-  }
-
-  /**
-  * mange marker
-  * @method markerManage
-  *
-  */
-  markerManage = async function (message) {
-    if (message.task.trim() === 'GET') {
-      // public or private library?
-      if (message.privacy === 'private') {
-        let cuesLib = await this.liveHolepunch.BeeData.getMarker(100)
-        // this.callbackCuesLib(message.data, cuesLib)
-      } else if (message.privacy === 'public') {
-        if (message.reftype === 'start-media') {
-          // this.startCues()
-        } else {
-          let publibCues = await this.liveHolepunch.BeeData.saveMarker(message.data)
-          this.callbackmedia(publibCues)
-        }
-      }
-    } else if (message.task.trim() === 'PUT') {
-      if (message.privacy === 'private') { 
-        // pass to save manager, file details extract, prep contract
-        // let saveFeedback = await this.saver(message)
-        // this.emit('libmessage', JSON.stringify(saveFeedback))
-      } else if (message.privacy === 'public') {
-        // need check if composer needed to form contract and then save
-        let saveContract = await this.saveMarkerProtocol(message)
-        let saveMessage = {}
-        saveMessage.type = 'library'
-        saveMessage.action = 'marker-contract'
-        saveMessage.task = 'save-complete'
-        saveMessage.data = saveContract
-        this.emit('libmessage', JSON.stringify(saveFeedback))
-      }
-    }
-  }
-
-  /**
-  * mange product
-  * @method productManage
-  *
-  */
-  productManage = async function (message) {
-    if (message.task.trim() === 'GET') {
-      // public or private library?
-      if (message.privacy === 'private') {
-        let cuesLib = await this.liveHolepunch.BeeData.getProduct(100)
-        // this.callbackCuesLib(message.data, cuesLib)
-      } else if (message.privacy === 'public') {
-        if (message.reftype === 'start-produt') {
-          // this.startCues()
-        } else {
-          let publibCues = await this.liveHolepunch.BeeData.saveProduct(message.data)
-          this.callbackmedia(publibCues)
-        }
-      }
-    } else if (message.task.trim() === 'PUT') {
-      if (message.privacy === 'private') { 
-        // pass to save manager, file details extract, prep contract
-        // let saveFeedback = await this.saver(message)
-        // this.emit('libmessage', JSON.stringify(saveFeedback))
-      } else if (message.privacy === 'public') {
-        // need check if composer needed to form contract and then save
-        let saveContract = await this.saveProdutProtocol(message)
-        let saveMessage = {}
-        saveMessage.type = 'library'
-        saveMessage.action = 'product-contract'
-        saveMessage.task = 'save-complete'
-        saveMessage.data = saveContract
-        this.emit('libmessage', JSON.stringify(saveFeedback))
-      }
-    }
-  }
-
-  /**
   * gain access to file source data
   * @method sourcedataMange
   *
@@ -715,8 +604,13 @@ class LibraryHop extends EventEmitter {
         // get the Cues
         let bentoCuesLive = await this.liveHolepunch.BeeData.getCuesHistory()
         this.callbackBentoCueshistory(bentoCuesLive)
+        // get the research
+        let bentoResearchLive = await this.liveHolepunch.BeeData.getResearchHistory()
+        this.callbackBentoResearchhistory(bentoResearchLive)
         // get the markers
-
+        let bentoMarkerLive = await this.liveHolepunch.BeeData.getMarkerHistory()
+        this.callbackBentoMarkerhistory(bentoMarkerLive)
+        // get the products
       } else if (o.task.trim() === 'get') {
       } else if (o.task.trim() === 'delete') {
         let bentoDelete = await this.liveHolepunch.BeeData.deleteBentochat(o.data)
@@ -1001,6 +895,35 @@ class LibraryHop extends EventEmitter {
     bentoboxReturn.data = data
     this.emit('libmessage', JSON.stringify(bentoboxReturn))
   }
+
+  /**
+  * call back
+  * @method callbackBentoResearchhistory
+  */
+  callbackBentoResearchhistory = function (data) {
+    // pass to sort data into ref contract types
+    let bentoboxReturn = {}
+    bentoboxReturn.type = 'bentobox'
+    bentoboxReturn.reftype = 'research-history'
+    bentoboxReturn.action = 'start'
+    bentoboxReturn.data = data
+    this.emit('libmessage', JSON.stringify(bentoboxReturn))
+  }
+
+  /**
+  * call back
+  * @method callbackBentoMarkerhistory
+  */
+  callbackBentoMarkerhistory = function (data) {
+    // pass to sort data into ref contract types
+    let bentoboxReturn = {}
+    bentoboxReturn.type = 'bentobox'
+    bentoboxReturn.reftype = 'marker-history'
+    bentoboxReturn.action = 'start'
+    bentoboxReturn.data = data
+    this.emit('libmessage', JSON.stringify(bentoboxReturn))
+  }
+
 
   /**
   * call back

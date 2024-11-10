@@ -26,60 +26,60 @@ class ProductContracts extends EventEmitter {
   * @method 
   *
   */
-  getCues = function (path, action, data) {
+  getProduct = function (path, action, data) {
 
   }
 
   /**
-  * mange cues from bentoboxDS
-  * @method cueManage
+  * mange product
+  * @method productManage
   *
   */
-  cueManage = async function (message) {
+  productManage = async function (message) {
     if (message.task.trim() === 'GET') {
       // public or private library?
       if (message.privacy === 'private') {
-        let cuesLib = await this.liveHolepunch.BeeData.getCues(100)
+        let cuesLib = await this.liveHolepunch.BeeData.getProduct(100)
         // this.callbackCuesLib(message.data, cuesLib)
       } else if (message.privacy === 'public') {
-        if (message.reftype === 'start-cues') {
+        if (message.reftype === 'start-produt') {
           // this.startCues()
         } else {
-          let publibCues = await this.liveHolepunch.BeeData.saveCues(message.data)
-          this.callbackcues(publibCues)
+          let publibCues = await this.liveHolepunch.BeeData.saveProduct(message.data)
+          this.callbackmedia(publibCues)
         }
       }
     } else if (message.task.trim() === 'PUT') {
       if (message.privacy === 'private') { 
         // pass to save manager, file details extract, prep contract
-        // let saveFeedback = await this.saveCueManager(message)
+        // let saveFeedback = await this.saver(message)
         // this.emit('libmessage', JSON.stringify(saveFeedback))
       } else if (message.privacy === 'public') {
         // need check if composer needed to form contract and then save
-        let saveContract = await this.saveCuesProtocol(message)
+        let saveContract = await this.saveProdutProtocol(message)
         let saveMessage = {}
         saveMessage.type = 'library'
-        saveMessage.action = 'cue-contract'
+        saveMessage.action = 'product-contract'
         saveMessage.task = 'save-complete'
         saveMessage.data = saveContract
         this.emit('libmessage', JSON.stringify(saveFeedback))
       }
     }
-  }  
+  }
 
   /**
   * save a cues wheel
-  * @method saveCuesProtocol
+  * @method saveProductProtocol
   *
   */
-  saveCuesProtocol = async function (saveData) {
-    let formedContract = this.libComposer.liveCues.cuesPrepare(saveData)
+  saveProductProtocol = async function (saveData) {
+    let formedContract = this.libComposer.liveCues.productPrepare(saveData)
     // console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
-    let saveContract = await this.liveHolepunch.BeeData.saveCues(formedContract)
+    let saveContract = await this.liveHolepunch.BeeData.saveProduct(formedContract)
     // format message for return
     let saveMessage = {}
     saveMessage.type = 'library'
-    saveMessage.action = 'reference-contract'
+    saveMessage.action = 'product-contract'
     saveMessage.task = 'save-complete'
     saveMessage.data = saveContract
     return saveMessage
