@@ -722,6 +722,7 @@ class LibraryHop extends EventEmitter {
   * @method callbacklibrary
   */
   callbacklibrary = function (data) {
+    console.log('startng public library')
     // pass to sort data into ref contract types
     let libraryData = {}
     libraryData.data = 'contracts'
