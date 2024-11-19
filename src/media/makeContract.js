@@ -64,6 +64,14 @@ class MediaContracts extends EventEmitter {
         saveMessage.data = saveContract
         this.emit('libmessage', JSON.stringify(saveFeedback))
       }
+    } else if (message.task.trim() === 'DEL') {
+      if (message.privacy === 'private') {
+        // private
+        let delFeedback = this.liveHolepunch.BeeData.deleteBentomedia(message.data)
+      } else if (message.privacy === 'public') {
+        // public
+        let delFeedback = this.liveHolepunch.BeeData.deleteBentomedia(message.data)
+      }
     }
   } 
 

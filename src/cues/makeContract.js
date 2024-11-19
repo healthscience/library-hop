@@ -36,8 +36,6 @@ class CuesContracts extends EventEmitter {
   *
   */
   cueManage = async function (message) {
-    console.log('cues mange')
-    console.log(message)
     if (message.task.trim() === 'GET') {
       // public or private library?
       if (message.privacy === 'private') {

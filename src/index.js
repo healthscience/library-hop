@@ -86,7 +86,7 @@ class LibraryHop extends EventEmitter {
       this.liveResearchUtil.researchManage(message)
     } else if (message.action.trim() === 'marker') {
       this.liveMarkerUtil.markerManage(message)
-    } else if (message.action.trim() === 'products') {
+    } else if (message.action.trim() === 'product') {
       this.liveProductUtil.productManage(message)
     } else if (message.action.trim() === 'start') {
       this.peerLibdata = await this.liveHolepunch.BeeData.getPeerLibraryRange(100)
@@ -611,6 +611,8 @@ class LibraryHop extends EventEmitter {
         let bentoMarkerLive = await this.liveHolepunch.BeeData.getMarkerHistory()
         this.callbackBentoMarkerhistory(bentoMarkerLive)
         // get the products
+        let bentoProductLive = await this.liveHolepunch.BeeData.getProductHistory()
+        this.callbackBentoProducthistory(bentoProductLive)
       } else if (o.task.trim() === 'get') {
       } else if (o.task.trim() === 'delete') {
         let bentoDelete = await this.liveHolepunch.BeeData.deleteBentochat(o.data)
@@ -920,6 +922,20 @@ class LibraryHop extends EventEmitter {
     let bentoboxReturn = {}
     bentoboxReturn.type = 'bentobox'
     bentoboxReturn.reftype = 'marker-history'
+    bentoboxReturn.action = 'start'
+    bentoboxReturn.data = data
+    this.emit('libmessage', JSON.stringify(bentoboxReturn))
+  }
+
+  /**
+  * call back
+  * @method callbackBentoProducthistory
+  */
+  callbackBentoProducthistory = function (data) {
+    // pass to sort data into ref contract types
+    let bentoboxReturn = {}
+    bentoboxReturn.type = 'bentobox'
+    bentoboxReturn.reftype = 'product-history'
     bentoboxReturn.action = 'start'
     bentoboxReturn.data = data
     this.emit('libmessage', JSON.stringify(bentoboxReturn))

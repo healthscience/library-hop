@@ -62,15 +62,15 @@ class MarkerContracts extends EventEmitter {
         saveMessage.action = 'marker-contract'
         saveMessage.task = 'save-complete'
         saveMessage.data = saveContract
-        this.emit('libmessage', JSON.stringify(saveFeedback))
-      } else if (message.task.trim() === 'DEL') {
-        if (message.privacy === 'private') {
-          // private
-          let delFeedback = this.liveHolepunch.BeeData.deleteBentoMarker(message.data)
-        } else if (message.privacy === 'public') {
-          // public
-          let delFeedback = this.liveHolepunch.BeeData.deleteBentoMarker(message.data)
-        }
+        this.emit('libmessage', JSON.stringify(saveMessage))
+      }
+    } else if (message.task.trim() === 'DEL') {
+      if (message.privacy === 'private') {
+        // private
+        let delFeedback = this.liveHolepunch.BeeData.deleteBentoMarker(message.data)
+      } else if (message.privacy === 'public') {
+        // public
+        let delFeedback = this.liveHolepunch.BeeData.deleteBentoMarker(message.data)
       }
     }
   }
