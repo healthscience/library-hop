@@ -56,13 +56,13 @@ class MediaContracts extends EventEmitter {
         // this.emit('libmessage', JSON.stringify(saveFeedback))
       } else if (message.privacy === 'public') {
         // need check if composer needed to form contract and then save
-        let saveContract = await this.saveMediaProtocol(message)
+        let saveContract = await this.saveMediaProtocol(message.data)
         let saveMessage = {}
         saveMessage.type = 'library'
         saveMessage.action = 'media-contract'
         saveMessage.task = 'save-complete'
         saveMessage.data = saveContract
-        this.emit('libmessage', JSON.stringify(saveFeedback))
+        this.emit('libmessage', JSON.stringify(saveMessage))
       }
     } else if (message.task.trim() === 'DEL') {
       if (message.privacy === 'private') {

@@ -26,7 +26,7 @@ class LibraryHop extends EventEmitter {
     this.liveHolepunch = Holepunch
     this.libComposer = new LibComposer()
     this.liveContractsUtil = new ContractsUtil(this.liveHolepunch, this.libComposer)
-    this.liveCuesUtil = new CuesUtil(this.liveHolepunch, this.libComposer)
+    this.liveCuesUtil = new CuesUtil(this, this.liveHolepunch, this.libComposer)
     this.liveMediaUtil = new MediaUtil(this.liveHolepunch, this.libComposer)
     this.liveResearchUtil = new ResearchUtil(this.liveHolepunch, this.libComposer)
     this.liveMarkerUtil = new MarkerUtil(this.liveHolepunch, this.libComposer)
@@ -121,8 +121,6 @@ class LibraryHop extends EventEmitter {
   *
   */
   contractsManage = async function (message) {
-    console.log('contract mangaer')
-    console.log(message)
     if (message.task.trim() === 'GET') {
       // public or private library?
       if (message.privacy === 'private') {
@@ -604,6 +602,9 @@ class LibraryHop extends EventEmitter {
         // get the Cues
         let bentoCuesLive = await this.liveHolepunch.BeeData.getCuesHistory()
         this.callbackBentoCueshistory(bentoCuesLive)
+        // get the media
+        let bentoMediaLive = await this.liveHolepunch.BeeData.getMediaHistory()
+        this.callbackBentoMediahistory(bentoMediaLive)        
         // get the research
         let bentoResearchLive = await this.liveHolepunch.BeeData.getResearchHistory()
         this.callbackBentoResearchhistory(bentoResearchLive)
@@ -724,7 +725,6 @@ class LibraryHop extends EventEmitter {
   * @method callbacklibrary
   */
   callbacklibrary = function (data) {
-    console.log('startng public library')
     // pass to sort data into ref contract types
     let libraryData = {}
     libraryData.data = 'contracts'
@@ -894,6 +894,20 @@ class LibraryHop extends EventEmitter {
     let bentoboxReturn = {}
     bentoboxReturn.type = 'bentobox'
     bentoboxReturn.reftype = 'cues-history'
+    bentoboxReturn.action = 'start'
+    bentoboxReturn.data = data
+    this.emit('libmessage', JSON.stringify(bentoboxReturn))
+  }
+
+  /**
+  * call back
+  * @method callbackBentoMediahistory
+  */
+  callbackBentoMediahistory = function (data) {
+    // pass to sort data into ref contract types
+    let bentoboxReturn = {}
+    bentoboxReturn.type = 'bentobox'
+    bentoboxReturn.reftype = 'media-history'
     bentoboxReturn.action = 'start'
     bentoboxReturn.data = data
     this.emit('libmessage', JSON.stringify(bentoboxReturn))

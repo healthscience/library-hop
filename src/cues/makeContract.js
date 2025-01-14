@@ -14,8 +14,9 @@ import EventEmitter from 'events'
 
 class CuesContracts extends EventEmitter {
 
-  constructor(Holepunch, Composer) {
+  constructor(Lib, Holepunch, Composer) {
     super()
+    this.liveLib = Lib
     this.liveHolepunch = Holepunch
     this.libComposer = Composer
   }
@@ -55,6 +56,7 @@ class CuesContracts extends EventEmitter {
         // let saveFeedback = await this.saveCueManager(message)
         // this.emit('libmessage', JSON.stringify(saveFeedback))
       } else if (message.privacy === 'public') {
+        console.log('save cue plub please')
         // need check if composer needed to form contract and then save
         let saveContract = await this.saveCuesProtocol(message)
         let saveMessage = {}
@@ -62,7 +64,18 @@ class CuesContracts extends EventEmitter {
         saveMessage.action = 'cue-contract'
         saveMessage.task = 'save-complete'
         saveMessage.data = saveContract
-        this.emit('libmessage', JSON.stringify(saveMessage))
+        this.liveLib.emit('libmessage', JSON.stringify(saveMessage))
+      }
+    } else if (message.task.trim() === 'UPDATE') {
+      if (message.privacy === 'private') {
+      } else if (message.privacy === 'public') {
+        let saveContract = await this.updateCuesProtocol(message)
+        let saveMessage = {}
+        saveMessage.type = 'library'
+        saveMessage.action = 'cue-contract'
+        saveMessage.task = 'update-complete'
+        saveMessage.data = saveContract
+        this.liveLib.emit('libmessage', JSON.stringify(saveMessage))
       }
     } else if (message.task.trim() === 'DEL') {
       if (message.privacy === 'private') {
@@ -72,6 +85,13 @@ class CuesContracts extends EventEmitter {
         // public
         let delFeedback = this.liveHolepunch.BeeData.deleteBentocue(message.data)
       }
+    } else if (message.task.trim() === 'SYNC') {
+      if (message.reftype === 'cues-gaia') {
+        this.syncGAIA()
+      } else if (message.reftype === 'cues-custom') {
+
+      }
+
     }
   }  
 
@@ -82,9 +102,50 @@ class CuesContracts extends EventEmitter {
   */
   saveCuesProtocol = async function (saveData) {
     let formedContract = this.libComposer.liveCues.cuesPrepare(saveData)
-    console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
+    // console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
     let saveContract = await this.liveHolepunch.BeeData.saveCues(formedContract)
     return saveContract
+  }
+
+  /**
+  * update cues relationship
+  * @method updateCuesProtocol
+  *
+  */
+  updateCuesProtocol = async function (updateData) {
+    let formedContract = this.libComposer.liveCues.cuesRelationships(updateData)
+    // console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
+    let saveContract = await this.liveHolepunch.BeeData.saveCues(formedContract)
+    return saveContract
+  }
+
+  /**
+  * default gaia cues
+  * @method syncGAIA
+  *
+  */
+  syncGAIA = async function () {
+  
+  }
+
+  /**
+  * 
+  * @method callbackCuesStart
+  */
+  callbackCuesStart = function (data) {
+    this.liveLib.emit('libmessage', JSON.stringify(data))
+  }
+
+  /**
+  * call back
+  * @method callbackcues
+  */
+  callbackcues = function (data) {
+    let cueData = {}
+    cueData.type = 'peerlibrary'
+    cueData.refcontract = 'cue-new'
+    cueData.data = data
+    this.liveLib.emit('libmessage', JSON.stringify(cueData))
   }
 
 }
