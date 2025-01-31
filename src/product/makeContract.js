@@ -14,9 +14,10 @@ import EventEmitter from 'events'
 
 class ProductContracts extends EventEmitter {
 
-  constructor(Holepunch, Composer) {
+  constructor(Lib, Holepunch, Composer) {
     super()
     this.liveHolepunch = Holepunch
+    this.liveLib = Lib
     this.libComposer = Composer
   }
 
@@ -36,7 +37,6 @@ class ProductContracts extends EventEmitter {
   *
   */
   productManage = async function (message) {
-    console.log('roduct managee  coalllel')
     // this.liveHolepunch.BeeData.deleteBentoProduct( { id: 'c41cc35667b178a6a1d3c16c902f82d5eb4f0156' }) // 0123456543210 fae3af569da1ab45d90aa52f383103464a401d1e 6ca66cf745bbb8bce3092991b1e184428b6d7a8b c41cc35667b178a6a1d3c16c902f82d5eb4f0156
     if (message.task.trim() === 'GET') {
       // public or private library?
@@ -64,7 +64,7 @@ class ProductContracts extends EventEmitter {
         saveMessage.action = 'product-contract'
         saveMessage.task = 'save-complete'
         saveMessage.data = saveContract
-        this.emit('libmessage', JSON.stringify(saveMessage))
+        this.liveLib.emit('libmessage', JSON.stringify(saveMessage))
       }
     } else if (message.task.trim() === 'DEL') {
       if (message.privacy === 'private') {

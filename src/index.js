@@ -27,10 +27,10 @@ class LibraryHop extends EventEmitter {
     this.libComposer = new LibComposer()
     this.liveContractsUtil = new ContractsUtil(this.liveHolepunch, this.libComposer)
     this.liveCuesUtil = new CuesUtil(this, this.liveHolepunch, this.libComposer)
-    this.liveMediaUtil = new MediaUtil(this.liveHolepunch, this.libComposer)
-    this.liveResearchUtil = new ResearchUtil(this.liveHolepunch, this.libComposer)
-    this.liveMarkerUtil = new MarkerUtil(this.liveHolepunch, this.libComposer)
-    this.liveProductUtil = new ProductUtil(this.liveHolepunch, this.libComposer)
+    this.liveMediaUtil = new MediaUtil(this, this.liveHolepunch, this.libComposer)
+    this.liveResearchUtil = new ResearchUtil(this, this.liveHolepunch, this.libComposer)
+    this.liveMarkerUtil = new MarkerUtil(this, this.liveHolepunch, this.libComposer)
+    this.liveProductUtil = new ProductUtil(this, this.liveHolepunch, this.libComposer)
     this.publicLibrary = {} // public library modules and reference contracts
     this.peerLibdata = {}  // peers private library store
   }
@@ -61,8 +61,6 @@ class LibraryHop extends EventEmitter {
   *
   */
   libraryManage = async function (message) {
-    console.log('mesageeININI')
-    console.log(message)
     // need break this up  each action should have sub type
     // nxp, contracts modules and reference
     if (message.action.trim() === 'contracts') {
@@ -198,7 +196,6 @@ class LibraryHop extends EventEmitter {
       libraryPublicStart.data = nxpContract
       this.emit('libmessage', JSON.stringify(libraryPublicStart))
     } else if (message.task.trim() === 'update-hopquery') {
-      console.log('LIB_HOP--------update to exisign ENITTY----')
      this.updateQueryContracts(message.bbid, message)
     }
   }
@@ -436,8 +433,6 @@ class LibraryHop extends EventEmitter {
   *
   */
   prepareSafeFlowStucture = function (moduleContracts, refContracts) {
-    console.log(util.inspect(refContracts, {showHidden: false, depth: null}))
-    console.log(util.inspect(moduleContracts, {showHidden: false, depth: null}))
     let safeFlowQuery = {}
     let modKeys = []
     safeFlowQuery = moduleContracts
@@ -453,11 +448,8 @@ class LibraryHop extends EventEmitter {
       if(tmc.value.type === 'question') {
         expandedModules.push(expandMod)
       } else if(tmc.value.style === 'packaging') {
-        console.log('packaging input')
-        console.log(tmc.value.info.key)
         // need a better filter. match to contract ID coming in not the first TODO      
         let extractRC = refContracts.filter(e => e.key === tmc.value.info.key)
-        console.log(extractRC)
         expandMod.value.info.packaging = extractRC[0]
         expandedModules.push(expandMod)
       } else if (tmc.value.style === 'compute') {
@@ -597,6 +589,10 @@ class LibraryHop extends EventEmitter {
       } else if (o.task.trim() === 'start') {
         // self verified get Account Info, cues, markers, bentoboxes etc.  Get most used (all for now)
         // all bentobox settings TODO split into specific queries
+        // spaces location of bentoboxes per cue space
+        let bbspace = await this.liveHolepunch.BeeData.getAllBentospaces()
+        this.callbackAllBentospace(bbspace)
+        // chats
         let bentoChatstart = await this.liveHolepunch.BeeData.getBentochatHistory()
         this.callbackBentochathistory(bentoChatstart)
         // get the Cues
@@ -988,11 +984,26 @@ class LibraryHop extends EventEmitter {
   */
   callbackListBentospace = function (data) {
     // pass to sort data into ref contract types
-    let blibraryData = {}
-    blibraryData.type = 'bentospaces-list'
-    blibraryData.data = data
-    this.emit('libmessage', JSON.stringify(blibraryData))
-    // this.wsocket.send(JSON.stringify(blibraryData))
+    let bentoboxReturn = {}
+    bentoboxReturn.type = 'bentobox'
+    bentoboxReturn.reftype = 'space-history'
+    bentoboxReturn.action = 'location-save'
+    bentoboxReturn.data = data
+    this.emit('libmessage', JSON.stringify(bentoboxReturn))
+  }
+
+  /**
+  * call back
+  * @method callbackAllBentospace
+  */
+  callbackAllBentospace = function (data) {
+    // pass to sort data into ref contract types
+    let bentoboxReturn = {}
+    bentoboxReturn.type = 'bentobox'
+    bentoboxReturn.reftype = 'spaces-history'
+    bentoboxReturn.action = 'location-save'
+    bentoboxReturn.data = data
+    this.emit('libmessage', JSON.stringify(bentoboxReturn))
   }
 
   /**

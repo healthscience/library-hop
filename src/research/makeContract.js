@@ -14,9 +14,10 @@ import EventEmitter from 'events'
 
 class ResearchContracts extends EventEmitter {
 
-  constructor(Holepunch, Composer) {
+  constructor(Lib, Holepunch, Composer) {
     super()
     this.liveHolepunch = Holepunch
+    this.liveLib = Lib
     this.libComposer = Composer
   }
 
@@ -62,7 +63,7 @@ class ResearchContracts extends EventEmitter {
         saveMessage.action = 'research-contract'
         saveMessage.task = 'save-complete'
         saveMessage.data = saveContract
-        this.emit('libmessage', JSON.stringify(saveMessage))
+        this.liveLib.emit('libmessage', JSON.stringify(saveMessage))
       }
     } else if (message.task.trim() === 'DEL') {
       console.log('delel research peoel')

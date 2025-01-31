@@ -14,12 +14,12 @@ import EventEmitter from 'events'
 
 class MarkerContracts extends EventEmitter {
 
-  constructor(Holepunch, Composer) {
+  constructor(Lib, Holepunch, Composer) {
     super()
     this.liveHolepunch = Holepunch
+    this.liveLib = Lib
     this.libComposer = Composer
   }
-
 
   /**
   * 
@@ -62,7 +62,7 @@ class MarkerContracts extends EventEmitter {
         saveMessage.action = 'marker-contract'
         saveMessage.task = 'save-complete'
         saveMessage.data = saveContract
-        this.emit('libmessage', JSON.stringify(saveMessage))
+        this.liveLib.emit('libmessage', JSON.stringify(saveMessage))
       }
     } else if (message.task.trim() === 'DEL') {
       if (message.privacy === 'private') {
