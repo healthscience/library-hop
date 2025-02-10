@@ -13,6 +13,7 @@ import util from 'util'
 import EventEmitter from 'events'
 import LibComposer from 'librarycomposer'
 import ContractsUtil from './tools/contracts.js'
+import AccountUtil from './account/peerNetwork.js'
 import CuesUtil from './cues/makeContract.js'
 import MediaUtil from './media/makeContract.js'
 import ResearchUtil from './research/makeContract.js'
@@ -26,6 +27,7 @@ class LibraryHop extends EventEmitter {
     this.liveHolepunch = Holepunch
     this.libComposer = new LibComposer()
     this.liveContractsUtil = new ContractsUtil(this.liveHolepunch, this.libComposer)
+    this.liveCAccountUtil = new AccountUtil(this, this.liveHolepunch, this.libComposer)
     this.liveCuesUtil = new CuesUtil(this, this.liveHolepunch, this.libComposer)
     this.liveMediaUtil = new MediaUtil(this, this.liveHolepunch, this.libComposer)
     this.liveResearchUtil = new ResearchUtil(this, this.liveHolepunch, this.libComposer)
@@ -71,7 +73,7 @@ class LibraryHop extends EventEmitter {
     } else if (message.action.trim() === 'source') {
       this.sourcedataMange(message)
     } else if (message.action.trim() === 'account') {
-      this.accountManage(message)
+      this.liveCAccountUtil.accountManage(message)
     } else if (message.action.trim() === 'results') {
       this.resultsManage(message)
     } else if (message.action.trim() === 'ledger') {
@@ -217,26 +219,6 @@ class LibraryHop extends EventEmitter {
           this.callbackColumns(deviceData, message.reftype)
         }
       }
-    }
-  }
-
-  /**
-  * options for account
-  * @method accountManage
-  *
-  */
-  accountManage = async function (message) {
-    if (message.reftype.trim() === 'GET') {
-
-    } else if (message.task.trim() === 'PUT') {
-
-    } else if (message.task.trim() === 'replicate') {
-      let replicatePubLib = await this.liveHolepunch.BeeData.replicatePubliclibrary(message.data.discoverykey)
-      this.emit('libmessage', JSON.stringify(replicatePubLib))
-    } else if (message.task.trim() === 'sample') {
-
-    } else if (message.task.trim() === 'remove') {
-
     }
   }
 
@@ -588,6 +570,9 @@ class LibraryHop extends EventEmitter {
         this.callbackBentochat(bentoChat)
       } else if (o.task.trim() === 'start') {
         // self verified get Account Info, cues, markers, bentoboxes etc.  Get most used (all for now)
+        // account peer relationships
+        let bbPeers = await this.liveHolepunch.BeeData.getPeersHistory()
+        this.callbackPeerHistory(bbPeers)        
         // all bentobox settings TODO split into specific queries
         // spaces location of bentoboxes per cue space
         let bbspace = await this.liveHolepunch.BeeData.getAllBentospaces()
@@ -951,6 +936,18 @@ class LibraryHop extends EventEmitter {
     this.emit('libmessage', JSON.stringify(bentoboxReturn))
   }
 
+  /**
+  * call back
+  * @method 
+  */
+  callbackPeerHistory = function (data) {
+    let bentoboxReturn = {}
+    bentoboxReturn.type = 'account'
+    bentoboxReturn.reftype = 'peer-history'
+    bentoboxReturn.action = 'peer-history'
+    bentoboxReturn.data = data
+    this.emit('libmessage', JSON.stringify(bentoboxReturn))
+  }
 
   /**
   * call back
