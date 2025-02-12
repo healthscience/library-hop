@@ -662,7 +662,6 @@ class LibraryHop extends EventEmitter {
     peerNData.type = 'new-peer'
     peerNData.data = data
     this.emit('libmessage', JSON.stringify(peerNData))
-    // this.wsocket.send(JSON.stringify(peerNData))
   }
 
   /**
@@ -674,8 +673,7 @@ class LibraryHop extends EventEmitter {
     peerNData.type = 'warm-peers'
     peerNData.data = data
     this.emit('libmessage', JSON.stringify(peerNData))
-    // this.wsocket.send(JSON.stringify(peerNData))
-  }
+   }
 
 
   /**
@@ -719,7 +717,6 @@ class LibraryHop extends EventEmitter {
     libraryData.networkExpModules = this.libComposer.liveRefcontUtility.expMatchModuleGenesis(libraryData.referenceContracts.module, nxpSplit.genesis)
     libraryData.networkPeerExpModules = this.libComposer.liveRefcontUtility.expMatchModuleJoined(libraryData.referenceContracts.module, nxpSplit.joined)
     this.emit('libmessage', JSON.stringify(libraryData))
-    // this.wsocket.send(JSON.stringify(libraryData))
   }
 
   /**
@@ -760,7 +757,6 @@ class LibraryHop extends EventEmitter {
     libraryData.data = data
     libraryData.type = 'publiclibraryaddcomplete'
     this.emit('libmessage', JSON.stringify(libraryData))
-    // this.wsocket.send(JSON.stringify(libraryData))
   }
 
   /**
@@ -781,7 +777,6 @@ class LibraryHop extends EventEmitter {
     libraryData.networkExpModules = this.libComposer.liveRefcontUtility.expMatchModuleGenesis(libraryData.referenceContracts.module, nxpSplit.genesis)
     libraryData.networkPeerExpModules = this.libComposer.liveRefcontUtility.expMatchModuleJoined(libraryData.referenceContracts.module, nxpSplit.joined)
     this.emit('libmessage', JSON.stringify(libraryData))
-    // this.wsocket.send(JSON.stringify(libraryData))
   }
 
   /**
@@ -793,7 +788,6 @@ class LibraryHop extends EventEmitter {
     peerRdata.type = 'replicate-publiclibrary'
     peerRdata.data = data
     this.emit('libmessage', JSON.stringify(peerRdata))
-    // this.wsocket.send(JSON.stringify(peerRdata))
   }
 
   /**
@@ -807,7 +801,6 @@ class LibraryHop extends EventEmitter {
     libraryData.type = 'peerlifeboard'
     libraryData.lifeboard = data
     this.emit('libmessage', JSON.stringify(libraryData))
-    // this.wsocket.send(JSON.stringify(libraryData))
   }
 
   /**
