@@ -143,6 +143,7 @@ class LibraryHop extends EventEmitter {
         // this.emit('libmessage', JSON.stringify(saveFeedback))
       } else if (message.privacy === 'public') {
         if (message?.reftype === 'confirm-add') {
+          // direct or via cue space share?
           this.liveHolepunch.BeeData.addConfrimPublicLibrary(message.data)
         } else {
           // need check if composer needed to form contract and then save
