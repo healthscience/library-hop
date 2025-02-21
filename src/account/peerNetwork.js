@@ -58,9 +58,6 @@ class PeerNetwork extends EventEmitter {
         saveMessage.action = 'peer-new-relationship'
         saveMessage.task = 'save-complete'
         saveMessage.data = saveContract
-        console.log('saved peer contract new')
-        console.log(saveMessage)
-        console.log(saveMessage.data)
         // emits back to HOP library level - inform beebee saved
         this.liveLib.emit('libmessage', JSON.stringify(saveMessage))
         // if first time warm peer then complete that connection flow
@@ -78,16 +75,10 @@ class PeerNetwork extends EventEmitter {
         let delFeedback = this.liveHolepunch.BeeData.deletePeer(message.data.key)
       }
     } else if (message.task.trim() === 'UPDATE') {
-      console.log('update save peer contract===========')
-      console.log(message)
       if (message.privacy === 'private') {
         if (message.reftype === "new-peer-topic") {
-          console.log('message UPSTWA')
-          console.log(message.data)
           // look up existing peer contract and add topic and make settop to true
           let peerContract = await this.liveHolepunch.BeeData.getPeer(message.data.peerkey)
-          console.log('exising conteract')
-          console.log(peerContract)
           let peerPair = {}
           peerPair.publickey = peerContract.key
           peerPair.name = peerContract.value.name
@@ -95,8 +86,7 @@ class PeerNetwork extends EventEmitter {
           peerPair.topic = message.data.topic
           peerPair.settopic = message.data.settopic
           peerPair.live = false
-          console.log('peer contract update  settopi false or true')
-          console.log(peerPair)
+          peerPair.livePeerkey = ''
           let updatePeer = await this.liveHolepunch.BeeData.savePeer(peerPair)
           // need to inform beebee
           updatePeer.value.live = true
