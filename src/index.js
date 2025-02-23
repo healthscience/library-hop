@@ -942,7 +942,6 @@ class LibraryHop extends EventEmitter {
     bentoboxReturn.data = data
     this.emit('libmessage', JSON.stringify(bentoboxReturn))
     // set the peers on the network
-    console.log('save peer available set to live peer class??????S')
     this.liveHolepunch.Peers.peerNetwork = data
   }
 
