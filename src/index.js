@@ -73,7 +73,7 @@ class LibraryHop extends EventEmitter {
     } else if (message.action.trim() === 'source') {
       this.sourcedataMange(message)
     } else if (message.action.trim() === 'account') {
-      this.liveCAccountUtil.accountManage(message)
+      await this.liveCAccountUtil.accountManage(message)
     } else if (message.action.trim() === 'results') {
       this.resultsManage(message)
     } else if (message.action.trim() === 'ledger') {
@@ -942,7 +942,7 @@ class LibraryHop extends EventEmitter {
     bentoboxReturn.data = data
     this.emit('libmessage', JSON.stringify(bentoboxReturn))
     // set the peers on the network
-    this.liveHolepunch.Peers.peerNetwork = data
+    this.liveHolepunch.Peers.setupConnectionBegin(data)
   }
 
   /**
