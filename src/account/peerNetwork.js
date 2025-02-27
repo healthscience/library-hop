@@ -50,8 +50,6 @@ class PeerNetwork extends EventEmitter {
         }
       }
     } else if (message.task.trim() === 'PUT') {
-      console.log('save firs time111')
-      console.log(message.data)
       if (message.privacy === 'private') { 
         // save relationship
         let saveContract = await this.savePeerProtocol(message.data)
@@ -79,8 +77,6 @@ class PeerNetwork extends EventEmitter {
     } else if (message.task.trim() === 'UPDATE') {
       if (message.privacy === 'private') {
         if (message.reftype === "new-peer-topic") {
-          console.log('update toic UPDATE222')
-          console.log(message)
           // look up existing peer contract and add topic and make settop to true
           let publickey = ''
           let setTopic = false
@@ -90,10 +86,7 @@ class PeerNetwork extends EventEmitter {
           } else {
             publickey = message.data.publickey
           }
-          console.log('tipic rolelelel')
-          console.log(setTopic)
           let peerContract = await this.liveHolepunch.BeeData.getPeer(publickey)
-          console.log(peerContract)
           let peerPair = {}
           peerPair.publickey = peerContract.key
           peerPair.name = peerContract.value.name
@@ -108,7 +101,6 @@ class PeerNetwork extends EventEmitter {
           this.liveLib.emit('complete-topic-save', updatePeer)
           // need to infom, peer setting topic is live?
         } else if (message.reftype === "update-peer-name") {
-          console.log('update name based on codenam save333')
           let publicKey = message.data.peerkey
           let peerContract = await this.liveHolepunch.BeeData.getPeer(publicKey)
           let peerPair = {}
