@@ -15,6 +15,7 @@ import LibComposer from 'librarycomposer'
 import ContractsUtil from './tools/contracts.js'
 import AccountUtil from './account/peerNetwork.js'
 import CuesUtil from './cues/makeContract.js'
+import ModelUtil from './models/agentMange.js'
 import MediaUtil from './media/makeContract.js'
 import ResearchUtil from './research/makeContract.js'
 import MarkerUtil from './marker/makeContract.js'
@@ -29,6 +30,7 @@ class LibraryHop extends EventEmitter {
     this.liveContractsUtil = new ContractsUtil(this.liveHolepunch, this.libComposer)
     this.liveCAccountUtil = new AccountUtil(this, this.liveHolepunch, this.libComposer)
     this.liveCuesUtil = new CuesUtil(this, this.liveHolepunch, this.libComposer)
+    this.liveModelUtil = new ModelUtil(this, this.liveHolepunch, this.libComposer)
     this.liveMediaUtil = new MediaUtil(this, this.liveHolepunch, this.libComposer)
     this.liveResearchUtil = new ResearchUtil(this, this.liveHolepunch, this.libComposer)
     this.liveMarkerUtil = new MarkerUtil(this, this.liveHolepunch, this.libComposer)
@@ -78,8 +80,8 @@ class LibraryHop extends EventEmitter {
       this.resultsManage(message)
     } else if (message.action.trim() === 'ledger') {
       this.ledgerManage(message)
-    } else if (message.action.trim() === 'models') {
-      this.modelsManage(message)
+    } else if (message.action.trim() === 'model') {
+      this.liveModelUtil.modelManage(message)
     } else if (message.action.trim() === 'media') {
       this.liveMediaUtil.mediaManage(message)
     } else if (message.action.trim() === 'research') {
@@ -575,6 +577,9 @@ class LibraryHop extends EventEmitter {
         let bbPeers = await this.liveHolepunch.BeeData.getPeersHistory()
         this.callbackPeerHistory(bbPeers)        
         // all bentobox settings TODO split into specific queries
+        // default agents
+        let bbAgents = await this.liveHolepunch.BeeData.getModelHistory()
+        this.callbackAgents(bbAgents)
         // spaces location of bentoboxes per cue space
         let bbspace = await this.liveHolepunch.BeeData.getAllBentospaces()
         this.callbackAllBentospace(bbspace)
@@ -981,6 +986,20 @@ class LibraryHop extends EventEmitter {
     bentoboxReturn.type = 'bentobox'
     bentoboxReturn.reftype = 'space-history'
     bentoboxReturn.action = 'location-save'
+    bentoboxReturn.data = data
+    this.emit('libmessage', JSON.stringify(bentoboxReturn))
+  }
+
+  /**
+  * call back
+  * @method callbackAgents
+  */
+  callbackAgents = function (data) {
+    // pass to sort data into ref contract types
+    let bentoboxReturn = {}
+    bentoboxReturn.type = 'bentobox'
+    bentoboxReturn.reftype = 'agent-history'
+    bentoboxReturn.action = 'agent-save'
     bentoboxReturn.data = data
     this.emit('libmessage', JSON.stringify(bentoboxReturn))
   }
