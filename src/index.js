@@ -338,7 +338,6 @@ class LibraryHop extends EventEmitter {
     for (let mod of modulesUpdate) {
       if (mod.value.style === 'compute') {
         // update controls
-        // console.log(latestComputeModule)
         // what are exsting controls set?  keep and update
         let controlKeys = Object.keys(mod.value.info.controls)
         if (controlKeys.length > 0) {

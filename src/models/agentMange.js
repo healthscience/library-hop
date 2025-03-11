@@ -84,12 +84,8 @@ class ModelContracts extends EventEmitter {
   */
   saveModelProtocol = async function (saveData) {
     let formedContract = this.libComposer.liveModel.modelPrepare(saveData)
-    console.log('save contract model')
-    console.log(formedContract)
     // console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
     let saveContract = await this.liveHolepunch.BeeData.saveModel(formedContract)
-    console.log('save contract model')
-    console.log(saveContract)
     // format message for return
     let saveMessage = {}
     saveMessage.type = 'library'
@@ -105,8 +101,6 @@ class ModelContracts extends EventEmitter {
   *
   */
   updateModelProtocol = async function (updateData) {
-    console.log('right update structure ie contract')
-    console.log(updateData)
     let contractUPdates = {}
     contractUPdates.id = updateData.data.key
     contractUPdates.data = updateData.data.value
