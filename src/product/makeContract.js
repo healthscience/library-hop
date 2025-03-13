@@ -37,7 +37,6 @@ class ProductContracts extends EventEmitter {
   *
   */
   productManage = async function (message) {
-    // this.liveHolepunch.BeeData.deleteBentoProduct( { id: 'c41cc35667b178a6a1d3c16c902f82d5eb4f0156' }) // 0123456543210 fae3af569da1ab45d90aa52f383103464a401d1e 6ca66cf745bbb8bce3092991b1e184428b6d7a8b c41cc35667b178a6a1d3c16c902f82d5eb4f0156
     if (message.task.trim() === 'GET') {
       // public or private library?
       if (message.privacy === 'private') {
