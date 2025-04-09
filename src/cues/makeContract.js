@@ -44,7 +44,8 @@ class CuesContracts extends EventEmitter {
         // this.callbackCuesLib(message.data, cuesLib)
       } else if (message.privacy === 'public') {
         if (message.reftype === 'start-cues') {
-          // this.startCues()
+          this.liveHolepunch.BeeData.getCuesHistory()
+          this.callbackCuesStart(message.data)
         } else {
           let publibCues = await this.liveHolepunch.BeeData.saveCues(message.data)
           this.callbackcues(publibCues)
@@ -129,11 +130,17 @@ class CuesContracts extends EventEmitter {
   }
 
   /**
-  * 
+  * call back
   * @method callbackCuesStart
   */
   callbackCuesStart = function (data) {
-    this.liveLib.emit('libmessage', JSON.stringify(data))
+    // pass to sort data into ref contract types
+    let cuesReturn = {}
+    cuesReturn.type = 'bentobox'
+    cuesReturn.reftype = 'cues-history'
+    cuesReturn.action = 'start'
+    cuesReturn.data = data
+    this.emit('libmessage', JSON.stringify(cuesReturn))
   }
 
   /**
