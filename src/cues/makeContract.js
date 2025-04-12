@@ -21,7 +21,6 @@ class CuesContracts extends EventEmitter {
     this.libComposer = Composer
   }
 
-
   /**
   * 
   * @method 
@@ -44,8 +43,8 @@ class CuesContracts extends EventEmitter {
         // this.callbackCuesLib(message.data, cuesLib)
       } else if (message.privacy === 'public') {
         if (message.reftype === 'start-cues') {
-          this.liveHolepunch.BeeData.getCuesHistory()
-          this.callbackCuesStart(message.data)
+          let cuesHistory = await this.liveHolepunch.BeeData.getCuesHistory()
+          this.callbackCuesStart(cuesHistory)
         } else {
           let publibCues = await this.liveHolepunch.BeeData.saveCues(message.data)
           this.callbackcues(publibCues)
@@ -57,7 +56,6 @@ class CuesContracts extends EventEmitter {
         // let saveFeedback = await this.saveCueManager(message)
         // this.emit('libmessage', JSON.stringify(saveFeedback))
       } else if (message.privacy === 'public') {
-        console.log('save cue plub please')
         // need check if composer needed to form contract and then save
         let saveContract = await this.saveCuesProtocol(message)
         let saveMessage = {}

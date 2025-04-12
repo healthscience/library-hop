@@ -66,7 +66,6 @@ class ResearchContracts extends EventEmitter {
         this.liveLib.emit('libmessage', JSON.stringify(saveMessage))
       }
     } else if (message.task.trim() === 'DEL') {
-      console.log('delel research peoel')
       if (message.privacy === 'private') {
         // private
         let delFeedback = this.liveHolepunch.BeeData.deleteBentoResearch(message.data)

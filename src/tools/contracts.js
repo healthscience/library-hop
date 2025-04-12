@@ -91,7 +91,6 @@ class LibContracts extends EventEmitter {
   *
   */
   experimentContractGenesis = async function (newMods) {
-    console.log('modules in for geneisis?')
     // a new genesis network experiment to store to network library
     let moduleGenesisList = []
     let moduleGenesisExpanded = []
