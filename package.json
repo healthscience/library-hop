@@ -1,6 +1,6 @@
 {
   "name": "library-hop",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "manage interface with network library",
   "main": "src/index.js",
   "type": "module",
