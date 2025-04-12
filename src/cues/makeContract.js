@@ -43,7 +43,7 @@ class CuesContracts extends EventEmitter {
         // this.callbackCuesLib(message.data, cuesLib)
       } else if (message.privacy === 'public') {
         if (message.reftype === 'start-cues') {
-          let cuesHistory = await this.liveHolepunch.BeeData.getCuesHistory()
+          let cuesHistory = await this.liveHolepunch.BeeData.getCuesHistory('')
           this.callbackCuesStart(cuesHistory)
         } else {
           let publibCues = await this.liveHolepunch.BeeData.saveCues(message.data)
@@ -138,7 +138,7 @@ class CuesContracts extends EventEmitter {
     cuesReturn.reftype = 'cues-history'
     cuesReturn.action = 'start'
     cuesReturn.data = data
-    this.emit('libmessage', JSON.stringify(cuesReturn))
+    this.liveLib.emit('libmessage', JSON.stringify(cuesReturn))
   }
 
   /**
