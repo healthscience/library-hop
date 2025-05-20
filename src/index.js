@@ -501,8 +501,10 @@ class LibraryHop extends EventEmitter {
           // liveParser.webJSONfile(o, ws)
         }
       } else if (save.data[i].type === 'text/csv' || save.data[i].type === 'csv') {
+        console.log('csv file save protocol')
         // save protocol original file save and JSON for HOP
         if (save.data[i].info.location === 'local') {
+          console.log('csv local---------------')
           let fileInfo = await this.liveHolepunch.DriveFiles.hyperdriveCSVmanager(save)
           let fileFeedback = {}
           fileFeedback.success = true
@@ -512,12 +514,13 @@ class LibraryHop extends EventEmitter {
           let storeFeedback = {}
           storeFeedback.type = 'library'
           storeFeedback.action = 'save-file'
-          storeFeedback.task = 'sqlite'
+          storeFeedback.task = 'csv'
           storeFeedback.data = fileFeedback
           this.emit('libmessage', JSON.stringify(storeFeedback))
           // now inform SafeFlow that data needs charting
           this.emit('library-data', fileFeedback)
         } else if (save.data[i].info.location === 'web') {
+          console.log('csv web---------------')
           let saveFeedback = await this.liveHolepunch.DriveFiles.saveCSVfilecontent(save)
           let fileFeedback = {}
           fileFeedback.success = true
@@ -527,7 +530,6 @@ class LibraryHop extends EventEmitter {
           storeFeedback.action = 'save-file'
           storeFeedback.data = fileFeedback
           this.emit('libmessage', JSON.stringify(storeFeedback))
-          // this.emit('library-data', fileFeedback)
         }
       } else if (save.data[i].type === 'spreadsheet') {
         // need to pass to pandasAI
