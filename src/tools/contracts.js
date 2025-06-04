@@ -267,12 +267,6 @@ class LibContracts extends EventEmitter {
     let contractList = {}
     contractList.modules = modContracts
     contractList.reference = refContracts
-    /* for (let ref of refContracts) {
-      if (ref.value.refcontract === 'datatype') {
-        console.log('split')
-        console.log(ref)
-      }
-    } */
     return contractList
   }
 

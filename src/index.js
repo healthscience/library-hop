@@ -402,12 +402,6 @@ class LibraryHop extends EventEmitter {
     let contractList = {}
     contractList.modules = modContracts
     contractList.reference = refContracts
-    /* for (let ref of refContracts) {
-      if (ref.value.refcontract === 'datatype') {
-        console.log('split')
-        console.log(ref)
-      }
-    } */
     return contractList
   }
 
@@ -501,10 +495,8 @@ class LibraryHop extends EventEmitter {
           // liveParser.webJSONfile(o, ws)
         }
       } else if (save.data[i].type === 'text/csv' || save.data[i].type === 'csv') {
-        console.log('csv file save protocol')
         // save protocol original file save and JSON for HOP
         if (save.data[i].info.location === 'local') {
-          console.log('csv local---------------')
           let fileInfo = await this.liveHolepunch.DriveFiles.hyperdriveCSVmanager(save)
           let fileFeedback = {}
           fileFeedback.success = true
@@ -520,7 +512,6 @@ class LibraryHop extends EventEmitter {
           // now inform SafeFlow that data needs charting
           this.emit('library-data', fileFeedback)
         } else if (save.data[i].info.location === 'web') {
-          console.log('csv web---------------')
           let saveFeedback = await this.liveHolepunch.DriveFiles.saveCSVfilecontent(save)
           let fileFeedback = {}
           fileFeedback.success = true
@@ -602,6 +593,9 @@ class LibraryHop extends EventEmitter {
         // get the products
         let bentoProductLive = await this.liveHolepunch.BeeData.getProductHistory()
         this.callbackBentoProducthistory(bentoProductLive)
+        // get the bentobox
+        let bBoxes = await this.liveHolepunch.BeeData.getBentoBoxHistory()
+        this.callbackBentoBoxes(bBoxes)
       } else if (o.task.trim() === 'get') {
       } else if (o.task.trim() === 'delete') {
         let bentoDelete = await this.liveHolepunch.BeeData.deleteBentochat(o.data)
@@ -1015,6 +1009,20 @@ class LibraryHop extends EventEmitter {
     bentoboxReturn.type = 'bentobox'
     bentoboxReturn.reftype = 'spaces-history'
     bentoboxReturn.action = 'location-save'
+    bentoboxReturn.data = data
+    this.emit('libmessage', JSON.stringify(bentoboxReturn))
+  }
+
+  /**
+  * call back
+  * @method callbackBentoBoxes
+  */
+  callbackBentoBoxes = function (data) {
+    // pass toe sort data into ref contract types
+    let bentoboxReturn = {}
+    bentoboxReturn.type = 'bentobox'
+    bentoboxReturn.reftype = 'bentobox-history'
+    bentoboxReturn.action = 'boxes-save'
     bentoboxReturn.data = data
     this.emit('libmessage', JSON.stringify(bentoboxReturn))
   }
