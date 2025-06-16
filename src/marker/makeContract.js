@@ -43,7 +43,9 @@ class MarkerContracts extends EventEmitter {
         // this.callbackCuesLib(message.data, cuesLib)
       } else if (message.privacy === 'public') {
         if (message.reftype === 'start-marker') {
-          // this.startCues()
+          // get the markers
+          let bentoMarkerLive = await this.liveHolepunch.BeeData.getMarkerHistory()
+          this.liveLib.callbackBentoMarkerhistory(bentoMarkerLive)
         } else {
           let publibCues = await this.liveHolepunch.BeeData.saveMarker(message.data)
           this.callbackmarker(publibCues)

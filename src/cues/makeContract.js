@@ -68,13 +68,23 @@ class CuesContracts extends EventEmitter {
     } else if (message.task.trim() === 'UPDATE') {
       if (message.privacy === 'private') {
       } else if (message.privacy === 'public') {
-        let saveContract = await this.updateCuesProtocol(message)
-        let saveMessage = {}
-        saveMessage.type = 'library'
-        saveMessage.action = 'cue-contract'
-        saveMessage.task = 'update-complete'
-        saveMessage.data = saveContract
-        this.liveLib.emit('libmessage', JSON.stringify(saveMessage))
+        if (message.reftype === 'update-cues') {
+          let saveContract = await this.updateCuesTimestamp(message)
+          let saveMessage = {}
+          saveMessage.type = 'library'
+          saveMessage.action = 'cue-contract'
+          saveMessage.task = 'update-complete-timestamp'
+          saveMessage.data = saveContract
+          this.liveLib.emit('libmessage', JSON.stringify(saveMessage))          
+        } else {
+          let saveContract = await this.updateCuesProtocol(message)
+          let saveMessage = {}
+          saveMessage.type = 'library'
+          saveMessage.action = 'cue-contract'
+          saveMessage.task = 'update-complete'
+          saveMessage.data = saveContract
+          this.liveLib.emit('libmessage', JSON.stringify(saveMessage))
+        }
       }
     } else if (message.task.trim() === 'DEL') {
       if (message.privacy === 'private') {
@@ -106,6 +116,17 @@ class CuesContracts extends EventEmitter {
     return saveContract
   }
 
+  /**
+  * 
+  * @method updateCuesTimestamp
+  *
+  */
+  updateCuesTimestamp = async function (updateData) {
+    let formedContract = this.libComposer.liveCues.cuesTimestamp(updateData.data)
+    let saveContract = await this.liveHolepunch.BeeData.saveCues(formedContract)
+    return saveContract
+  }
+  
   /**
   * update cues relationship
   * @method updateCuesProtocol

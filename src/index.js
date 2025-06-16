@@ -323,12 +323,19 @@ class LibraryHop extends EventEmitter {
   *
   */
   updateQueryContracts = async function (bbid, queryUpdate) {
+    console.log('LIB-HOP--updateqery contact')
+    console.log(bbid)
+    console.log(queryUpdate)
     let modulesUpdate = queryUpdate.data.update.modules
     // need to source latest compute module contract from library as need latest contract
     let latestComputeModule = {}
     for (let mod of modulesUpdate) {
-      if (mod.value.style === 'compute') {
-        // latestComputeModule = await this.liveContractsUtil.latestModuleContract('compute', mod)
+      console.log('llooooop')
+      console.log(mod)
+      if (mod !== null) {
+        if (mod.value.style === 'compute') {
+          // latestComputeModule = await this.liveContractsUtil.latestModuleContract('compute', mod)
+        }
       }
     }
     // update controls selected and settings all options for toolbars
@@ -336,26 +343,28 @@ class LibraryHop extends EventEmitter {
     let changeItems = Object.keys(queryUpdate.data.update.changes.compute.controls)
     let cloneControls = {}
     for (let mod of modulesUpdate) {
-      if (mod.value.style === 'compute') {
-        // update controls
-        // what are exsting controls set?  keep and update
-        let controlKeys = Object.keys(mod.value.info.controls)
-        if (controlKeys.length > 0) {
-          // item already set and need updating?
-          for (let ck of changeItems) {
-            let checkSetck = controlKeys.includes(ck)
-            if (checkSetck === true) {
-              mod.value.info.controls[ck] = changes.compute.controls[ck]
-            } else {
-              mod.value.info.controls[ck] = changes.compute.controls[ck] // queryUpdate.data.update.changes.compute.controls[ck]
+      if (mod !== null) {
+        if (mod.value.style === 'compute') {
+          // update controls
+          // what are exsting controls set?  keep and update
+          let controlKeys = Object.keys(mod.value.info.controls)
+          if (controlKeys.length > 0) {
+            // item already set and need updating?
+            for (let ck of changeItems) {
+              let checkSetck = controlKeys.includes(ck)
+              if (checkSetck === true) {
+                mod.value.info.controls[ck] = changes.compute.controls[ck]
+              } else {
+                mod.value.info.controls[ck] = changes.compute.controls[ck] // queryUpdate.data.update.changes.compute.controls[ck]
+              }
             }
+          } else {
+            mod.value.info.controls = changes.compute.controls
           }
-        } else {
-          mod.value.info.controls = changes.compute.controls
+          cloneControls = mod.value.info.controls
+        } else if (mod.value.style === 'visualise') {
+          mod.value.info.controls = cloneControls
         }
-        cloneControls = mod.value.info.controls
-      } else if (mod.value.style === 'visualise') {
-        mod.value.info.controls = cloneControls
       }
     }
     let dataNXP = {}
