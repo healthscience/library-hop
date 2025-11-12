@@ -20,6 +20,8 @@ import MediaUtil from './media/makeContract.js'
 import ResearchUtil from './research/makeContract.js'
 import MarkerUtil from './marker/makeContract.js'
 import ProductUtil from './product/makeContract.js'
+import BesearchUtil from './besearch/makeContract.js'
+import TrainingUtil from './training/makeContract.js'
 
 class LibraryHop extends EventEmitter {
 
@@ -35,6 +37,8 @@ class LibraryHop extends EventEmitter {
     this.liveResearchUtil = new ResearchUtil(this, this.liveHolepunch, this.libComposer)
     this.liveMarkerUtil = new MarkerUtil(this, this.liveHolepunch, this.libComposer)
     this.liveProductUtil = new ProductUtil(this, this.liveHolepunch, this.libComposer)
+    this.liveBesearch = new BesearchUtil(this, this.liveHolepunch, this.libComposer)
+    this.liveTraining = new TrainingUtil(this, this.liveHolepunch, this.libComposer)
     this.publicLibrary = {} // public library modules and reference contracts
     this.peerLibdata = {}  // peers private library store
   }
@@ -70,6 +74,10 @@ class LibraryHop extends EventEmitter {
     if (message.action.trim() === 'contracts') {
       // pass on to function to manage
       this.contractsManage(message)
+    } else if (message.action.trim() === 'besearch') {
+this.liveBesearch.besearchManage(message)
+    } else if (message.action.trim() === 'training') {
+      this.liveTraining.trainingManage(message)
     } else if (message.action.trim() === 'cues') {
       this.liveCuesUtil.cueManage(message)
     } else if (message.action.trim() === 'source') {
@@ -323,15 +331,11 @@ class LibraryHop extends EventEmitter {
   *
   */
   updateQueryContracts = async function (bbid, queryUpdate) {
-    console.log('LIB-HOP--updateqery contact')
-    console.log(bbid)
-    console.log(queryUpdate)
     let modulesUpdate = queryUpdate.data.update.modules
     // need to source latest compute module contract from library as need latest contract
     let latestComputeModule = {}
     for (let mod of modulesUpdate) {
-      console.log('llooooop')
-      console.log(mod)
+      //console.log(mod)
       if (mod !== null) {
         if (mod.value.style === 'compute') {
           // latestComputeModule = await this.liveContractsUtil.latestModuleContract('compute', mod)
@@ -345,6 +349,8 @@ class LibraryHop extends EventEmitter {
     for (let mod of modulesUpdate) {
       if (mod !== null) {
         if (mod.value.style === 'compute') {
+          // console.log('compute contract pickedout')
+          // console.log(util.inspect(mod, {showHidden: false, depth: null}))
           // update controls
           // what are exsting controls set?  keep and update
           let controlKeys = Object.keys(mod.value.info.controls)
@@ -359,7 +365,6 @@ class LibraryHop extends EventEmitter {
               }
             }
           } else {
-            mod.value.info.controls = changes.compute.controls
           }
           cloneControls = mod.value.info.controls
         } else if (mod.value.style === 'visualise') {
@@ -367,6 +372,9 @@ class LibraryHop extends EventEmitter {
         }
       }
     }
+    // console.log('updated modules contracts')
+    // console.log(queryUpdate)
+    // console.log(util.inspect(queryUpdate, {showHidden: false, depth: null}))
     let dataNXP = {}
     dataNXP.type = 'update-hopquery'
     dataNXP.action = 'safeflow'
@@ -475,6 +483,8 @@ class LibraryHop extends EventEmitter {
   * @method saveFileManager
   */
   saveFileManager = async function (save) {
+    console.log('file save fmanager')
+    console.log(save)
     let fileList = []
     fileList.push(save.data)
     save.data = fileList
@@ -482,6 +492,7 @@ class LibraryHop extends EventEmitter {
     // how many files coming in?
     let fileCount = save.data.length
     for (let i = 0; i < fileCount; i++) {
+      console.log(i)
       if (save.data[i].type === 'sqlite') {
         let fileInfo = await this.liveHolepunch.DriveFiles.saveSqliteFirst(save.data[i].type, save.data[i].name, save.data[i].content)
         let fileFeedback = {}
@@ -504,8 +515,10 @@ class LibraryHop extends EventEmitter {
           // liveParser.webJSONfile(o, ws)
         }
       } else if (save.data[i].type === 'text/csv' || save.data[i].type === 'csv') {
+        console.log('save csv protocol--------')
+        console.log(save.data)
         // save protocol original file save and JSON for HOP
-        if (save.data[i].info.location === 'local') {
+        if (save.data[i].info.source === 'local') {
           let fileInfo = await this.liveHolepunch.DriveFiles.hyperdriveCSVmanager(save)
           let fileFeedback = {}
           fileFeedback.success = true
@@ -520,7 +533,7 @@ class LibraryHop extends EventEmitter {
           this.emit('libmessage', JSON.stringify(storeFeedback))
           // now inform SafeFlow that data needs charting
           this.emit('library-data', fileFeedback)
-        } else if (save.data[i].info.location === 'web') {
+        } else if (save.data[i].info.source === 'web') {
           let saveFeedback = await this.liveHolepunch.DriveFiles.saveCSVfilecontent(save)
           let fileFeedback = {}
           fileFeedback.success = true

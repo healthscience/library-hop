@@ -21,7 +21,6 @@ class ResearchContracts extends EventEmitter {
     this.libComposer = Composer
   }
 
-
   /**
   * 
   * @method 
