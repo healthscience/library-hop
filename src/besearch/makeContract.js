@@ -11,6 +11,7 @@
 */
 import util from 'util'
 import EventEmitter from 'events'
+import hashObject from 'object-hash'
 
 class BesearchContracts extends EventEmitter {
 
@@ -31,8 +32,8 @@ class BesearchContracts extends EventEmitter {
   }
 
   /**
-  * mange research
-  * @method researchManage
+  * mange besearch
+  * @method besearchManage
   *
   */
   besearchManage = async function (message) {
@@ -42,7 +43,7 @@ class BesearchContracts extends EventEmitter {
         let cuesLib = await this.liveHolepunch.BeeData.getBesearch(100)
         // this.callbackCuesLib(message.data, cuesLib)
       } else if (message.privacy === 'public') {
-        if (message.reftype === 'start-research') {
+        if (message.reftype === 'start-besearch') {
           // this.startCues()
         } else {
           let publibCues = await this.liveHolepunch.BeeData.saveBesearch(message.data)
@@ -50,12 +51,10 @@ class BesearchContracts extends EventEmitter {
         }
       }
     } else if (message.task.trim() === 'PUT') {
+      console.log('besearch put')
+      console.log(message)
       if (message.privacy === 'private') { 
         // pass to save manager, file details extract, prep contract
-        // let saveFeedback = await this.saveCueManager(message)
-        // this.emit('libmessage', JSON.stringify(saveFeedback))
-      } else if (message.privacy === 'public') {
-        // need check if composer needed to form contract and then save
         let saveContract = await this.saveBesearchProtocol(message)
         let saveMessage = {}
         saveMessage.type = 'library'
@@ -63,14 +62,17 @@ class BesearchContracts extends EventEmitter {
         saveMessage.task = 'save-complete'
         saveMessage.data = saveContract
         this.liveLib.emit('libmessage', JSON.stringify(saveMessage))
+      } else if (message.privacy === 'public') {
+        // need check if composer needed to form contract and then save
+
       }
     } else if (message.task.trim() === 'DEL') {
       if (message.privacy === 'private') {
         // private
-        let delFeedback = this.liveHolepunch.BeeData.deleteBentoResearch(message.data)
+        this.liveHolepunch.BeeData.deleteBentoBesearch(message.data)
       } else if (message.privacy === 'public') {
         // public
-        let delFeedback = this.liveHolepunch.BeeData.deleteBentoResearch(message.data)
+        this.liveHolepunch.BeeData.deleteBentoBesearch(message.data)
       }
     }
   } 
@@ -81,7 +83,9 @@ class BesearchContracts extends EventEmitter {
   *
   */
   saveBesearchProtocol = async function (saveData) {
-    let formedContract = saveData  // verified at source? //this.libComposer.liveResearch.besearchPrepare(saveData)
+    let formedContract = {}
+    formedContract.id = hashObject(saveData.data)
+    formedContract.data = saveData.data // verified at source? //this.libComposer.liveResearch.besearchPrepare(saveData)
     // console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
     let saveContract = await this.liveHolepunch.BeeData.saveBesearch(formedContract)
     // format message for return
@@ -92,7 +96,6 @@ class BesearchContracts extends EventEmitter {
     saveMessage.data = saveContract
     return saveMessage
   }
-
 }
 
 export default BesearchContracts

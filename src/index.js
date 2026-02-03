@@ -69,14 +69,16 @@ class LibraryHop extends EventEmitter {
   *
   */
   libraryManage = async function (message) {
+    console.log('libray mange')
+    console.log(message)
     // need break this up  each action should have sub type
     // nxp, contracts modules and reference
     if (message.action.trim() === 'contracts') {
       // pass on to function to manage
       this.contractsManage(message)
     } else if (message.action.trim() === 'besearch') {
-this.liveBesearch.besearchManage(message)
-    } else if (message.action.trim() === 'training') {
+      this.liveBesearch.besearchManage(message)
+    } else if (message.action.trim() === 'beebee-teach') {
       this.liveTraining.trainingManage(message)
     } else if (message.action.trim() === 'cues') {
       this.liveCuesUtil.cueManage(message)
@@ -590,7 +592,9 @@ this.liveBesearch.besearchManage(message)
         // account peer relationships
         let bbPeers = await this.liveHolepunch.BeeData.getPeersHistory()
         this.callbackPeerHistory(bbPeers)        
-        // all bentobox settings TODO split into specific queries
+        // besearch active
+        let besearchStart = await this.liveHolepunch.BeeData.getBesearchHistory()
+        this.callbackBesearchhistory(besearchStart)
         // default agents
         let bbAgents = await this.liveHolepunch.BeeData.getModelHistory()
         this.callbackAgents(bbAgents)
@@ -618,6 +622,10 @@ this.liveBesearch.besearchManage(message)
         // get the bentobox
         let bBoxes = await this.liveHolepunch.BeeData.getBentoBoxHistory()
         this.callbackBentoBoxes(bBoxes)
+        // get the @teach history
+        console.log('teach history called')
+        let beebeeTeachHistory = await this.liveHolepunch.BeeData.getBeeBeeLearnHistory()
+        this.callbackBeeBeeLearn(beebeeTeachHistory)
       } else if (o.task.trim() === 'get') {
       } else if (o.task.trim() === 'delete') {
         let bentoDelete = await this.liveHolepunch.BeeData.deleteBentochat(o.data)
@@ -685,6 +693,18 @@ this.liveBesearch.besearchManage(message)
     peerNData.type = 'new-peer'
     peerNData.data = data
     this.emit('libmessage', JSON.stringify(peerNData))
+  }
+  /**
+  * call back
+  * @method 
+  */
+  callbackBesearchhistory = function (data) {
+    let besearchReturn = {}
+    besearchReturn.type = 'besearch'
+    besearchReturn.action = 'besearch-history'
+    besearchReturn.reftype = 'besearch-history'
+    besearchReturn.data = data
+    this.emit('libmessage', JSON.stringify(besearchReturn))
   }
 
   /**
@@ -875,7 +895,7 @@ this.liveBesearch.besearchManage(message)
   callbackBentochathistory = function (data) {
     // pass to sort data into ref contract types
     let bentoboxReturn = {}
-    bentoboxReturn.type = 'bentobox'
+    bentoboxReturn.type = 'chat'
     bentoboxReturn.reftype = 'chat-history'
     bentoboxReturn.action = 'start'
     bentoboxReturn.data = data
@@ -1047,6 +1067,20 @@ this.liveBesearch.besearchManage(message)
     bentoboxReturn.action = 'boxes-save'
     bentoboxReturn.data = data
     this.emit('libmessage', JSON.stringify(bentoboxReturn))
+  }
+
+  /**
+  * call back
+  * @method callbackBeeBeeLearn
+  */
+  callbackBeeBeeLearn = function (data) {
+    // pass toe sort data into ref contract types
+    let beeebeeLearnReturn = {}
+    beeebeeLearnReturn.type = 'library'
+    beeebeeLearnReturn.reftype = 'teach-history'
+    beeebeeLearnReturn.action = 'teach-history'
+    beeebeeLearnReturn.data = data
+    this.emit('libmessage', JSON.stringify(beeebeeLearnReturn))
   }
 
   /**

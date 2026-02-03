@@ -11,6 +11,7 @@
 */
 import util from 'util'
 import EventEmitter from 'events'
+import hashObject from 'object-hash'
 
 class BeeBeeLearnContracts extends EventEmitter {
 
@@ -42,10 +43,10 @@ class BeeBeeLearnContracts extends EventEmitter {
         let cuesLib = await this.liveHolepunch.BeeData.getBeeBeeLearn(100)
         // this.callbackCuesLib(message.data, cuesLib)
       } else if (message.privacy === 'public') {
-        if (message.reftype === 'start-research') {
-          // this.startCues()
+        if (message.reftype === 'start-teach') {
+          // this.startTeach()
         } else {
-          let publibCues = await this.liveHolepunch.BeeData.savegetBeeBeeLearn(message.data)
+          let publibCues = await this.liveHolepunch.BeeData.saveBeeBeeLearn(message.data)
           this.callbackresearch(publibCues)
         }
       }
@@ -59,7 +60,7 @@ class BeeBeeLearnContracts extends EventEmitter {
         let saveContract = await this.saveBeeBeeLearnProtocol(message)
         let saveMessage = {}
         saveMessage.type = 'library'
-        saveMessage.action = 'research-contract'
+        saveMessage.action = 'beebeelearn-contract'
         saveMessage.task = 'save-complete'
         saveMessage.data = saveContract
         this.liveLib.emit('libmessage', JSON.stringify(saveMessage))
@@ -67,10 +68,10 @@ class BeeBeeLearnContracts extends EventEmitter {
     } else if (message.task.trim() === 'DEL') {
       if (message.privacy === 'private') {
         // private
-        let delFeedback = this.liveHolepunch.BeeData.deleteBentoResearch(message.data)
+        let delFeedback = this.liveHolepunch.BeeData.deleteBeeBeeLearn(message.data.key)
       } else if (message.privacy === 'public') {
         // public
-        let delFeedback = this.liveHolepunch.BeeData.deleteBentoResearch(message.data)
+        let delFeedback = this.liveHolepunch.BeeData.deleteBeeBeeLearn(message.data.key)
       }
     }
   } 
@@ -81,7 +82,12 @@ class BeeBeeLearnContracts extends EventEmitter {
   *
   */
   saveBeeBeeLearnProtocol = async function (saveData) {
-    let formedContract = saveData // verified already // this.libComposer.liveResearch.researchPrepare(saveData)
+    console.log('saveBeeBeeLearnProtocol')
+    console.log(saveData)
+    let formedContract = {}
+    formedContract.id = hashObject(saveData.data)
+    formedContract.session = saveData.data
+    // verified already // this.libComposer.liveTeach.teachPrepare(saveData)
     // console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
     let saveContract = await this.liveHolepunch.BeeData.saveBeeBeeLearn(formedContract)
     // format message for return
