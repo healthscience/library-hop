@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "test": "mocha test/*.*"
+    "test": "vitest"
   },
   "repository": {
     "type": "git",
@@ -14,9 +14,12 @@
   "author": "aboynejames@gmail.com",
   "license": "GPL-3.0-or-later",
   "devDependencies": {
-    "mocha": "^10.0.0"
+    "vitest": "^1.6.1",
+    "hop-crypto": "^0.1.1",
+    "holepunch-hop": "^0.5.3"
   },
   "dependencies": {
+    "color": "^5.0.3",
     "csv-parser": "^3.0.0",
     "librarycomposer": "^0.4.4",
     "object-hash": "^3.0.0"

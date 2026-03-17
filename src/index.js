@@ -22,6 +22,9 @@ import MarkerUtil from './marker/makeContract.js'
 import ProductUtil from './product/makeContract.js'
 import BesearchUtil from './besearch/makeContract.js'
 import TrainingUtil from './training/makeContract.js'
+import CuesUtility from './seed/cuesUtility.js'
+import Color from 'color'
+import { Encryption } from 'hop-crypto/encryption'
 
 class LibraryHop extends EventEmitter {
 
@@ -40,6 +43,8 @@ class LibraryHop extends EventEmitter {
     this.liveProductUtil = new ProductUtil(this, this.liveHolepunch, this.libComposer)
     this.liveBesearch = new BesearchUtil(this, this.liveHolepunch, this.libComposer)
     this.liveTraining = new TrainingUtil(this, this.liveHolepunch, this.libComposer)
+    this.cuesUtility = new CuesUtility()
+    this.encryption = new Encryption()
     this.publicLibrary = {} // public library modules and reference contracts
     this.peerLibdata = {}  // peers private library store
   }
@@ -51,6 +56,41 @@ class LibraryHop extends EventEmitter {
   */
   startLibrary = async function () {
     await this.libraryRefContracts()
+  }
+
+  /**
+   * generate datatype and cue contracts
+   * @method generateDatatypeCues
+   *
+   */
+  generateDatatypeCues = async function () {
+    // 1. Retrieve Datatype Lists
+    const gaiaList = this.cuesUtility.prepareDTgaiaMessage()
+
+    const savedDatatypeContracts = []
+
+    for (const dtData of gaiaList) {
+      // 2. Form Datatype Contract using librarycomposer
+      const formedContract = this.libComposer.liveComposer.datatypeComposer(dtData.data)
+      
+      // 3. Form Storage Key using hop-crypto
+      const contractHash = this.encryption.createKey(formedContract)
+      const storageKey = this.encryption.createPrefixedKey('datatype', contractHash)
+      
+      // 4. Save Datatype Reference Contract
+      // We wrap the contract in the structure expected by holepunch-hop's savePubliclibrary
+      const wrappedContract = {
+        reftype: 'datatype',
+        data: {
+          hash: storageKey,
+          contract: formedContract
+        }
+      }
+      const saveContract = await this.liveHolepunch.BeeData.savePubliclibrary(wrappedContract)
+      savedDatatypeContracts.push(saveContract)
+    }
+
+    return savedDatatypeContracts
   }
 
   /**
