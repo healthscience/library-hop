@@ -25,9 +25,10 @@ import TrainingUtil from './training/makeContract.js'
 
 class LibraryHop extends EventEmitter {
 
-  constructor(Holepunch) {
+  constructor(Holepunch, contextAgents) {
     super()
     this.liveHolepunch = Holepunch
+    this.hopCryptoLive = contextAgents.crypto
     this.libComposer = new LibComposer()
     this.liveContractsUtil = new ContractsUtil(this.liveHolepunch, this.libComposer)
     this.liveCAccountUtil = new AccountUtil(this, this.liveHolepunch, this.libComposer)
@@ -69,8 +70,6 @@ class LibraryHop extends EventEmitter {
   *
   */
   libraryManage = async function (message) {
-    console.log('libray mange')
-    console.log(message)
     // need break this up  each action should have sub type
     // nxp, contracts modules and reference
     if (message.action.trim() === 'contracts') {
