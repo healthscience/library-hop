@@ -63,20 +63,13 @@ class CuesUtility {
   */
   prepareCuesContractPrime = function (cueInfo) {
     // structure inputs for cue contract
-    const cueContract = {}
-    cueContract.type = 'library'
-    cueContract.action = 'cues'
-    cueContract.reftype = 'new-cues'
-    cueContract.task = 'PUT'
-    cueContract.privacy = 'public'
     let cueHolder = {}
     let concept = {}
     concept.name = cueInfo.name
     concept.settings = { glue: 'prime', datatype: cueInfo.contract.key, backgroundColor: cueInfo.color }
     cueHolder.concept = concept
     cueHolder.computational = { relationships: [] } 
-    cueContract.data = cueHolder
-    return cueContract
+    return cueHolder
   }
 
   /**

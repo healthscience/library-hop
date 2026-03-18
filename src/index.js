@@ -34,6 +34,7 @@ class LibraryHop extends EventEmitter {
     this.hopCryptoLive = contextAgents.crypto
     this.libComposer = new LibComposer()
     this.liveContractsUtil = new ContractsUtil(this.liveHolepunch, this.libComposer)
+
     this.liveCAccountUtil = new AccountUtil(this, this.liveHolepunch, this.libComposer)
     this.liveCuesUtil = new CuesUtil(this, this.liveHolepunch, this.libComposer)
     this.liveModelUtil = new ModelUtil(this, this.liveHolepunch, this.libComposer)
@@ -89,8 +90,35 @@ class LibraryHop extends EventEmitter {
       const saveContract = await this.liveHolepunch.BeeData.savePubliclibrary(wrappedContract)
       savedDatatypeContracts.push(saveContract)
     }
+    // next query to get saved format and then upgrade to cues
+    const saveDatatypeRC = await this.liveHolepunch.BeeBee.getPublicLibraryRefRange()
+    console.log('default datatypes saved and here is the list')
+    console.log(saveDatatypeRC)
+    // pass to cue upgrade
+    /* for (let rdt of saveDatatypeRC) {
+      this.cueContractForm(rdt)
+    }
+    
+    const savedCues = await this.liveHolepunch.BeeBee.getCuesHistory()
+    console.log('default cues saved and here is the list22222')
+    console.log(savedCues)
 
-    return savedDatatypeContracts
+    // set the network experiments
+    */
+    //  need to send over to BentoBoxDS for beebee
+
+    return true
+  }
+
+  /**
+  * default cue contract from datatype 
+  * @method cueContractForm
+  *
+  */
+  cueContractForm = async function (cueIn) {
+    // cue composer
+    let cueData = this.cuesUtility.prepareCuesContractPrime(cueIn)
+    const formedContract = this.libComposer.liveComposer.cuesPrepare(cueData)
   }
 
   /**
@@ -99,7 +127,7 @@ class LibraryHop extends EventEmitter {
   *
   */
   systemsContracts = async function () {
-    let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRange(100)
+    let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRefRange(100)
     this.callbackSFsystems(publibData)
   }
   
@@ -115,6 +143,12 @@ class LibraryHop extends EventEmitter {
     if (message.action.trim() === 'contracts') {
       // pass on to function to manage
       this.contractsManage(message)
+    } else if (message.action.trim() === 'genesis-datatypes-cues') {
+      // seed the base datatypes and upgrade to cues.  Plus default compute(observation), data packaging(blind), visualisation(chartjs) ref contracts
+      // data types to cues
+      await this.generateDatatypeCues()
+      //  biomarkers
+      // network experiment
     } else if (message.action.trim() === 'besearch') {
       this.liveBesearch.besearchManage(message)
     } else if (message.action.trim() === 'beebee-teach') {
@@ -162,7 +196,7 @@ class LibraryHop extends EventEmitter {
   */
   libraryRefContracts = async function () {
     // load all the public library but need to select what is needed TODO
-    this.publicLibrary = await this.liveHolepunch.BeeData.getPublicLibraryRange()
+    this.publicLibrary = await this.liveHolepunch.BeeData.getPublicLibraryRefRange()
     await this.systemsContracts()
   }
 
@@ -182,7 +216,7 @@ class LibraryHop extends EventEmitter {
         if (message.reftype === 'refresh-publiclibrary') {
           this.startLibrary()
         } else {
-          let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRange(100)
+          let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRefRange(100)
           this.callbacklibrary(publibData)
         }
       }
@@ -218,7 +252,7 @@ class LibraryHop extends EventEmitter {
       }
   
     } else if (message.task.trim() === 'safeflow-systems') {
-      let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRange(100)
+      let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRefRange(100)
       this.callbackSFsystems(publibData)
     } else if (message.task.trim() === 'replicate') {
     } else if (message.task.trim() === 'assemble') {
