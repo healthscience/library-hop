@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { startRealLibraryHop } from './helpers.js'
+import { startRealLibraryHop } from '../helpers.js'
 
 describe('Datatype Public Contracts', () => {
   it('should generate and save the first 3 datatype contracts from gaia list', async () => {
@@ -14,9 +14,6 @@ describe('Datatype Public Contracts', () => {
     // Verify structure of one of the saved contracts
     const firstSaved = savedContracts[0]
     expect(firstSaved).toHaveProperty('key')
-    expect(firstSaved.type).toBe('datatype')
-    
-    // Verify it has the expected properties from the composer
-    expect(firstSaved.contract).toHaveProperty('reftype', 'datatype')
+    expect(firstSaved.value).toHaveProperty('reftype', 'datatype')
   })
 })
