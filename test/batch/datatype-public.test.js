@@ -14,6 +14,6 @@ describe('Datatype Public Contracts', () => {
     // Verify structure of one of the saved contracts
     const firstSaved = savedContracts[0]
     expect(firstSaved).toHaveProperty('key')
-    expect(firstSaved.value).toHaveProperty('reftype', 'datatype')
+    expect(firstSaved.contract).toHaveProperty('reftype', 'datatype')
   })
 })

@@ -1,8 +1,6 @@
 import LibraryHop from '../src/index.js'
 import { Encryption } from 'hop-crypto/encryption'
 import Holepunch from 'holepunch-hop'
-const wasm = await import('hop-crypto')
-  
 
 /**
  * Helper to start a real LibraryHop instance for testing
@@ -21,14 +19,11 @@ export async function startRealLibraryHop() {
 
   const contextAgents = {
     crypto: {
-      verify_coherence: wasm.verify_coherence,
       Encryption: Encryption 
     },
     network: holepunch
   }
 
   const libHop = new LibraryHop(contextAgents)
-  console.log('hop cyro livlvlvvivli')
-  console.log(libHop.hopCryptoLive)
   return libHop
 }

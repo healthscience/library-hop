@@ -21,8 +21,9 @@ describe('New Datatype Contract', () => {
     const formedContract = libHop.libComposer.liveComposer.datatypeComposer(inputData)
     
     // 2. Form Storage Key using hop-crypto
-    const contractHash = libHop.encryption.createKey(formedContract)
-    const storageKey = libHop.encryption.createPrefixedKey('datatype', contractHash)
+    const encryption = new libHop.hopCryptoLive.Encryption()
+    const contractHash = encryption.createKey(formedContract)
+    const storageKey = encryption.createPrefixedKey('datatype', contractHash)
     
     // 3. Save Datatype Reference Contract
     const wrappedContract = {

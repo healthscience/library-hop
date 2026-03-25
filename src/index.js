@@ -12,6 +12,8 @@
 import util from 'util'
 import EventEmitter from 'events'
 import LibComposer from 'librarycomposer'
+import BiomarkersUtility from './seed/biomarkerUtility.js'
+import CuesUtility from './seed/cuesUtility.js'
 import ContractsUtil from './tools/contracts.js'
 import AccountUtil from './account/peerNetwork.js'
 import CuesUtil from './cues/makeContract.js'
@@ -22,19 +24,15 @@ import MarkerUtil from './marker/makeContract.js'
 import ProductUtil from './product/makeContract.js'
 import BesearchUtil from './besearch/makeContract.js'
 import TrainingUtil from './training/makeContract.js'
-import CuesUtility from './seed/cuesUtility.js'
-import Color from 'color'
-import { Encryption } from 'hop-crypto/encryption'
 
 class LibraryHop extends EventEmitter {
 
-  constructor(Holepunch, contextAgents) {
+  constructor(contextAgents) {
     super()
-    this.liveHolepunch = Holepunch
+    this.liveHolepunch = contextAgents.network
     this.hopCryptoLive = contextAgents.crypto
     this.libComposer = new LibComposer()
     this.liveContractsUtil = new ContractsUtil(this.liveHolepunch, this.libComposer)
-
     this.liveCAccountUtil = new AccountUtil(this, this.liveHolepunch, this.libComposer)
     this.liveCuesUtil = new CuesUtil(this, this.liveHolepunch, this.libComposer)
     this.liveModelUtil = new ModelUtil(this, this.liveHolepunch, this.libComposer)
@@ -44,8 +42,8 @@ class LibraryHop extends EventEmitter {
     this.liveProductUtil = new ProductUtil(this, this.liveHolepunch, this.libComposer)
     this.liveBesearch = new BesearchUtil(this, this.liveHolepunch, this.libComposer)
     this.liveTraining = new TrainingUtil(this, this.liveHolepunch, this.libComposer)
+    this.biomarkerUtil = new BiomarkersUtility()
     this.cuesUtility = new CuesUtility()
-    this.encryption = new Encryption()
     this.publicLibrary = {} // public library modules and reference contracts
     this.peerLibdata = {}  // peers private library store
   }
@@ -60,74 +58,12 @@ class LibraryHop extends EventEmitter {
   }
 
   /**
-   * generate datatype and cue contracts
-   * @method generateDatatypeCues
-   *
-   */
-  generateDatatypeCues = async function () {
-    // 1. Retrieve Datatype Lists
-    const gaiaList = this.cuesUtility.prepareDTgaiaMessage()
-
-    const savedDatatypeContracts = []
-
-    for (const dtData of gaiaList) {
-      // 2. Form Datatype Contract using librarycomposer
-      const formedContract = this.libComposer.liveComposer.datatypeComposer(dtData.data)
-      
-      // 3. Form Storage Key using hop-crypto
-      const contractHash = this.encryption.createKey(formedContract)
-      const storageKey = this.encryption.createPrefixedKey('datatype', contractHash)
-      
-      // 4. Save Datatype Reference Contract
-      // We wrap the contract in the structure expected by holepunch-hop's savePubliclibrary
-      const wrappedContract = {
-        reftype: 'datatype',
-        data: {
-          hash: storageKey,
-          contract: formedContract
-        }
-      }
-      const saveContract = await this.liveHolepunch.BeeData.savePubliclibrary(wrappedContract)
-      savedDatatypeContracts.push(saveContract)
-    }
-    // next query to get saved format and then upgrade to cues
-    const saveDatatypeRC = await this.liveHolepunch.BeeBee.getPublicLibraryRefRange()
-    console.log('default datatypes saved and here is the list')
-    console.log(saveDatatypeRC)
-    // pass to cue upgrade
-    /* for (let rdt of saveDatatypeRC) {
-      this.cueContractForm(rdt)
-    }
-    
-    const savedCues = await this.liveHolepunch.BeeBee.getCuesHistory()
-    console.log('default cues saved and here is the list22222')
-    console.log(savedCues)
-
-    // set the network experiments
-    */
-    //  need to send over to BentoBoxDS for beebee
-
-    return true
-  }
-
-  /**
-  * default cue contract from datatype 
-  * @method cueContractForm
-  *
-  */
-  cueContractForm = async function (cueIn) {
-    // cue composer
-    let cueData = this.cuesUtility.prepareCuesContractPrime(cueIn)
-    const formedContract = this.libComposer.liveComposer.cuesPrepare(cueData)
-  }
-
-  /**
   * start library 
   * @method systemsContracts
   *
   */
   systemsContracts = async function () {
-    let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRefRange(100)
+    let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRange(100)
     this.callbackSFsystems(publibData)
   }
   
@@ -143,12 +79,6 @@ class LibraryHop extends EventEmitter {
     if (message.action.trim() === 'contracts') {
       // pass on to function to manage
       this.contractsManage(message)
-    } else if (message.action.trim() === 'genesis-datatypes-cues') {
-      // seed the base datatypes and upgrade to cues.  Plus default compute(observation), data packaging(blind), visualisation(chartjs) ref contracts
-      // data types to cues
-      await this.generateDatatypeCues()
-      //  biomarkers
-      // network experiment
     } else if (message.action.trim() === 'besearch') {
       this.liveBesearch.besearchManage(message)
     } else if (message.action.trim() === 'beebee-teach') {
@@ -196,7 +126,7 @@ class LibraryHop extends EventEmitter {
   */
   libraryRefContracts = async function () {
     // load all the public library but need to select what is needed TODO
-    this.publicLibrary = await this.liveHolepunch.BeeData.getPublicLibraryRefRange()
+    this.publicLibrary = await this.liveHolepunch.BeeData.getPublicLibraryRange()
     await this.systemsContracts()
   }
 
@@ -216,7 +146,7 @@ class LibraryHop extends EventEmitter {
         if (message.reftype === 'refresh-publiclibrary') {
           this.startLibrary()
         } else {
-          let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRefRange(100)
+          let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRange(100)
           this.callbacklibrary(publibData)
         }
       }
@@ -252,7 +182,7 @@ class LibraryHop extends EventEmitter {
       }
   
     } else if (message.task.trim() === 'safeflow-systems') {
-      let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRefRange(100)
+      let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRange(100)
       this.callbackSFsystems(publibData)
     } else if (message.task.trim() === 'replicate') {
     } else if (message.task.trim() === 'assemble') {
@@ -1271,6 +1201,44 @@ class LibraryHop extends EventEmitter {
     libraryData.data = data
     this.emit('libmessage', JSON.stringify(libraryData))
     // this.wsocket.send(JSON.stringify(libraryData))
+  }
+
+  /**
+  * generate datatype cues from gaia list
+  * @method generateDatatypeCues
+  *
+  */
+  generateDatatypeCues = async function () {
+    const lists = [
+      this.cuesUtility.prepareDTgaiaMessage(),
+      this.cuesUtility.prepareDTnatureMessage(),
+      this.cuesUtility.prepareDTenvironmentMessage(),
+      this.cuesUtility.prepareDTcultureMessage(),
+      this.cuesUtility.prepareDTlifeMessage(),
+      this.cuesUtility.prepareDTagingMessage(),
+      this.cuesUtility.prepareDTplanetMessage(),
+      this.cuesUtility.prepareDTbodyMessage()
+    ]
+
+    let savedContracts = []
+    for (const list of lists) {
+      for (const mark of list) {
+        const formedContract = this.libComposer.liveComposer.datatypeComposer(mark.data)
+        const encryption = new this.hopCryptoLive.Encryption()
+        const contractHash = encryption.createKey(formedContract)
+        const storageKey = encryption.createPrefixedKey('datatype', contractHash)
+        const wrappedContract = {
+          reftype: 'datatype',
+          data: {
+            hash: storageKey,
+            contract: formedContract
+          }
+        }
+        const saved = await this.liveHolepunch.BeeData.savePubliclibraryRef(wrappedContract)
+        savedContracts.push(saved)
+      }
+    }
+    return savedContracts
   }
 
   /**
