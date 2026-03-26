@@ -24,6 +24,7 @@ import MarkerUtil from './marker/makeContract.js'
 import ProductUtil from './product/makeContract.js'
 import BesearchUtil from './besearch/makeContract.js'
 import TrainingUtil from './training/makeContract.js'
+import CogGlue from './glue/cogGlue.js'
 
 class LibraryHop extends EventEmitter {
 
@@ -44,6 +45,7 @@ class LibraryHop extends EventEmitter {
     this.liveTraining = new TrainingUtil(this, this.liveHolepunch, this.libComposer)
     this.biomarkerUtil = new BiomarkersUtility()
     this.cuesUtility = new CuesUtility()
+    this.cogGlue = new CogGlue(this, this.liveHolepunch, this.libComposer, this.hopCryptoLive, this.cuesUtility)
     this.publicLibrary = {} // public library modules and reference contracts
     this.peerLibdata = {}  // peers private library store
   }
@@ -63,7 +65,7 @@ class LibraryHop extends EventEmitter {
   *
   */
   systemsContracts = async function () {
-    let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRange(100)
+    let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRefRange('datatype', 100)
     this.callbackSFsystems(publibData)
   }
   
@@ -79,6 +81,9 @@ class LibraryHop extends EventEmitter {
     if (message.action.trim() === 'contracts') {
       // pass on to function to manage
       this.contractsManage(message)
+    } else if (message.action.trim() === 'genesis-datatypes-cues') {
+      console.log('geneiss biology contracts--------')
+      this.cogGlue.generateDatatypeCues()
     } else if (message.action.trim() === 'besearch') {
       this.liveBesearch.besearchManage(message)
     } else if (message.action.trim() === 'beebee-teach') {
@@ -104,7 +109,7 @@ class LibraryHop extends EventEmitter {
     } else if (message.action.trim() === 'product') {
       this.liveProductUtil.productManage(message)
     } else if (message.action.trim() === 'start') {
-      this.peerLibdata = await this.liveHolepunch.BeeData.getPeerLibraryRange(100)
+      this.peerLibdata = await this.liveHolepunch.BeeData.getPeerLibraryRangeRef('datatype', 100)
       let returnPeerData = this.liveContractsUtil.libraryQuerypath('query', 'peerlibrary', this.peerLibdata)
       let outFlow = {}
       outFlow.type = 'peer-library'
@@ -126,7 +131,7 @@ class LibraryHop extends EventEmitter {
   */
   libraryRefContracts = async function () {
     // load all the public library but need to select what is needed TODO
-    this.publicLibrary = await this.liveHolepunch.BeeData.getPublicLibraryRange()
+    this.publicLibrary = await this.liveHolepunch.BeeData.getPublicLibraryRefRange('datatype', 100)
     await this.systemsContracts()
   }
 
@@ -139,14 +144,16 @@ class LibraryHop extends EventEmitter {
     if (message.task.trim() === 'GET') {
       // public or private library?
       if (message.privacy === 'private') {
-        let peerLib = await this.liveHolepunch.BeeData.getPeerLibraryRange(100)
+        let peerLib = await this.liveHolepunch.BeeData.getPeerLibraryRefRange('datatype', 100)
         // this.callbackPeerLibAllBoard(message.data, privateALL)
         this.callbackPeerLib(message.data, peerLib)
       } else if (message.privacy === 'public') {
+        console.log('public library')
+        console.log('message', message)
         if (message.reftype === 'refresh-publiclibrary') {
           this.startLibrary()
         } else {
-          let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRange(100)
+          let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRefRange('datatype', 100)
           this.callbacklibrary(publibData)
         }
       }
@@ -182,7 +189,7 @@ class LibraryHop extends EventEmitter {
       }
   
     } else if (message.task.trim() === 'safeflow-systems') {
-      let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRange(100)
+      let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRefRange(100)
       this.callbackSFsystems(publibData)
     } else if (message.task.trim() === 'replicate') {
     } else if (message.task.trim() === 'assemble') {
@@ -297,6 +304,8 @@ class LibraryHop extends EventEmitter {
     } else if (saveData.reftype === 'module') {
     }
     // console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
+    console.log('formed contract')
+    console.log(formedContract)
     let saveContract = await this.liveHolepunch.BeeData.savePubliclibrary(formedContract)
     // format message for return
     let saveMessage = {}
@@ -593,41 +602,41 @@ class LibraryHop extends EventEmitter {
       } else if (o.task.trim() === 'start') {
         // self verified get Account Info, cues, markers, bentoboxes etc.  Get most used (all for now)
         // account peer relationships
-        let bbPeers = await this.liveHolepunch.BeeData.getPeersHistory()
+        let bbPeers = await this.liveHolepunch.BeeData.getPeersHistory('peer')
         this.callbackPeerHistory(bbPeers)        
         // besearch active
-        let besearchStart = await this.liveHolepunch.BeeData.getBesearchHistory()
+        let besearchStart = await this.liveHolepunch.BeeData.getBesearchHistory('besearch')
         this.callbackBesearchhistory(besearchStart)
         // default agents
-        let bbAgents = await this.liveHolepunch.BeeData.getModelHistory()
+        let bbAgents = await this.liveHolepunch.BeeData.getModelHistory('model')
         this.callbackAgents(bbAgents)
         // spaces location of bentoboxes per cue space
-        let bbspace = await this.liveHolepunch.BeeData.getAllBentospaces()
+        let bbspace = await this.liveHolepunch.BeeData.getAllBentospaces('space')
         this.callbackAllBentospace(bbspace)
         // chats
-        let bentoChatstart = await this.liveHolepunch.BeeData.getBentochatHistory()
+        let bentoChatstart = await this.liveHolepunch.BeeData.getBentochatHistory('chat')
         this.callbackBentochathistory(bentoChatstart)
         // get the Cues
-        let bentoCuesLive = await this.liveHolepunch.BeeData.getCuesHistory()
+        let bentoCuesLive = await this.liveHolepunch.BeeData.getCuesHistory('cue')
         this.callbackBentoCueshistory(bentoCuesLive)
         // get the media
-        let bentoMediaLive = await this.liveHolepunch.BeeData.getMediaHistory()
+        let bentoMediaLive = await this.liveHolepunch.BeeData.getMediaHistory('media')
         this.callbackBentoMediahistory(bentoMediaLive)        
         // get the research
-        let bentoResearchLive = await this.liveHolepunch.BeeData.getResearchHistory()
+        let bentoResearchLive = await this.liveHolepunch.BeeData.getResearchHistory('research')
         this.callbackBentoResearchhistory(bentoResearchLive)
         // get the markers
-        let bentoMarkerLive = await this.liveHolepunch.BeeData.getMarkerHistory()
+        let bentoMarkerLive = await this.liveHolepunch.BeeData.getMarkerHistory('marker')
         this.callbackBentoMarkerhistory(bentoMarkerLive)
         // get the products
-        let bentoProductLive = await this.liveHolepunch.BeeData.getProductHistory()
+        let bentoProductLive = await this.liveHolepunch.BeeData.getProductHistory('product')
         this.callbackBentoProducthistory(bentoProductLive)
         // get the bentobox
-        let bBoxes = await this.liveHolepunch.BeeData.getBentoBoxHistory()
+        let bBoxes = await this.liveHolepunch.BeeData.getBentoBoxHistory('box')
         this.callbackBentoBoxes(bBoxes)
         // get the @teach history
         console.log('teach history called')
-        let beebeeTeachHistory = await this.liveHolepunch.BeeData.getBeeBeeLearnHistory()
+        let beebeeTeachHistory = await this.liveHolepunch.BeeData.getBeeBeeLearnHistory('learn')
         this.callbackBeeBeeLearn(beebeeTeachHistory)
       } else if (o.task.trim() === 'get') {
       } else if (o.task.trim() === 'delete') {
@@ -752,16 +761,16 @@ class LibraryHop extends EventEmitter {
   callbacklibrary = function (data) {
     // pass to sort data into ref contract types
     let libraryData = {}
-    libraryData.data = 'contracts'
-    libraryData.type = 'publiclibrary'
-    const segmentedRefContracts = this.libComposer.liveRefcontUtility.refcontractSperate(data)
+    libraryData.type = 'library'
+    libraryData.action = 'publiclibrary-ref'
+    const segmentedRefContracts = data // this.libComposer.liveRefcontUtility.refcontractSperate(data)
     libraryData.referenceContracts = segmentedRefContracts
     // need to split for genesis and peer joined NXPs
-    const nxpSplit = this.libComposer.liveRefcontUtility.experimentSplit(segmentedRefContracts.experiment)
-    libraryData.splitExperiments = nxpSplit
+    // const nxpSplit = this.libComposer.liveRefcontUtility.experimentSplit(segmentedRefContracts.experiment)
+    // libraryData.splitExperiments = nxpSplit
     // look up modules for this experiments
-    libraryData.networkExpModules = this.libComposer.liveRefcontUtility.expMatchModuleGenesis(libraryData.referenceContracts.module, nxpSplit.genesis)
-    libraryData.networkPeerExpModules = this.libComposer.liveRefcontUtility.expMatchModuleJoined(libraryData.referenceContracts.module, nxpSplit.joined)
+    // libraryData.networkExpModules = this.libComposer.liveRefcontUtility.expMatchModuleGenesis(libraryData.referenceContracts.module, nxpSplit.genesis)
+    // libraryData.networkPeerExpModules = this.libComposer.liveRefcontUtility.expMatchModuleJoined(libraryData.referenceContracts.module, nxpSplit.joined)
     this.emit('libmessage', JSON.stringify(libraryData))
   }
 
@@ -780,17 +789,18 @@ class LibraryHop extends EventEmitter {
   callbackPeerlibrary = function (data) {
     // format raw data
     let libraryData = {}
-    const segmentedRefContracts = this.libComposer.liveRefcontUtility.refcontractSperate(data)
+    const segmentedRefContracts = data // this.libComposer.liveRefcontUtility.refcontractSperate(data)
     libraryData.referenceContracts = segmentedRefContracts
     // need to split for genesis and peer joined NXPs
-    const nxpSplit = this.libComposer.liveRefcontUtility.experimentSplit(segmentedRefContracts.experiment)
+    /* const nxpSplit = this.libComposer.liveRefcontUtility.experimentSplit(segmentedRefContracts.experiment)
     libraryData.splitExperiments = nxpSplit
     // look up modules for this experiments
     libraryData.networkExpModules = this.libComposer.liveRefcontUtility.expMatchModuleGenesis(libraryData.referenceContracts.module, nxpSplit.genesis)
-    libraryData.networkPeerExpModules = this.libComposer.liveRefcontUtility.expMatchModuleJoined(libraryData.referenceContracts.module, nxpSplit.joined)
+    libraryData.networkPeerExpModules = this.libComposer.liveRefcontUtility.expMatchModuleJoined(libraryData.referenceContracts.module, nxpSplit.joined)*/
     libraryData.type = 'peerlibrary'
     libraryData.refcontract = 'experiment-new'
     libraryData.data = data
+    
     this.emit('libmessage', JSON.stringify(libraryData))
   }
 
@@ -1203,42 +1213,20 @@ class LibraryHop extends EventEmitter {
     // this.wsocket.send(JSON.stringify(libraryData))
   }
 
-  /**
-  * generate datatype cues from gaia list
-  * @method generateDatatypeCues
-  *
-  */
-  generateDatatypeCues = async function () {
-    const lists = [
-      this.cuesUtility.prepareDTgaiaMessage(),
-      this.cuesUtility.prepareDTnatureMessage(),
-      this.cuesUtility.prepareDTenvironmentMessage(),
-      this.cuesUtility.prepareDTcultureMessage(),
-      this.cuesUtility.prepareDTlifeMessage(),
-      this.cuesUtility.prepareDTagingMessage(),
-      this.cuesUtility.prepareDTplanetMessage(),
-      this.cuesUtility.prepareDTbodyMessage()
-    ]
 
-    let savedContracts = []
-    for (const list of lists) {
-      for (const mark of list) {
-        const formedContract = this.libComposer.liveComposer.datatypeComposer(mark.data)
-        const encryption = new this.hopCryptoLive.Encryption()
-        const contractHash = encryption.createKey(formedContract)
-        const storageKey = encryption.createPrefixedKey('datatype', contractHash)
-        const wrappedContract = {
-          reftype: 'datatype',
-          data: {
-            hash: storageKey,
-            contract: formedContract
-          }
-        }
-        const saved = await this.liveHolepunch.BeeData.savePubliclibraryRef(wrappedContract)
-        savedContracts.push(saved)
-      }
-    }
-    return savedContracts
+  /**
+  * callback genesis contracts to bentoboxds
+  * @method 
+  */
+  callbackGenesisContracts = function (contract, data) {
+    // pass to sort data into ref contract types
+    let libraryData = {}
+    libraryData.type = 'library'
+    libraryData.action = 'ledger'
+    libraryData.privacy = 'private'
+    libraryData.data = data
+    this.emit('libmessage', JSON.stringify(libraryData))
+    // this.wsocket.send(JSON.stringify(libraryData))
   }
 
   /**
@@ -1266,16 +1254,16 @@ class LibraryHop extends EventEmitter {
     let libraryData = {}
     libraryData.data = 'contracts'
     libraryData.type = 'library'
-    libraryData.action = 'peer-library'
+    libraryData.action = 'peer-library-ref'
     libraryData.context = context
-    const segmentedRefContracts = this.libComposer.liveRefcontUtility.refcontractSperate(data)
+    const segmentedRefContracts = data // this.libComposer.liveRefcontUtility.refcontractSperate(data)
     libraryData.referenceContracts = segmentedRefContracts
     // need to split for genesis and peer joined NXPs
-    const nxpSplit = this.libComposer.liveRefcontUtility.experimentSplit(segmentedRefContracts.experiment)
+    /* const nxpSplit = this.libComposer.liveRefcontUtility.experimentSplit(segmentedRefContracts.experiment)
     libraryData.splitExperiments = nxpSplit
     // look up modules for this experiments
     libraryData.networkExpModules = this.libComposer.liveRefcontUtility.expMatchModuleGenesis(libraryData.referenceContracts.module, nxpSplit.genesis)
-    libraryData.networkPeerExpModules = this.libComposer.liveRefcontUtility.expMatchModuleJoined(libraryData.referenceContracts.module, nxpSplit.joined)
+    libraryData.networkPeerExpModules = this.libComposer.liveRefcontUtility.expMatchModuleJoined(libraryData.referenceContracts.module, nxpSplit.joined) */
     this.emit('libmessage', JSON.stringify(libraryData))
   }
 
