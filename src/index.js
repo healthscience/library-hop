@@ -32,7 +32,7 @@ class LibraryHop extends EventEmitter {
     super()
     this.liveHolepunch = contextAgents.network
     this.hopCryptoLive = contextAgents.crypto
-    this.libComposer = new LibComposer()
+    this.libComposer = new LibComposer(contextAgents)
     this.liveContractsUtil = new ContractsUtil(this.liveHolepunch, this.libComposer)
     this.liveCAccountUtil = new AccountUtil(this, this.liveHolepunch, this.libComposer)
     this.liveCuesUtil = new CuesUtil(this, this.liveHolepunch, this.libComposer)

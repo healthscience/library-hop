@@ -1,6 +1,7 @@
 import LibraryHop from '../src/index.js'
 import { Encryption } from 'hop-crypto/encryption'
 import Holepunch from 'holepunch-hop'
+import HeliLocation from 'heliclock-hop/src/index.js'
 
 /**
  * Helper to start a real LibraryHop instance for testing
@@ -17,11 +18,36 @@ export async function startRealLibraryHop() {
   // Start the datastores and wait for them to be live
   await holepunch.activateHypercores()
 
-  const contextAgents = {
-    crypto: {
-      Encryption: Encryption 
-    },
-    network: holepunch
+  let heliLocation = new HeliLocation()
+  let HeliClock = {}
+
+  /**
+   * initialize HeliClock WASM
+   * @method initHeliClock
+   *
+  */
+  let initHeliClock = async function () {
+    try {
+      await heliLocation.init()
+      HeliClock = heliLocation.getEngine()
+      // this.anchorDawn.setHeliClock(this.HeliClock)
+    } catch (err) {
+      console.warn('HeliClock init failed or already initialized', err)
+    }
+  }
+
+  await initHeliClock()
+
+
+
+  const encryption = new Encryption()
+  encryption.Encryption = Encryption
+
+  let contextAgents = {
+    crypto: encryption,
+    network: holepunch,
+    heliclock: heliLocation,
+    heliLocation: heliLocation,
   }
 
   const libHop = new LibraryHop(contextAgents)

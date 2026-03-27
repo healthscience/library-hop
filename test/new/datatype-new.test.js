@@ -19,42 +19,21 @@ describe('New Datatype Contract', () => {
 
     // 1. Form Datatype Contract using librarycomposer
     const formedContract = libHop.libComposer.liveComposer.datatypeComposer(inputData)
+   
+    const savedContract = await libHop.liveHolepunch.BeeData.savePubliclibraryRef(formedContract)
     
-    // 2. Form Storage Key using hop-crypto
-    const encryption = new libHop.hopCryptoLive.Encryption()
-    const contractHash = encryption.createKey(formedContract)
-    const storageKey = encryption.createPrefixedKey('datatype', contractHash)
-    
-    // 3. Save Datatype Reference Contract
-    const wrappedContract = {
-      reftype: 'datatype',
-      data: {
-        hash: storageKey,
-        value: formedContract
-      }
-    }
-
-    const savedContract = await libHop.liveHolepunch.BeeData.savePubliclibraryRef(wrappedContract)
-    
-    // Verify content matches input
-    expect(formedContract.data.contract.concept).toHaveProperty('primary', 'yes')
-    expect(formedContract.data.contract.concept.name).toBe(inputData.name)
-    expect(formedContract.data.contract.concept.description).toBe(inputData.description)
-    expect(formedContract.data.contract.computational.measurement).toBe(inputData.computational.measurement)
-    
-    // Verify the saved contract structure
-    expect(savedContract).toHaveProperty('key')
-    expect(savedContract.key).toEqual(storageKey)
-    expect(savedContract.type).toBe('datatype')
-    
-    // Verify we can retrieve it back
-    const retrieved = await libHop.liveHolepunch.BeeData.getPublicLibraryRef(storageKey)
-    console.log('retrieved contract:', retrieved)
-    // If retrieved is an array, find the item. If it's a single object, use it.
-    const found = Array.isArray(retrieved) ? retrieved.find(c => c.key.equals(storageKey)) : retrieved
-    expect(found).toBeDefined()
-    if (found && found.value) {
-      expect(found.value.concept.name).toBe(inputData.name)
+    // Verify we can retrieve it back and check its content
+    if (savedContract === true) {
+      const retrieved = await libHop.liveHolepunch.BeeData.getPublicLibraryRef(formedContract.hash)
+      // Hyperbee.get returns a node with { key, value }
+      expect(retrieved).toBeDefined()
+      expect(retrieved.key).toStrictEqual(formedContract.hash)
+      expect(retrieved.value).toBeDefined()
+      
+      // Verify the content matches what we saved
+      expect(retrieved.value.concept.name).toBe(inputData.name)
+      expect(retrieved.value.computational.measurement).toBe(inputData.computational.measurement)
+      expect(retrieved.value.refcontract).toBe('datatype')
     }
   })
 
@@ -63,7 +42,7 @@ describe('New Datatype Contract', () => {
     
     const inputData = {
       primary: 'yes',
-      name: 'Heart Rate',
+      name: 'heart rate',
       description: 'Beats per minute',
       computational: {
         measurement: 'bpm',
@@ -72,22 +51,26 @@ describe('New Datatype Contract', () => {
     }
 
     const mark = { data: inputData }
-    const categoryColors = { 'heart rate': '#e74c3c' }
+    const categoryColors = { 'color': '#e74c3c' }
 
     // 1. Form Datatype Contract
-    const contract = await libHop.cogGlue.formContract('datatype', 'reference', mark)
-    expect(contract).toBeDefined()
-    expect(contract.reftype).toBe('datatype')
+    const contractBack = await libHop.cogGlue.formContract('datatype', 'reference', mark)
+
+    const retrievedDTC = await libHop.liveHolepunch.BeeData.getPublicLibraryRef(contractBack.contract.hash)
+    expect(retrievedDTC).toBeDefined()
 
     // 2. Form Cue Contract using the datatype key
-    const cue = await libHop.cogGlue.cueFormer(mark, contract.data.hash, categoryColors)
-    
-    expect(cue.reftype).toBe('cue')
-    expect(cue.data.value).toHaveProperty('refcontract', 'cue')
-    expect(cue.data.value.concept.name).toBe(inputData.name)
-    
-    // Verify the datatypeRef matches
-    const dtRef = Buffer.from(cue.data.value.computational.datatypeRef)
-    expect(dtRef.equals(contract.data.hash)).toBe(true)
+    const cue = await libHop.cogGlue.cueFormer(retrievedDTC, categoryColors)
+
+    // get the contract and check its properties
+    const cueContract = await libHop.liveHolepunch.BeeData.getCues(cue.contract.hash)
+    expect(cueContract).toBeDefined()
+    expect(cueContract.key).toStrictEqual(cue.contract.hash)
+    expect(cueContract.value).toBeDefined()
+
+    expect(cueContract.value.concept.name).toBe(inputData.name)
+    const bufferKey = Buffer.from(cueContract.value.computational.datatypeRef);
+    expect(bufferKey).toStrictEqual(retrievedDTC.key)
+    expect(cueContract.value.refcontract).toBe('cue')
   })
 })

@@ -47,7 +47,7 @@ class CogGlue {
         const contract = await this.formContract('datatype', 'reference', mark)
         if (contract) {
           savedContracts.push(contract)
-          const cue = await this.cueFormer(mark, contract.data.hash, categoryColors)
+          const cue = await this.cueFormer(mark, contract.hash, categoryColors)
           savedContracts.push(cue)
         }
       }
@@ -88,53 +88,35 @@ class CogGlue {
         return null
     }
 
-    const encryption = new this.hopCryptoLive.Encryption()
-    const contractHash = encryption.createKey(formedContract)
-    const storageKey = encryption.createPrefixedKey(category, contractHash)
-    
-    const wrappedContract = {
-      reftype: category,
-      contractType: type, // reference or module
-      data: {
-        hash: storageKey,
-        value: formedContract
-      }
-    }
-
-    console.log(`formed ${type} contract for ${category}`)
-    console.log(wrappedContract)
-
     let saved = null
     if (category === 'cue') {
-      saved = await this.liveHolepunch.BeeData.saveCues(wrappedContract)
+      saved = await this.liveHolepunch.BeeData.saveCues(formedContract)
     } else {
-      saved = await this.liveHolepunch.BeeData.savePubliclibraryRef(wrappedContract)
+      saved = await this.liveHolepunch.BeeData.savePubliclibraryRef(formedContract)
     }
 
-    return {
-      ...wrappedContract,
-      saved: saved
-    }
+    return { save: saved, contract: formedContract }
   }
 
   /**
    * form cue from mark and storage key
    * @method cueFormer
    */
-  cueFormer = async function (mark, storageKey, categoryColors) {
-    const category = mark.data.name.toLowerCase()
-    const cueSpaceID = `gaia!${category}!${mark.data.name.toLowerCase()}`
-    const color = categoryColors[category] || '#95a5a6'
+  cueFormer = async function (dtContract, categoryColors) {
+    console.log(dtContract.key)
+    const cueDT = dtContract.value.concept.name.toLowerCase()
+    const cueSpaceID = `gaia!${cueDT}!${cueDT}`
+    const color = categoryColors.color || '#95a5a6'
 
     const inCue = {
       data: {
         concept: {
-          name: mark.data.name,
-          cueSpaceID: cueSpaceID,
+          name: cueDT,
+          datatype: dtContract.key,
           appearance: { color: color }
         },
         computational: {
-          datatypeRef: storageKey,
+          datatypeRef: dtContract.key,
           relationships: []
         }
       }
@@ -144,8 +126,8 @@ class CogGlue {
     const savedCue = await this.liveHolepunch.BeeData.saveCues(formedCue)
     
     return {
-      reftype: 'cue',
-      data: savedCue
+      saved:  savedCue,
+      contract: formedCue
     }
   }
 
