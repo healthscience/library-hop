@@ -15,6 +15,7 @@ import LibComposer from 'librarycomposer'
 import BiomarkersUtility from './seed/biomarkerUtility.js'
 import CuesUtility from './seed/cuesUtility.js'
 import ContractsUtil from './tools/contracts.js'
+import LifestrapUtil from './lifestrap/makeContract.js'
 import AccountUtil from './account/peerNetwork.js'
 import CuesUtil from './cues/makeContract.js'
 import ModelUtil from './models/agentMange.js'
@@ -45,6 +46,7 @@ class LibraryHop extends EventEmitter {
     this.liveTraining = new TrainingUtil(this, this.liveHolepunch, this.libComposer)
     this.biomarkerUtil = new BiomarkersUtility()
     this.cuesUtility = new CuesUtility()
+    this.liveLifestrapUtil = new LifestrapUtil(this, this.liveHolepunch, this.libComposer)
     this.cogGlue = new CogGlue(this, this.liveHolepunch, this.libComposer, this.hopCryptoLive, this.cuesUtility)
     this.publicLibrary = {} // public library modules and reference contracts
     this.peerLibdata = {}  // peers private library store
@@ -81,6 +83,8 @@ class LibraryHop extends EventEmitter {
     if (message.action.trim() === 'contracts') {
       // pass on to function to manage
       this.contractsManage(message)
+    } else if (message.action.trim() === 'lifestrap') {
+      this.liveLifestrapUtil.lifestrapManage(message)
     } else if (message.action.trim() === 'genesis-datatypes-cues') {
       console.log('geneiss biology contracts--------')
       this.cogGlue.generateDatatypeCues()
@@ -304,8 +308,6 @@ class LibraryHop extends EventEmitter {
     } else if (saveData.reftype === 'module') {
     }
     // console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
-    console.log('formed contract')
-    console.log(formedContract)
     let saveContract = await this.liveHolepunch.BeeData.savePubliclibrary(formedContract)
     // format message for return
     let saveMessage = {}
@@ -497,8 +499,6 @@ class LibraryHop extends EventEmitter {
   * @method saveFileManager
   */
   saveFileManager = async function (save) {
-    console.log('file save fmanager')
-    console.log(save)
     let fileList = []
     fileList.push(save.data)
     save.data = fileList
@@ -506,7 +506,6 @@ class LibraryHop extends EventEmitter {
     // how many files coming in?
     let fileCount = save.data.length
     for (let i = 0; i < fileCount; i++) {
-      console.log(i)
       if (save.data[i].type === 'sqlite') {
         let fileInfo = await this.liveHolepunch.DriveFiles.saveSqliteFirst(save.data[i].type, save.data[i].name, save.data[i].content)
         let fileFeedback = {}
@@ -529,8 +528,6 @@ class LibraryHop extends EventEmitter {
           // liveParser.webJSONfile(o, ws)
         }
       } else if (save.data[i].type === 'text/csv' || save.data[i].type === 'csv') {
-        console.log('save csv protocol--------')
-        console.log(save.data)
         // save protocol original file save and JSON for HOP
         if (save.data[i].info.source === 'local') {
           let fileInfo = await this.liveHolepunch.DriveFiles.hyperdriveCSVmanager(save)
@@ -577,17 +574,6 @@ class LibraryHop extends EventEmitter {
       // stream chunk to save
       await this.liveHolepunch.DriveFiles.streamSavedata('/test/large.csv', saveData.data.chunk)
     }
-
-    /*
-      let fileFeedback = {}
-      fileFeedback.success = true
-      fileFeedback.data = saveFeedback
-      let storeFeedback = {}
-      storeFeedback.type = 'library'
-      storeFeedback.action = 'save-file'
-      storeFeedback.data = fileFeedback
-      this.emit('libmessage', JSON.stringify(storeFeedback))
-    */
   }
 
   /**
@@ -597,46 +583,45 @@ class LibraryHop extends EventEmitter {
    bentoPath = async function (o) {
     if (o.reftype.trim() === 'chat-history') {
       if (o.task.trim() === 'save') {
-        let bentoChat = await this.liveHolepunch.BeeData.saveBentochat(o.data)
-        this.callbackBentochat(bentoChat)
+        // this.prepareChat(o)
       } else if (o.task.trim() === 'start') {
         // self verified get Account Info, cues, markers, bentoboxes etc.  Get most used (all for now)
         // account peer relationships
-        let bbPeers = await this.liveHolepunch.BeeData.getPeersHistory('peer')
+        let bbPeers = await this.liveHolepunch.BeeData.getPeersHistory('lsempty', 'peer', 100)
         this.callbackPeerHistory(bbPeers)        
         // besearch active
-        let besearchStart = await this.liveHolepunch.BeeData.getBesearchHistory('besearch')
+        let besearchStart = await this.liveHolepunch.BeeData.getBesearchHistory('lsempty', 'besearch')
         this.callbackBesearchhistory(besearchStart)
         // default agents
-        let bbAgents = await this.liveHolepunch.BeeData.getModelHistory('model')
+        let bbAgents = await this.liveHolepunch.BeeData.getModelHistory('lsempty', 'model')
         this.callbackAgents(bbAgents)
         // spaces location of bentoboxes per cue space
-        let bbspace = await this.liveHolepunch.BeeData.getAllBentospaces('space')
+        let bbspace = await this.liveHolepunch.BeeData.getAllBentospaces('lsempty', 'space')
         this.callbackAllBentospace(bbspace)
         // chats
-        let bentoChatstart = await this.liveHolepunch.BeeData.getBentochatHistory('chat')
+        let bentoChatstart = await this.liveHolepunch.BeeData.getBentochatHistory('lsempty', 'chat')
         this.callbackBentochathistory(bentoChatstart)
         // get the Cues
-        let bentoCuesLive = await this.liveHolepunch.BeeData.getCuesHistory('cue')
+        let bentoCuesLive = await this.liveHolepunch.BeeData.getCuesHistory('lsempty', 'cue')
         this.callbackBentoCueshistory(bentoCuesLive)
         // get the media
-        let bentoMediaLive = await this.liveHolepunch.BeeData.getMediaHistory('media')
+        let bentoMediaLive = await this.liveHolepunch.BeeData.getMediaHistory('lsempty', 'media')
         this.callbackBentoMediahistory(bentoMediaLive)        
         // get the research
-        let bentoResearchLive = await this.liveHolepunch.BeeData.getResearchHistory('research')
+        let bentoResearchLive = await this.liveHolepunch.BeeData.getResearchHistory('lsempty', 'research')
         this.callbackBentoResearchhistory(bentoResearchLive)
         // get the markers
-        let bentoMarkerLive = await this.liveHolepunch.BeeData.getMarkerHistory('marker')
+        let bentoMarkerLive = await this.liveHolepunch.BeeData.getMarkerHistory('lsempty', 'marker')
         this.callbackBentoMarkerhistory(bentoMarkerLive)
         // get the products
-        let bentoProductLive = await this.liveHolepunch.BeeData.getProductHistory('product')
+        let bentoProductLive = await this.liveHolepunch.BeeData.getProductHistory('lsempty', 'product')
         this.callbackBentoProducthistory(bentoProductLive)
         // get the bentobox
-        let bBoxes = await this.liveHolepunch.BeeData.getBentoBoxHistory('box')
+        let bBoxes = await this.liveHolepunch.BeeData.getBentoBoxHistory('lsempty', 'box')
         this.callbackBentoBoxes(bBoxes)
         // get the @teach history
         console.log('teach history called')
-        let beebeeTeachHistory = await this.liveHolepunch.BeeData.getBeeBeeLearnHistory('learn')
+        let beebeeTeachHistory = await this.liveHolepunch.BeeData.getBeeBeeLearnHistory('lsempty', 'learn')
         this.callbackBeeBeeLearn(beebeeTeachHistory)
       } else if (o.task.trim() === 'get') {
       } else if (o.task.trim() === 'delete') {
@@ -670,6 +655,26 @@ class LibraryHop extends EventEmitter {
          console.log('no action solospace')
        }
     }
+  }
+
+  /**
+   * @method prepareChat
+   */
+  prepareChat = async function (chatItem) {
+    // form key for storage
+    // lifestrap id and cueID in first time is the chat hash of the message
+    // 1. Content Hash (The 'What')
+    const contentHash = '#' // hopCrypto.hash(chatItem);
+    let heliStamp = 0
+    let chatKey = this.hopCryptoLive.createDialogueKey(contentHash, contentHash, heliStamp, contentHash)
+    // form save structure
+    let saveChatItem = {}
+    saveChatItem.hash = chatKey
+    saveChatItem.contract = chatItem
+    let bentoChat = await this.liveHolepunch.BeeData.saveBentochat(saveChatItem)
+    // retrieve the chat item and return to beebee
+    let chatItemCheck = await this.liveHolepunch.BeeData.getBentochat(chatKey)
+    this.callbackBentochat(chatItemCheck)
   }
 
   /**
@@ -866,9 +871,9 @@ class LibraryHop extends EventEmitter {
   callbackBentochat = function (data) {
     // pass to sort data into ref contract types
     let bentoboxReturn = {}
-    bentoboxReturn.type = 'bentobox'
-    bentoboxReturn.reftype = 'chat-history'
+    bentoboxReturn.type = 'chat'
     bentoboxReturn.action = 'save'
+    bentoboxReturn.reftype = 'chat-history-item'
     bentoboxReturn.data = data
     this.emit('libmessage', JSON.stringify(bentoboxReturn))
   }

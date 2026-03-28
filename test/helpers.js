@@ -46,7 +46,7 @@ export async function startRealLibraryHop() {
   let contextAgents = {
     crypto: encryption,
     network: holepunch,
-    heliclock: heliLocation,
+    heliclock: HeliClock,
     heliLocation: heliLocation,
   }
 
