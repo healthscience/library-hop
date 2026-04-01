@@ -58,7 +58,8 @@ class LibraryHop extends EventEmitter {
   *
   */
   startLibrary = async function () {
-    await this.libraryRefContracts()
+    // need to get life-strap stories, get order of priority and stitch together datastore contract parts
+    // await this.libraryRefContracts()
   }
 
   /**
@@ -66,11 +67,10 @@ class LibraryHop extends EventEmitter {
   * @method systemsContracts
   *
   */
-  systemsContracts = async function () {
-    let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRefRange('datatype', 100)
+  systemsContracts = async function (lifeStrap, categoryType) {
+    let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRefRange(lifeStrap, categoryType, 100)
     this.callbackSFsystems(publibData)
   }
-  
 
   /**
   * library manage message
@@ -84,10 +84,10 @@ class LibraryHop extends EventEmitter {
       // pass on to function to manage
       this.contractsManage(message)
     } else if (message.action.trim() === 'lifestrap') {
-      this.liveLifestrapUtil.lifestrapManage(message)
+      await this.liveLifestrapUtil.lifestrapManage(message)
     } else if (message.action.trim() === 'genesis-datatypes-cues') {
       console.log('geneiss biology contracts--------')
-      this.cogGlue.generateDatatypeCues()
+      await this.cogGlue.generateDatatypeCues()
     } else if (message.action.trim() === 'besearch') {
       this.liveBesearch.besearchManage(message)
     } else if (message.action.trim() === 'beebee-teach') {
@@ -133,10 +133,11 @@ class LibraryHop extends EventEmitter {
   * @method libraryRefContracts
   *
   */
-  libraryRefContracts = async function () {
+  libraryRefContracts = async function (lifeStrap, categoryType) {
     // load all the public library but need to select what is needed TODO
-    this.publicLibrary = await this.liveHolepunch.BeeData.getPublicLibraryRefRange('datatype', 100)
-    await this.systemsContracts()
+    // form key
+    this.publicLibrary = await this.liveHolepunch.BeeData.getPublicLibraryRefRange(lifeStrap, categoryType, 100)
+    // await this.systemsContracts(lifeStrap, categoryType)
   }
 
   /**
@@ -145,6 +146,8 @@ class LibraryHop extends EventEmitter {
   *
   */
   contractsManage = async function (message) {
+    console.log('library mange')
+    console.log(message)
     if (message.task.trim() === 'GET') {
       // public or private library?
       if (message.privacy === 'private') {
@@ -153,11 +156,17 @@ class LibraryHop extends EventEmitter {
         this.callbackPeerLib(message.data, peerLib)
       } else if (message.privacy === 'public') {
         console.log('public library')
-        console.log('message', message)
+        console.log('message---', message)
         if (message.reftype === 'refresh-publiclibrary') {
           this.startLibrary()
         } else {
-          let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRefRange('datatype', 100)
+          // form query key
+          let publicData = {}
+          if (this.CogGlue?.primeStrap) {
+           publicData = await this.liveHolepunch.BeeData.getPublicLibraryRefRange(this.CogGlue?.primeStrap, '', 100)
+          } else {
+            publicData = await this.liveHolepunch.BeeData.getPublicLibraryRefRange('lifesrap', 'datatype', 100)
+          }
           this.callbacklibrary(publibData)
         }
       }
@@ -193,7 +202,7 @@ class LibraryHop extends EventEmitter {
       }
   
     } else if (message.task.trim() === 'safeflow-systems') {
-      let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRefRange(100)
+      let publibData = await this.liveHolepunch.BeeData.getPublicLibraryRefRange('lifestrap', 'datatype', null)
       this.callbackSFsystems(publibData)
     } else if (message.task.trim() === 'replicate') {
     } else if (message.task.trim() === 'assemble') {

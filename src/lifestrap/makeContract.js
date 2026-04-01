@@ -46,7 +46,7 @@ class LifestrapContracts extends EventEmitter {
         console.log('start save lifestrap conract 1111')
         // need to form contract and save to hypberbee
         let saveContract = await this.saveLifestrapProtocol(message)
-                console.log('start save lifestrap conract 22222')
+        console.log('start save lifestrap conract 22222')
         let saveMessage = {}
         saveMessage.type = 'library'
         saveMessage.action = 'lifestrap-genesis'
@@ -86,7 +86,20 @@ class LifestrapContracts extends EventEmitter {
         let delFeedback = this.liveHolepunch.BeeData.deleteBentolifestrap(message.data)
       }
     }
-  }  
+  }
+
+  /**
+   * first time formation of prime lifestory for bring to be biology contract
+   * @method firstLifeStrap
+  */
+  firstLifeStrap = async function (message) {
+    let saveContract = await this.saveLifestrapProtocol(message)
+    console.log('echecch first eveevvveeerererr ls contract')
+    let checkContract = await this.liveHolepunch.BeeData.getLifestrap(saveContract.hash)
+    console.log(checkContract)
+    console.log(checkContract.key.toString())
+    return checkContract
+  }
 
   /**
   * save a lifestrap contract
@@ -97,8 +110,10 @@ class LifestrapContracts extends EventEmitter {
     console.log('save LS protocol--')
     console.log(saveData)
     let formedContract = this.libComposer.liveLifestrap.lifestrapPrepare(saveData)
-    let saveContract = await this.liveHolepunch.BeeData.saveLifestrap(formedContract)
-    return saveContract
+    console.log('formed life strap')
+    console.log(formedContract)
+    await this.liveHolepunch.BeeData.saveLifestrap(formedContract)
+    return formedContract
   }
 
   /**
