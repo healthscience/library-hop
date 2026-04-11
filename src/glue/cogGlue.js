@@ -33,21 +33,19 @@ class CogGlue {
     messageHOP.task = 'PUT'
     messageHOP.data = primeLS
     this.primeStrap = await this.parent.liveLifestrapUtil.firstLifeStrap(messageHOP)
-    console.log('return from FFFFRIEST --')
-    console.log(this.primeStrap)
 
     const lists = [
       this.cuesUtility.prepareDTgaiaMessage(),
-      this.cuesUtility.prepareDTnatureMessage(),
+      /*this.cuesUtility.prepareDTnatureMessage(),
       this.cuesUtility.prepareDTenvironmentMessage(),
       this.cuesUtility.prepareDTcultureMessage(),
       this.cuesUtility.prepareDTlifeMessage(),
       this.cuesUtility.prepareDTagingMessage(),
       this.cuesUtility.prepareDTplanetMessage(),
-      this.cuesUtility.prepareDTbodyMessage()
+      this.cuesUtility.prepareDTbodyMessage()*/
     ]
     console.log(' list of datattypes')
-    console.log(lists[0])
+    // console.log(lists[0])
 
     const categoryColors = {
       'gaia': '#2ecc71',
@@ -63,20 +61,25 @@ class CogGlue {
     for (const list of lists) {
       let count = 0
       for (const mark of list) {
-        if (count === 0) {
-          const contractData = await this.formContract(this.primeStrap.key, 'datatype', 'reference', mark)
+        let contractData = {}
+        if(count === 0) {
+          contractData = await this.formContract(this.primeStrap.key, 'datatype', 'reference', mark)
           console.log('contract saved dt ================')
-          console.log(contractData)
           console.log(contractData.contract.key.toString())
-        }
-        if (contractData) {
-          // const cue = await this.cueFormer(mark, contractData.contract, categoryColors)
+
+          if (contractData) {
+            console.log('ssstart of cue formation-------')
+            const cueContract = await this.formContract(this.primeStrap.key, 'cue', 'reference', contractData.contract, categoryColors)
+            console.log('cue saved ================')
+            console.log(cueContract.contract.key.toString())
+          }
+          count++
         }
       }
     }
     // query the cues and datatypes with lifestrap key  and return to bentoboxDS
     // form the query
-    let datatypeRefList = await this.liveHolepunch.BeeData.getPublicLibraryRefRange(this.primeStrap.key, 'link', null)
+    let datatypeRefList = await this.liveHolepunch.BeeData.getPublicLibraryRefRange(this.primeStrap.key, 'datatype', null)
     // return to beebee BentoBoxDS
     let libraryData = {}
     libraryData.data = 'contracts'
@@ -95,7 +98,9 @@ class CogGlue {
    * @param {string} type - reference, module
    * @param {object} mark - data payload
    */
-  formContract = async function (lifestrapID, category, type, mark) {
+  formContract = async function (lifestrapID, category, type, mark, color) {
+    console.log('life start prime key=========')
+    console.log(lifestrapID)
     let formedContract = {}
     const composer = this.libComposer.liveComposer
 
@@ -114,21 +119,30 @@ class CogGlue {
         formedContract = composer.visualiseComposer(lifestrapID, mark.data)
         break
       case 'cue':
-        formedContract = composer.cueComposer(lifestrapID, mark.data)
+        let buildCueInputs = this.cueBuilder(mark, color)
+        formedContract = this.libComposer.liveCues.cueComposer(lifestrapID, buildCueInputs)
         break
       default:
         console.error(`Unknown contract category: ${category}`)
         return null
     }
+    console.log('formed =============== contract')
+    console.log(formedContract)
 
     let saved = null
     let validContract = {}
     if (category === 'cue') {
-      saved = await this.liveHolepunch.BeeData.saveCues(formedContract)
+      let contractReady = {}
+      contractReady.key = formedContract.hash
+      contractReady.contract = formedContract.contract
+      saved = await this.liveHolepunch.BeeData.saveCues(contractReady)
+      // get the contract by key
+      validContract = await this.liveHolepunch.BeeData.getCues(formedContract.hash)
     } else if (category === 'datatype') {
-      console.log('dt formee')
-      console.log(formedContract)
-      saved = await this.liveHolepunch.BeeData.savePubliclibraryRef(formedContract)
+      let contractReady = {}
+      contractReady.key = formedContract.hash
+      contractReady.contract = formedContract.contract
+      saved = await this.liveHolepunch.BeeData.savePubliclibraryRef(contractReady)
       // get the contract by key
       validContract = await this.liveHolepunch.BeeData.getPublicLibraryRef(formedContract.hash)
     }
@@ -137,35 +151,32 @@ class CogGlue {
   }
 
   /**
-   * form cue from mark and storage key
-   * @method cueFormer
-   */
-  cueFormer = async function (mark, dtContract, categoryColors) {
-    const cueDT = dtContract.value.concept.name.toLowerCase()
-    const cueSpaceID = `gaia!${cueDT}!${cueDT}`
-    const color = categoryColors.color || '#95a5a6'
+   * form cue contract content
+  */
+  cueBuilder = function (dataIn) {
+    let cueInputs = {}
+    cueInputs.datatype = dataIn.key
+    cueInputs.color = this.colorPicker()
+    cueInputs.type = 'cue'
+    // concept
+    cueInputs.category = 'cue'
+    cueInputs.network = 'cold'
+    cueInputs.links = []
+    // computational
 
-    const inCue = {
-      data: {
-        concept: {
-          name: cueDT,
-          datatype: dtContract.key,
-          appearance: { color: color }
-        },
-        computational: {
-          datatypeRef: dtContract.key,
-          relationships: []
-        }
-      }
-    }
+    // space
 
-    const formedCue = this.libComposer.liveCues.cuesPrepare(inCue)
-    const savedCue = await this.liveHolepunch.BeeData.saveCues(formedCue)
-    
-    return {
-      saved:  savedCue,
-      contract: formedCue
-    }
+    // time
+    return cueInputs
+  }
+
+  /**
+  * select color
+  * @method colorPicker
+  */
+  colorPicker = function () {
+    let color = '#' + Math.floor(Math.random() * 16777215).toString(16)
+    return color
   }
 
 }

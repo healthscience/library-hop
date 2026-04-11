@@ -43,10 +43,8 @@ class LifestrapContracts extends EventEmitter {
       }
     } else if (message.task.trim() === 'PUT') {
       if (message.privacy === 'private') {
-        console.log('start save lifestrap conract 1111')
         // need to form contract and save to hypberbee
         let saveContract = await this.saveLifestrapProtocol(message)
-        console.log('start save lifestrap conract 22222')
         let saveMessage = {}
         saveMessage.type = 'library'
         saveMessage.action = 'lifestrap-genesis'
@@ -94,10 +92,7 @@ class LifestrapContracts extends EventEmitter {
   */
   firstLifeStrap = async function (message) {
     let saveContract = await this.saveLifestrapProtocol(message)
-    console.log('echecch first eveevvveeerererr ls contract')
-    let checkContract = await this.liveHolepunch.BeeData.getLifestrap(saveContract.hash)
-    console.log(checkContract)
-    console.log(checkContract.key.toString())
+    let checkContract = await this.liveHolepunch.BeeData.getLifestrap(saveContract.key)
     return checkContract
   }
 
