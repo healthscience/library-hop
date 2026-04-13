@@ -50,7 +50,7 @@ class LifestrapContracts extends EventEmitter {
         saveMessage.action = 'lifestrap-genesis'
         saveMessage.task = 'save-complete'
         saveMessage.data = saveContract
-        this.liveLib.emit('lifestrap-genesis', JSON.stringify(saveMessage))
+        this.liveLib.emit('lifestrap-genesis', saveMessage)
         // pass to save manager, file details extract, prep contract
       } else if (message.privacy === 'public') {
         // need check if composer needed to form contract and then save
@@ -102,13 +102,10 @@ class LifestrapContracts extends EventEmitter {
   *
   */
   saveLifestrapProtocol = async function (saveData) {
-    console.log('save LS protocol--')
-    console.log(saveData)
     let formedContract = this.libComposer.liveLifestrap.lifestrapPrepare(saveData)
-    console.log('formed life strap')
-    console.log(formedContract)
     await this.liveHolepunch.BeeData.saveLifestrap(formedContract)
-    return formedContract
+    let checkContract = await this.liveHolepunch.BeeData.getLifestrap(formedContract.key)
+    return checkContract
   }
 
   /**

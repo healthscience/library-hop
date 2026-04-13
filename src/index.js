@@ -11,6 +11,7 @@
 */
 import util from 'util'
 import EventEmitter from 'events'
+import BentoBoxOperations from './bentoboxDS.js'
 import LibComposer from 'librarycomposer'
 import BiomarkersUtility from './seed/biomarkerUtility.js'
 import CuesUtility from './seed/cuesUtility.js'
@@ -33,6 +34,7 @@ class LibraryHop extends EventEmitter {
     super()
     this.liveHolepunch = contextAgents.network
     this.hopCryptoLive = contextAgents.crypto
+    this.liveBentoBoxOps = new BentoBoxOperations(this.liveHolepunch)
     this.libComposer = new LibComposer(contextAgents)
     this.liveContractsUtil = new ContractsUtil(this.liveHolepunch, this.libComposer)
     this.liveCAccountUtil = new AccountUtil(this, this.liveHolepunch, this.libComposer)
@@ -47,6 +49,7 @@ class LibraryHop extends EventEmitter {
     this.biomarkerUtil = new BiomarkersUtility()
     this.cuesUtility = new CuesUtility()
     this.liveLifestrapUtil = new LifestrapUtil(this, this.liveHolepunch, this.libComposer)
+    this.bentoBoxOps = new BentoBoxOperations(this)
     this.cogGlue = new CogGlue(this, this.liveHolepunch, this.libComposer, this.hopCryptoLive, this.cuesUtility)
     this.publicLibrary = {} // public library modules and reference contracts
     this.peerLibdata = {}  // peers private library store
@@ -87,7 +90,7 @@ class LibraryHop extends EventEmitter {
       await this.liveLifestrapUtil.lifestrapManage(message)
     } else if (message.action.trim() === 'genesis-datatypes-cues') {
       console.log('geneiss biology contracts--------')
-      await this.cogGlue.generateDatatypeCues()
+      await this.generateDatatypeCues()
     } else if (message.action.trim() === 'besearch') {
       this.liveBesearch.besearchManage(message)
     } else if (message.action.trim() === 'beebee-teach') {
@@ -589,81 +592,8 @@ class LibraryHop extends EventEmitter {
   * bentobox info gathering
   * @method bentoPath
   */
-   bentoPath = async function (o) {
-    if (o.reftype.trim() === 'chat-history') {
-      if (o.task.trim() === 'save') {
-        // this.prepareChat(o)
-      } else if (o.task.trim() === 'start') {
-        // self verified get Account Info, cues, markers, bentoboxes etc.  Get most used (all for now)
-        // account peer relationships
-        let bbPeers = await this.liveHolepunch.BeeData.getPeersHistory('lsempty', 'peer', 100)
-        this.callbackPeerHistory(bbPeers)        
-        // besearch active
-        let besearchStart = await this.liveHolepunch.BeeData.getBesearchHistory('lsempty', 'besearch')
-        this.callbackBesearchhistory(besearchStart)
-        // default agents
-        let bbAgents = await this.liveHolepunch.BeeData.getModelHistory('lsempty', 'model')
-        this.callbackAgents(bbAgents)
-        // spaces location of bentoboxes per cue space
-        let bbspace = await this.liveHolepunch.BeeData.getAllBentospaces('lsempty', 'space')
-        this.callbackAllBentospace(bbspace)
-        // chats
-        let bentoChatstart = await this.liveHolepunch.BeeData.getBentochatHistory('lsempty', 'chat')
-        this.callbackBentochathistory(bentoChatstart)
-        // get the Cues
-        let bentoCuesLive = await this.liveHolepunch.BeeData.getCuesHistory('lsempty', 'cue')
-        this.callbackBentoCueshistory(bentoCuesLive)
-        // get the media
-        let bentoMediaLive = await this.liveHolepunch.BeeData.getMediaHistory('lsempty', 'media')
-        this.callbackBentoMediahistory(bentoMediaLive)        
-        // get the research
-        let bentoResearchLive = await this.liveHolepunch.BeeData.getResearchHistory('lsempty', 'research')
-        this.callbackBentoResearchhistory(bentoResearchLive)
-        // get the markers
-        let bentoMarkerLive = await this.liveHolepunch.BeeData.getMarkerHistory('lsempty', 'marker')
-        this.callbackBentoMarkerhistory(bentoMarkerLive)
-        // get the products
-        let bentoProductLive = await this.liveHolepunch.BeeData.getProductHistory('lsempty', 'product')
-        this.callbackBentoProducthistory(bentoProductLive)
-        // get the bentobox
-        let bBoxes = await this.liveHolepunch.BeeData.getBentoBoxHistory('lsempty', 'box')
-        this.callbackBentoBoxes(bBoxes)
-        // get the @teach history
-        console.log('teach history called')
-        let beebeeTeachHistory = await this.liveHolepunch.BeeData.getBeeBeeLearnHistory('lsempty', 'learn')
-        this.callbackBeeBeeLearn(beebeeTeachHistory)
-      } else if (o.task.trim() === 'get') {
-      } else if (o.task.trim() === 'delete') {
-        let bentoDelete = await this.liveHolepunch.BeeData.deleteBentochat(o.data)
-        this.callbackDeleteBentochat(bentoDelete)
-      }
-    } else if (o.reftype.trim() === 'space-history') {
-      if (o.action.trim() === 'save') {
-        let bentoSpace = await this.liveHolepunch.BeeData.saveSpaceHistory(o.data)
-        this.callbackHistoryspace(bentoSpace)
-      } else if (o.action.trim() === 'delete') {
-        let bentoDelete = await this.liveHolepunch.BeeData.deleteBentospace(o.data)
-        this.callbackDeleteBentospace(bentoDelete)
-      } else if (o.action.trim() === 'save-position') {
-        let bentospace = await this.liveHolepunch.BeeData.saveBentospace(o.data)
-        this.callbackBentospace(bentospace)
-      } else if (o.action.trim() === 'list-position') {
-        let bbspace = await this.liveHolepunch.BeeData.getBentospace()
-        this.callbackListBentospace(bbspace)
-      } else {
-        console.log('no action bentospace')
-      }
-    } else if (o.reftype.trim() === 'solospace') {
-      if (o.action.trim() === 'save-position') {
-        let solospace = await this.liveHolepunch.BeeData.saveSolospace(o.data)
-        this.callbacSolospace(solospace)
-       } else if (o.action.trim() === 'list-position') {
-        let ssspace = await this.liveHolepunch.BeeData.getSolospace(o.data)
-         this.callbackListSolospace(ssspace)
-       } else {
-         console.log('no action solospace')
-       }
-    }
+  bentoPathOperations = async function (o) {
+    await this.bentoBoxOps.bentoPath(o)
   }
 
   /**
@@ -708,6 +638,21 @@ class LibraryHop extends EventEmitter {
     pubkeyData.data = data
     this.emit('libmessage', JSON.stringify(pubkeyData))
     // this.wsocket.send(JSON.stringify(pubkeyData))
+  }
+
+  /**
+   * 
+   * @method callbackLifestrapStart
+   */
+  callbackLifestrapStart = function (data) {
+    let lifestrapData = {}
+    lifestrapData.type = 'library'
+    lifestrapData.action = 'life-strap'
+    lifestrapData.task = 'bringtobe'
+    lifestrapData.data = data
+    console.log('lifestart routine begining')
+    console.log(lifestrapData)
+    this.emit('libmessage', JSON.stringify(lifestrapData))
   }
 
   /**
@@ -1282,21 +1227,27 @@ class LibraryHop extends EventEmitter {
   }
 
   /**
-  * call back kb ledger
-  * @method 
+  * call back columns
+  * @method callbackColumns
   */
-  callbackColumns = function (data,fileType) {
+  callbackColumns = function (data, fileType) {
     // pass to sort data into ref contract types
     let libraryData = {}
     libraryData.type = 'library'
     libraryData.action = 'source'
     libraryData.privacy = 'private'
-    libraryData.reftype =  fileType
+    libraryData.reftype = fileType
     libraryData.data = data
     this.emit('libmessage', JSON.stringify(libraryData))
   }
-    
 
+  /**
+  * generate datatype cues
+  * @method generateDatatypeCues
+  */
+  generateDatatypeCues = async function () {
+    return await this.cogGlue.generateDatatypeCues()
+  }
 }
 
 export default LibraryHop
