@@ -77,11 +77,14 @@ class LifestrapContracts extends EventEmitter {
       }
     } else if (message.task.trim() === 'DEL') {
       if (message.privacy === 'private') {
+        // convert hex key to binary
+        let binKey = this.liveLib.convertHexToBinary(message.data)
+        console.log(binKey)
         // private
-        let delFeedback = this.liveHolepunch.BeeData.deleteBentolifestrap(message.data)
+        this.liveHolepunch.BeeData.deleteLifestrap(binKey)
       } else if (message.privacy === 'public') {
         // public
-        let delFeedback = this.liveHolepunch.BeeData.deleteBentolifestrap(message.data)
+        this.liveHolepunch.BeeData.deleteLifestrap(binKey)
       }
     }
   }
@@ -91,6 +94,7 @@ class LifestrapContracts extends EventEmitter {
    * @method firstLifeStrap
   */
   firstLifeStrap = async function (message) {
+    console.log('firstLifeStrap firs ever ever evet', message)
     let saveContract = await this.saveLifestrapProtocol(message)
     let checkContract = await this.liveHolepunch.BeeData.getLifestrap(saveContract.key)
     return checkContract
@@ -124,12 +128,12 @@ class LifestrapContracts extends EventEmitter {
   * @method callbackLifestrapStart
   */
   callbackLifestrapStart = function (data) {
-    let lifestrapReturn = {}
-    lifestrapReturn.type = 'bentobox'
-    lifestrapReturn.reftype = 'lifestrap-history'
-    lifestrapReturn.action = 'start'
-    lifestrapReturn.data = data
-    this.liveLib.emit('libmessage', JSON.stringify(lifestrapReturn))
+    let lifestrapData = {}
+    lifestrapData.type = 'library'
+    lifestrapData.action = 'life-strap'
+    lifestrapData.task = 'bringtobe-start'
+    lifestrapData.data = data
+    this.emit('lifestrap-awaken', lifestrapData)
   }
 
   /**

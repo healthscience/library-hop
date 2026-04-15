@@ -617,6 +617,16 @@ class LibraryHop extends EventEmitter {
   }
 
   /**
+   * convers hex keys form bbDS and return to binary
+   * @method convertHexToBinary
+   * 
+  */
+  convertHexToBinary = function (hexKey) {
+    const buffer = Buffer.from(hexKey, 'hex');
+    return buffer
+  }
+
+  /**
   * call back for data calls
   * @method callbackKey
   */
@@ -648,11 +658,9 @@ class LibraryHop extends EventEmitter {
     let lifestrapData = {}
     lifestrapData.type = 'library'
     lifestrapData.action = 'life-strap'
-    lifestrapData.task = 'bringtobe'
+    lifestrapData.task = 'bringtobe-start'
     lifestrapData.data = data
-    console.log('lifestart routine begining')
-    console.log(lifestrapData)
-    this.emit('libmessage', JSON.stringify(lifestrapData))
+    this.emit('lifestrap-awaken', lifestrapData)
   }
 
   /**
