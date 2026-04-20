@@ -1,6 +1,6 @@
 {
   "name": "library-hop",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "manage interface with network library",
   "main": "src/index.js",
   "type": "module",
@@ -22,6 +22,6 @@
   "dependencies": {
     "color": "^5.0.3",
     "csv-parser": "^3.0.0",
-    "librarycomposer": "^0.7.0"
+    "librarycomposer": "^0.7.1"
   }
 }
