@@ -27,6 +27,9 @@ import ProductUtil from './product/makeContract.js'
 import BesearchUtil from './besearch/makeContract.js'
 import TrainingUtil from './training/makeContract.js'
 import CogGlue from './glue/cogGlue.js'
+import OrgoUtil from './orgo/makeOrgoContract.js'
+import GelleUtil from './gelle/makeGelleContract.js'
+import LensGlue from './glue/lensGlue.js'
 
 class LibraryHop extends EventEmitter {
 
@@ -51,6 +54,9 @@ class LibraryHop extends EventEmitter {
     this.liveLifestrapUtil = new LifestrapUtil(this, this.liveHolepunch, this.libComposer)
     this.bentoBoxOps = new BentoBoxOperations(this)
     this.cogGlue = new CogGlue(this, this.liveHolepunch, this.libComposer, this.hopCryptoLive, this.cuesUtility)
+    this.liveOrgoUtil = new OrgoUtil(this, this.liveHolepunch, this.libComposer)
+    this.liveGelleUtil = new GelleUtil(this, this.liveHolepunch, this.libComposer)
+    this.lensGlue = new LensGlue(this, this.liveHolepunch, this.libComposer, this.hopCryptoLive, this.cuesUtility)
     this.publicLibrary = {} // public library modules and reference contracts
     this.peerLibdata = {}  // peers private library store
   }
@@ -97,6 +103,12 @@ class LibraryHop extends EventEmitter {
       this.liveTraining.trainingManage(message)
     } else if (message.action.trim() === 'cues') {
       this.liveCuesUtil.cueManage(message)
+    } else if (message.action.trim() === 'orgo') {
+      this.liveOrgoUtil.orgoManage(message)
+    } else if (message.action.trim() === 'gelle') {
+      this.liveGelleUtil.gelleManage(message)
+    } else if (message.action.trim() === 'lensglue') {
+      this.lensGlue.lensGlueManage(message)
     } else if (message.action.trim() === 'source') {
       this.sourcedataMange(message)
     } else if (message.action.trim() === 'account') {
@@ -315,6 +327,12 @@ class LibraryHop extends EventEmitter {
        formedContract = this.libComposer.liveComposer.packagingComposer(saveData.data)
     } else if (saveData.reftype === 'visualise') {
        formedContract = this.libComposer.liveComposer.visualiseComposer(saveData.data)
+    } else if (saveData.reftype === 'orgo') {
+       formedContract = this.libComposer.liveComposer.orgoComposer(saveData.data)
+    } else if (saveData.reftype === 'gelle') {
+       formedContract = this.libComposer.liveComposer.gelleComposer(saveData.data)
+    } else if (saveData.reftype === 'lensglue') {
+       formedContract = this.libComposer.liveComposer.lensglueComposer(saveData.data)
     } else if (saveData.reftype === 'experiment') {
       // formedContract = this.libComposer. 
     } else if (saveData.reftype === 'module') {

@@ -44,9 +44,9 @@ class BesearchContracts extends EventEmitter {
         // this.callbackCuesLib(message.data, cuesLib)
       } else if (message.privacy === 'public') {
         if (message.reftype === 'start-besearch') {
-          // this.startCues()
+          // this.startBesearch()
         } else {
-          let publibCues = await this.liveHolepunch.BeeData.saveBesearch(message.data)
+          // let publibCues = await this.liveHolepunch.BeeData.getBesearch(message.data)
           // this.callbackresearch(publibCues)
         }
       }
@@ -64,7 +64,13 @@ class BesearchContracts extends EventEmitter {
         this.liveLib.emit('libmessage', JSON.stringify(saveMessage))
       } else if (message.privacy === 'public') {
         // need check if composer needed to form contract and then save
-
+        let saveContract = await this.saveBesearchProtocol(message)
+        let saveMessage = {}
+        saveMessage.type = 'library'
+        saveMessage.action = 'besearch-contract'
+        saveMessage.task = 'save-complete'
+        saveMessage.data = saveContract
+        this.liveLib.emit('libmessage', JSON.stringify(saveMessage))
       }
     } else if (message.task.trim() === 'DEL') {
       if (message.privacy === 'private') {
@@ -83,18 +89,10 @@ class BesearchContracts extends EventEmitter {
   *
   */
   saveBesearchProtocol = async function (saveData) {
-    let formedContract = {}
-    formedContract.id = hashObject(saveData.data)
-    formedContract.data = saveData.data // verified at source? //this.libComposer.liveResearch.besearchPrepare(saveData)
+    let formedContract = this.libComposer.liveBesearch.besearchPrepare(saveData)
     // console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
     let saveContract = await this.liveHolepunch.BeeData.saveBesearch(formedContract)
-    // format message for return
-    let saveMessage = {}
-    saveMessage.type = 'library'
-    saveMessage.action = 'besearch-contract'
-    saveMessage.task = 'save-complete'
-    saveMessage.data = saveContract
-    return saveMessage
+    return saveContract
   }
 }
 
