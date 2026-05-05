@@ -18,7 +18,8 @@ class BentoBoxOperations {
   */
   bentoPath = async function (o) {
     if (o.action === 'lifestrap-start') {
-      let peerLifestaps = await this.parent.liveHolepunch.BeeData.getLifestrapHistory('lsempty', 'lifestrap')
+      // console.log('no longer loom and trace used')
+      // let peerLifestaps = await this.parent.liveHolepunch.BeeData.getLifestrapHistory('lsempty', 'lifestrap')
       this.parent.callbackLifestrapStart(peerLifestaps)
     } else if (o.action === 'chat-start') {
       // self verified get Account Info, cues, markers, bentoboxes etc.  Get most used (all for now)
@@ -56,7 +57,7 @@ class BentoBoxOperations {
       let bBoxes = await this.parent.liveHolepunch.BeeData.getBentoBoxHistory('lsempty', 'box')
       this.parent.callbackBentoBoxes(bBoxes)
       // get the @teach history
-      console.log('teach history called')
+      // console.log('teach history called')
       let beebeeTeachHistory = await this.parent.liveHolepunch.BeeData.getBeeBeeLearnHistory('lsempty', 'learn')
       this.parent.callbackBeeBeeLearn(beebeeTeachHistory)
     } else if (o.task.trim() === 'get') {

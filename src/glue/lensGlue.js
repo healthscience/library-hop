@@ -79,7 +79,6 @@ class LensGlue extends EventEmitter {
       if (message.privacy === 'private') {
         // convert hex key to binary
         let binKey = this.liveLib.convertHexToBinary(message.data)
-        console.log(binKey)
         // private
         this.liveHolepunch.BeeData.deleteLensglue(binKey)
       } else if (message.privacy === 'public') {
@@ -94,7 +93,6 @@ class LensGlue extends EventEmitter {
    * @method firstLensglue
   */
   firstLensglue = async function (message) {
-    console.log('firstLensglue firs ever ever evet', message)
     let saveContract = await this.saveLensglueProtocol(message)
     let checkContract = await this.liveHolepunch.BeeData.getLensglue(saveContract.key)
     return checkContract
@@ -106,12 +104,29 @@ class LensGlue extends EventEmitter {
   *
   */
   saveLensglueProtocol = async function (lsKey, saveData) {
+    // 1. Prepare the contract and keys
     let formedContract = this.libComposer.liveLensglue.lensgluePrepare(lsKey, saveData)
-    console.log('lensglue----------')
-    console.log('formedContract', formedContract)
-    await this.liveHolepunch.BeeData.saveLensglue(formedContract)
-    let checkContract = await this.liveHolepunch.BeeData.getLensglue(formedContract.key)
-    return checkContract
+    
+    // 2. Save the Content (The Dictionary Entry)
+    let saveContract = {
+      key: formedContract.contentKey,
+      contract: formedContract.contract
+    }
+    await this.liveHolepunch.BeeData.saveLensglue(saveContract)
+    let checkContract = await this.liveHolepunch.BeeData.getLensglue(saveContract.key)
+     
+    // 3. Save the Stitch (The Relationship)
+    // FIX: Use 'stitchHash' to match the return object
+    let saveLSIndex = {
+      key: formedContract.stitchHash, 
+      contract: formedContract.contract
+    }
+    
+    // This was failing because saveLSIndex.key was undefined
+    await this.liveHolepunch.BeeData.saveLensglue(saveLSIndex)
+     let checkContractIndex = await this.liveHolepunch.BeeData.getLensglue(saveLSIndex.key)
+    
+    return { index: checkContractIndex, contract: checkContract }
   }
 
   /**

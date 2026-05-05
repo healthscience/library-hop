@@ -11,7 +11,8 @@
 */
 import util from 'util'
 import EventEmitter from 'events'
-import BentoBoxOperations from './bentoboxDS.js'
+import LoomCycle from './beebee/loomCycle.js'
+import BentoBoxOperations from './beebee/bentoboxDS.js'
 import LibComposer from 'librarycomposer'
 import BiomarkersUtility from './seed/biomarkerUtility.js'
 import CuesUtility from './seed/cuesUtility.js'
@@ -37,6 +38,7 @@ class LibraryHop extends EventEmitter {
     super()
     this.liveHolepunch = contextAgents.network
     this.hopCryptoLive = contextAgents.crypto
+    this.lifeLoom = new LoomCycle(this)
     this.liveBentoBoxOps = new BentoBoxOperations(this.liveHolepunch)
     this.libComposer = new LibComposer(contextAgents)
     this.liveContractsUtil = new ContractsUtil(this.liveHolepunch, this.libComposer)
@@ -95,7 +97,6 @@ class LibraryHop extends EventEmitter {
     } else if (message.action.trim() === 'lifestrap') {
       await this.liveLifestrapUtil.lifestrapManage(message)
     } else if (message.action.trim() === 'genesis-datatypes-cues') {
-      console.log('geneiss biology contracts--------')
       await this.generateDatatypeCues()
     } else if (message.action.trim() === 'besearch') {
       this.liveBesearch.besearchManage(message)
@@ -161,8 +162,8 @@ class LibraryHop extends EventEmitter {
   *
   */
   contractsManage = async function (message) {
-    console.log('library mange')
-    console.log(message)
+    // console.log('library mange')
+    // console.log(message)
     if (message.task.trim() === 'GET') {
       // public or private library?
       if (message.privacy === 'private') {
@@ -170,8 +171,6 @@ class LibraryHop extends EventEmitter {
         // this.callbackPeerLibAllBoard(message.data, privateALL)
         this.callbackPeerLib(message.data, peerLib)
       } else if (message.privacy === 'public') {
-        console.log('public library')
-        console.log('message---', message)
         if (message.reftype === 'refresh-publiclibrary') {
           this.startLibrary()
         } else {
