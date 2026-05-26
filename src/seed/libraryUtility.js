@@ -1,7 +1,4 @@
 'use strict'
-
-import { ref } from "vue"
-
 /**
 *  LibraryUtility
 *
@@ -437,6 +434,36 @@ class LibraryUtility { //  extends EventEmitter {
       dtSettings.measurement = 'Integer' 
       dtSettings.datatypeType = 'datatype'
       refContract.data = dtSettings
+    } else if (contract === 'datatype-nature') {
+      let dtSettings = {}
+      dtSettings.primary =  true
+      dtSettings.name = 'Earth'
+      dtSettings.description = 'home planet'
+      dtSettings.wiki = 'https://en.wikipedia.org/wiki/Earth'
+      dtSettings.rdf = 'https://dbpedia.org/page/Earth'
+      dtSettings.measurement = 'Integer' 
+      dtSettings.datatypeType = 'datatype'
+      refContract.data = dtSettings
+    } else if (contract === 'datatype-nature') {
+      let dtSettings = {}
+      dtSettings.primary =  true
+      dtSettings.name = 'Sun'
+      dtSettings.description = 'home star'
+      dtSettings.wiki = 'https://en.wikipedia.org/wiki/Sun'
+      dtSettings.rdf = 'https://dbpedia.org/page/Sun'
+      dtSettings.measurement = 'Integer' 
+      dtSettings.datatypeType = 'datatype'
+      refContract.data = dtSetting
+    } else if (contract === 'datatype-nature') {
+      let dtSettings = {}
+      dtSettings.primary =  true
+      dtSettings.name = 'Solar system'
+      dtSettings.description = 'place in milky way'
+      dtSettings.wiki = 'https://en.wikipedia.org/wiki/Solar_System'
+      dtSettings.rdf = 'https://dbpedia.org/page/Solar_System'
+      dtSettings.measurement = 'Integer' 
+      dtSettings.datatypeType = 'datatype'
+      refContract.data = dtSetting
     } else if (contract === 'datatype-nature') {
       let dtSettings = {}
       dtSettings.primary =  true

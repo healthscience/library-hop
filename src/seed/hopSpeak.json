@@ -1,0 +1,208 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HOP_BentoBoxDS_Core_Vocabulary_Ledger",
+  "description": "Foundational dictionary defining the protocol machinery, spatial-temporal engines, and cryptographic infrastructure used to render the runtime interface dynamically from the local library.",
+  "type": "object",
+  "properties": {
+    "lifestrap": {
+      "type": "string",
+      "domain": "machinery",
+      "definition": "The sovereign root container of identity, personal intent, and historical ledger continuity held locally by a peer."
+    },
+    "story": {
+      "type": "string",
+      "domain": "machinery",
+      "definition": "The natural language first entry point or zero-draft mode where a peer states their qualitative health or longevity inquiries."
+    },
+    "interplay": {
+      "type": "string",
+      "domain": "machinery",
+      "definition": "The active conversational and computational translation phase transforming a raw story text into a structural model of tracking variables."
+    },
+    "emulation": {
+      "type": "string",
+      "domain": "machinery",
+      "definition": "The high-fidelity execution layer where local biological streams, environmental data, and WASM logic run code loops to model real-world health outcomes."
+    },
+    "lens": {
+      "type": "string",
+      "domain": "machinery",
+      "definition": "The multi-column tabular interface mapping words into structured spaces of capacity, context, and attunement vectors."
+    },
+    "capacity": {
+      "type": "string",
+      "domain": "machinery",
+      "definition": "The column domain detailing the active biological or structural thresholds a peer is capable of performing or measuring."
+    },
+    "context": {
+      "type": "string",
+      "domain": "machinery",
+      "definition": "The combined internal and external environmental factors encompassing the physical body, domestic buildings, and bioregional earth coordinates."
+    },
+    "attunement": {
+      "type": "string",
+      "domain": "machinery",
+      "definition": "The strategic regulatory vector chosen by a peer, dividing health activities into prevention, repair, or deep rejuvenation targets."
+    },
+    "besearch": {
+      "type": "string",
+      "domain": "machinery",
+      "definition": "Collaborative, decentralized network research cycles structured as open-ended shared data loops that peers can seamlessly join or leave."
+    },
+    "strand": {
+      "type": "string",
+      "domain": "machinery",
+      "definition": "A single, coherent path of linked tokens drawn from across the lens columns to initiate an isolated instance of a network experiment."
+    },
+    "lensglue": {
+      "type": "string",
+      "domain": "machinery",
+      "definition": "The relational contract that binds variable user-defined concepts to immutable physical and biological primitives within the library."
+    },
+    "conduction": {
+      "type": "string",
+      "domain": "architecture",
+      "definition": "The core paradigm of interdependent, autonomous data flow across the network, deliberately avoiding isolationist sovereignty."
+    },
+    "peer": {
+      "type": "string",
+      "domain": "architecture",
+      "definition": "An equal, sovereign participant node within the decentralized system, operating on local-first protocols with no upstream authority."
+    },
+    "boreal": {
+      "type": "string",
+      "domain": "architecture",
+      "definition": "The overarching vision of distributed, seasonal community networks interacting directly with regional ecology and sovereign informational portals."
+    },
+    "bentobox": {
+      "type": "string",
+      "domain": "architecture",
+      "definition": "The local-first hardware and data-store enclosure optimized for secure, isolated processing of personal records."
+    },
+    "oracle": {
+      "type": "string",
+      "domain": "architecture",
+      "definition": "A local or federated computation routine that verifies physical inputs and maps them into the decentralized ledger without trusted third parties."
+    },
+    "soil": {
+      "type": "string",
+      "domain": "architecture",
+      "definition": "The local Hyperbee storage layer where binary indices, raw records, and cryptographic relationships are firmly rooted."
+    },
+    "nil": {
+      "type": "string",
+      "domain": "architecture",
+      "definition": "A blank-slate primitive representing a completely unassigned or newly initiated concept before its structural parameters are formalised."
+    },
+    "graft": {
+      "type": "string",
+      "domain": "architecture",
+      "definition": "A dynamic, biological-style contract connection that joins disparate machine-to-machine schema patterns without generating brittle API dependencies."
+    },
+    "heli": {
+      "type": "string",
+      "domain": "temporal",
+      "definition": "The core timekeeping module tracking real solar mechanics and planetary coordinate vectors rather than arbitrary civil time structures."
+    },
+    "orrery": {
+      "type": "string",
+      "domain": "temporal",
+      "definition": "The Geometric Temporal Engine tracking and aligning local data routines according to astronomical, solar, and bioregional rhythms."
+    },
+    "coherence": {
+      "type": "string",
+      "domain": "temporal",
+      "definition": "The metric measuring how closely a peer's data entries align structurally with the verification models set by the public schema."
+    },
+    "resonance": {
+      "type": "string",
+      "domain": "temporal",
+      "definition": "The state achieved when multiple distinct local data loops align harmoniously in frequency, duration, and baseline purpose."
+    },
+    "resonagent": {
+      "type": "string",
+      "domain": "machinery",
+      "definition": "Local autonomous entities that evaluate, schedule, and orchestrate underlying data pipelines inside the local peer node."
+    },
+    "stitch": {
+      "type": "string",
+      "domain": "cryptography",
+      "definition": "A deterministic cryptographic link binding a private lifestrap hash to an entry point in the global content-addressable dictionary."
+    },
+    "energy-scheduling": {
+      "type": "string",
+      "domain": "temporal",
+      "definition": "An internal orchestration model prioritizing script processing and sensor tracking according to solar energy availability and biological cycles."
+    },
+    "buffer-geometry": {
+      "type": "string",
+      "domain": "architecture",
+      "definition": "The allocation of flat, deterministic memory spaces designed for raw performance rendering and local WebGPU streaming."
+    },
+    "cue": {
+      "type": "string",
+      "domain": "data",
+      "definition": "A distinct semantic signpost or name mapping a human-readable term to an active computational process inside the network."
+    },
+    "datatype": {
+      "type": "string",
+      "domain": "data",
+      "definition": "The structural, invariant schema validating primitive data formats like raw heart rate numbers, body mass metrics, or coordinate sets."
+    },
+    "ledger": {
+      "type": "string",
+      "domain": "data",
+      "definition": "An append-only, tamper-evident local sequence logging all validation transitions and execution milestones securely over time."
+    },
+    "harvester": {
+      "type": "string",
+      "domain": "data",
+      "definition": "A dedicated ingestion worker that captures native hardware telemetry directly from wearable devices, scales, and ambient instruments."
+    },
+    "swarm": {
+      "type": "string",
+      "domain": "network",
+      "definition": "The ad-hoc clustering of peer nodes running the same distributed experiment to coordinate data sharing without cloud intermediaries."
+    },
+    "holepunch": {
+      "type": "string",
+      "domain": "network",
+      "definition": "The networking utility layer responsible for breaking through NAT boundaries to establish direct, hyper-local peer connections."
+    },
+    "hyperbee": {
+      "type": "string",
+      "domain": "network",
+      "definition": "A decentralized B-tree indexing database built over append-only feeds, acting as the fundamental structure for fast local sorting."
+    },
+    "witness": {
+      "type": "string",
+      "domain": "network",
+      "definition": "A peer node acting as an independent validating observer to confirm the structural integrity of a transaction block or telemetry file."
+    },
+    "bioregion": {
+      "type": "string",
+      "domain": "network",
+      "definition": "The physical geography boundary governing local energy allocation, climate inputs, and shared environmental criteria."
+    },
+    "pulse": {
+      "type": "string",
+      "domain": "data",
+      "definition": "A standardized biological metric capturing regular, rhythmic indicators like arterial pressure wave events or muscle firing paces."
+    },
+    "prevention": {
+      "type": "string",
+      "domain": "attunement-vector",
+      "definition": "A protective vector dedicated to monitoring and dampening disruptive biological shifts before they mutate baseline thresholds."
+    },
+    "repair": {
+      "type": "string",
+      "domain": "attunement-vector",
+      "definition": "An active restorative vector deploying localized interventions to re-stabilize broken structural systems or damaged telemetry loops."
+    },
+    "rejuvenate": {
+      "type": "string",
+      "domain": "attunement-vector",
+      "definition": "A long-term cellular vector optimizing metabolic performance to slowly extend baseline biological vitality thresholds far into old age."
+    }
+  }
+}

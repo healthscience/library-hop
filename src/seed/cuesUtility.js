@@ -10,7 +10,6 @@
 * @version    $Id$
 */
 // import EventEmitter from 'events'
-import { DateTime } from 'luxon'
 
 class CuesUtility {
 
@@ -94,7 +93,7 @@ class CuesUtility {
   * @method updateTimestamp
   */
   updateTimestamp = function (contract) {
-    contract.value.time.lastTimestamp = DateTime.now().toMillis()
+    //  heli now contract.value.time.lastTimestamp = DateTime.now().toMillis()
     return contract
   }
 
@@ -920,6 +919,14 @@ class CuesUtility {
       gaiaJack.push(refContract)
     }
     return gaiaJack
+  }
+
+  /**
+   * turn key HOP terminology in to a cue
+   * @method HOPspeak 
+  */
+  HOPspeak = function () {
+    // import JSON file
   }
 
 }
