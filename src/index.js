@@ -97,37 +97,39 @@ class LibraryHop extends EventEmitter {
     } else if (message.action.trim() === 'lifestrap') {
       await this.liveLifestrapUtil.lifestrapManage(message)
     } else if (message.action.trim() === 'genesis-datatypes-cues') {
-      await this.generateDatatypeCues()
+      // await this.generateDatatypeCues()
+      // prime peer on network or off line new peer
+      await this.cogGlue.seedGlueBegin()
     } else if (message.action.trim() === 'besearch') {
-      this.liveBesearch.besearchManage(message)
+      await this.liveBesearch.besearchManage(message)
     } else if (message.action.trim() === 'beebee-teach') {
-      this.liveTraining.trainingManage(message)
+      await this.liveTraining.trainingManage(message)
     } else if (message.action.trim() === 'cues') {
-      this.liveCuesUtil.cueManage(message)
+      await this.liveCuesUtil.cueManage(message)
     } else if (message.action.trim() === 'orgo') {
-      this.liveOrgoUtil.orgoManage(message)
+      await this.liveOrgoUtil.orgoManage(message)
     } else if (message.action.trim() === 'gelle') {
-      this.liveGelleUtil.gelleManage(message)
+      await this.liveGelleUtil.gelleManage(message)
     } else if (message.action.trim() === 'lensglue') {
-      this.lensGlue.lensGlueManage(message)
+      await this.lensGlue.lensGlueManage(message)
     } else if (message.action.trim() === 'source') {
-      this.sourcedataMange(message)
+      await this.sourcedataMange(message)
     } else if (message.action.trim() === 'account') {
       await this.liveCAccountUtil.accountManage(message)
     } else if (message.action.trim() === 'results') {
-      this.resultsManage(message)
+      await this.resultsManage(message)
     } else if (message.action.trim() === 'ledger') {
-      this.ledgerManage(message)
+      await this.ledgerManage(message)
     } else if (message.action.trim() === 'model') {
-      this.liveModelUtil.modelManage(message)
+      await this.liveModelUtil.modelManage(message)
     } else if (message.action.trim() === 'media') {
-      this.liveMediaUtil.mediaManage(message)
+      await this.liveMediaUtil.mediaManage(message)
     } else if (message.action.trim() === 'research') {
-      this.liveResearchUtil.researchManage(message)
+      await this.liveResearchUtil.researchManage(message)
     } else if (message.action.trim() === 'marker') {
-      this.liveMarkerUtil.markerManage(message)
+      await this.liveMarkerUtil.markerManage(message)
     } else if (message.action.trim() === 'product') {
-      this.liveProductUtil.productManage(message)
+      await this.liveProductUtil.productManage(message)
     } else if (message.action.trim() === 'start') {
       this.peerLibdata = await this.liveHolepunch.BeeData.getPeerLibraryRangeRef('datatype', 100)
       let returnPeerData = this.liveContractsUtil.libraryQuerypath('query', 'peerlibrary', this.peerLibdata)
@@ -319,7 +321,9 @@ class LibraryHop extends EventEmitter {
     if (saveData.reftype === 'question') {
       formedContract = this.libComposer.liveComposer.questionComposer(saveData.data)
     } else if (saveData.reftype === 'datatype') {
-      formedContract = this.libComposer.liveComposer.datatypeComposer(saveData.data)
+      const lsKey = saveData.lsKey || 'common!'
+      formedContract = this.libComposer.liveComposer.datatypeComposer(lsKey, saveData.data)
+      formedContract.key = formedContract.hash
     } else if (saveData.reftype === 'compute') {
       formedContract = this.libComposer.liveComposer.computeComposer(saveData.data) 
     } else if (saveData.reftype === 'packaging') {
@@ -337,13 +341,13 @@ class LibraryHop extends EventEmitter {
     } else if (saveData.reftype === 'module') {
     }
     // console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
-    let saveContract = await this.liveHolepunch.BeeData.savePubliclibrary(formedContract)
+    await this.liveHolepunch.BeeData.savePubliclibraryRef(formedContract)
     // format message for return
     let saveMessage = {}
     saveMessage.type = 'library'
     saveMessage.action = 'reference-contract'
     saveMessage.task = 'save-complete'
-    saveMessage.data = saveContract
+    saveMessage.data = formedContract
     return saveMessage
   }
 

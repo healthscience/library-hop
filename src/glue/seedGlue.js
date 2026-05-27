@@ -42,6 +42,7 @@ class SeedGlue {
     this.primeStrap = await this.parent.liveLifestrapUtil.firstLifeStrap(messageHOP)
 
     const seedLists = [
+      { name: 'hopspeak', data: this.orrery.HOPspeak(), color: '#9b59b6' },
       { name: 'gaia', data: this.earth.prepareDTgaiaMessage(), color: '#2ecc71' },
       { name: 'nature', data: this.earth.prepareDTnatureMessage(), color: '#27ae60' },
       { name: 'environment', data: this.environment.prepareDTenvironmentMessage(), color: '#16a085' },
@@ -52,7 +53,15 @@ class SeedGlue {
       { name: 'body', data: this.body.prepareDTbodyMessage(), color: '#e74c3c' }
     ]
 
-    console.log('Starting onboarding of founding seed cues...')
+    // Calculate total expected cues
+    let totalCues = 0
+    for (const seed of seedLists) {
+      totalCues += seed.data.length
+    }
+
+    console.log(`Starting onboarding of founding seed cues... Total: ${totalCues}`)
+
+    let currentCount = 0
 
     for (const seed of seedLists) {
       console.log(`Processing category: ${seed.name}`)
@@ -67,24 +76,56 @@ class SeedGlue {
           const cueContract = await this.formContract(this.primeStrap.key, 'cue', 'reference', contractData.contract, seed.color)
           if (cueContract && cueContract.contract) {
             console.log(`Cue saved: ${seed.name} - ${mark.data.name}`)
+            currentCount++
+
+            // Inform BentoBoxDS of progress
+            let progressMessage = {
+              type: 'library',
+              action: 'seed-progress',
+              current: currentCount,
+              total: totalCues,
+              category: seed.name,
+              item: mark.data.name
+            }
+            this.parent.emit('libmessage', JSON.stringify(progressMessage))
           }
         }
       }
     }
 
     // query the cues and datatypes with lifestrap key and return to bentoboxDS
-    let datatypeRefList = await this.liveHolepunch.BeeData.getPublicLibraryRefRange(this.primeStrap.key, 'datatype', null)
+    let datatypeRefList = []
+    try {
+      datatypeRefList = await this.liveHolepunch.BeeData.getPublicLibraryRefRange(this.primeStrap.key, 'datatype', null)
+    } catch (err) {
+      console.warn('Failed to fetch datatypeRefList', err)
+    }
     
+    // Count verification
+    let formedCues = []
+    try {
+      formedCues = await this.liveHolepunch.BeeData.getPublicLibraryRefRange(this.primeStrap.key, 'cue', null)
+    } catch (err) {
+      console.warn('Failed to fetch formedCues', err)
+    }
+    const verificationSuccess = formedCues.length === totalCues
+
     let libraryData = {
-      data: 'contracts',
       type: 'library',
-      action: 'peer-library-ref',
-      context: 'base-biology',
-      referenceContracts: datatypeRefList
+      action: 'seed-base-biology',
+      privacy: 'public',
+      data: {
+        referenceContracts: datatypeRefList,
+        verification: {
+          success: verificationSuccess,
+          expected: totalCues,
+          actual: formedCues.length
+        }
+      }
     }
     
     this.parent.emit('libmessage', JSON.stringify(libraryData))
-    return true
+    return verificationSuccess
   }
 
   /**

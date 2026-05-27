@@ -1,5 +1,7 @@
 'use strict'
 
+import hopSpeak from './hopSpeak.json' with { type: 'json' }
+
 /**
  * Orrery class to manage key HOP terminology and culture seed data
  * @class Orrery
@@ -10,9 +12,31 @@ class Orrery {
   /**
    * turn key HOP terminology in to a cue
    * @method HOPspeak 
+   * @returns {Array} List of cue contracts
    */
   HOPspeak = function () {
-    // import JSON file
+    let cues = []
+    
+    for (const [key, value] of Object.entries(hopSpeak.properties)) {
+      const refContract = {}
+      refContract.type = 'library'
+      refContract.action = 'contracts'
+      refContract.reftype = 'cue'
+      refContract.task = 'PUT'
+      refContract.privacy = 'public'
+      
+      let cueSettings = {}
+      cueSettings.primary = true
+      cueSettings.name = key
+      cueSettings.description = value.definition
+      cueSettings.domain = value.domain
+      cueSettings.type = value.type
+      
+      refContract.data = cueSettings
+      cues.push(refContract)
+    }
+
+    return cues
   }
 
   /**

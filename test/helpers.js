@@ -15,6 +15,11 @@ export async function startRealLibraryHop() {
   // Mock websocket to avoid ELOCKED/TypeError in activateHypercores
   holepunch.setWebsocket({ send: () => {} })
 
+  const encryption = new Encryption()
+  encryption.Encryption = Encryption
+  
+  holepunch.setHOPCrypto(encryption)
+
   // Start the datastores and wait for them to be live
   await holepunch.activateHypercores()
 
@@ -30,18 +35,12 @@ export async function startRealLibraryHop() {
     try {
       await heliLocation.init()
       HeliClock = heliLocation.getEngine()
-      // this.anchorDawn.setHeliClock(this.HeliClock)
     } catch (err) {
       console.warn('HeliClock init failed or already initialized', err)
     }
   }
 
   await initHeliClock()
-
-
-
-  const encryption = new Encryption()
-  encryption.Encryption = Encryption
 
   let contextAgents = {
     crypto: encryption,

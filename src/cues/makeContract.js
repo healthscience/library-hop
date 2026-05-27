@@ -110,7 +110,10 @@ class CuesContracts extends EventEmitter {
   *
   */
   saveCuesProtocol = async function (saveData) {
-    let formedContract = this.libComposer.liveCues.cuesPrepare(saveData)
+    const lsKey = saveData.lsKey || 'common!'
+    let formedContract = this.libComposer.liveCues.cueComposer(lsKey, saveData.data)
+    // Map hash to key for storage
+    formedContract.key = formedContract.hash
     // console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
     let saveContract = await this.liveHolepunch.BeeData.saveCues(formedContract)
     return saveContract

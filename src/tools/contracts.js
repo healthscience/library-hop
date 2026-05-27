@@ -91,36 +91,40 @@ class LibContracts extends EventEmitter {
   *
   */
   experimentContractGenesis = async function (newMods) {
-    // a new genesis network experiment to store to network library
-    let moduleGenesisList = []
-    let moduleGenesisExpanded = []
-    let modKeys = Object.keys(newMods.data)
-    let newModCount = modKeys.length
-    for (let mh of modKeys) {
-      if (newMods.data[mh][0].value.refcontract === 'compute') {
-        let controlOptions = this.defautComputeRefOptions()
-        newMods.data[mh][0].value['controls'] = controlOptions.controls
-        newMods.data[mh][0].value['settings'] = controlOptions.settings
-      } else if (newMods.data[mh][0].value.refcontract === 'visualise') {
-        newMods.data[mh][0].value['settings'] = this.defautVisualiseRefOptions()
+    try {
+      // a new genesis network experiment to store to network library
+      let moduleGenesisList = []
+      let moduleGenesisExpanded = []
+      let modKeys = Object.keys(newMods.data)
+      let newModCount = modKeys.length
+      for (let mh of modKeys) {
+        if (newMods.data[mh][0].value.refcontract === 'compute') {
+          let controlOptions = this.defautComputeRefOptions()
+          newMods.data[mh][0].value['controls'] = controlOptions.controls
+          newMods.data[mh][0].value['settings'] = controlOptions.settings
+        } else if (newMods.data[mh][0].value.refcontract === 'visualise') {
+          newMods.data[mh][0].value['settings'] = this.defautVisualiseRefOptions()
+        }
+        const moduleNewContract = this.libComposer.liveComposer.moduleComposer(newMods.data[mh][0], '')
+        const savedFeedback = await this.liveHolepunch.BeeData.savePubliclibraryRef(moduleNewContract)
+        return savedFeedback
       }
-      const moduleNewContract = this.libComposer.liveComposer.moduleComposer(newMods.data[mh][0], '')
-      const savedFeedback = await this.liveHolepunch.BeeData.savePubliclibrary(moduleNewContract)
-      moduleGenesisList.push(savedFeedback.key)
-      // stand key value format or query and get back ref contract double check TODO
-      let moduleContract = {}
-      moduleContract.key = savedFeedback.key
-      moduleContract.value = savedFeedback.contract
-      moduleGenesisExpanded.push(moduleContract)
-      newModCount--
+    } catch (err) {
+      console.warn('experiment contract genesis failed', err)
     }
-    if (newModCount === 0) {
-      // aggregate all modules into exeriment contract
-      let genesisRefContract = this.libComposer.liveComposer.experimentComposerGenesis(moduleGenesisList)
-      // double check they are created
-      const savedFeedback = await this.liveHolepunch.BeeData.savePubliclibrary(genesisRefContract)
-      savedFeedback.expanded = moduleGenesisExpanded
+  }
+
+  /**
+   * genesis reference contract for network experiment
+   * @method genesisRefContract
+   *
+  */
+  genesisRefContract = async function (refContract) {
+    try {
+      const savedFeedback = await this.liveHolepunch.BeeData.savePubliclibraryRef(refContract)
       return savedFeedback
+    } catch (err) {
+      console.warn('genesis reference contract failed', err)
     }
   }
 
