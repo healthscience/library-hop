@@ -35,7 +35,7 @@ describe('Datatype Seed Contracts', () => {
     const retrieved = await libHop.liveHolepunch.BeeData.getPublicLibraryRef(formedContract.key)
       // Hyperbee.get returns a node with { key, value }
       expect(retrieved).toBeDefined()
-      expect(retrieved.key).toStrictEqual(formedContract.hash)
+      expect(retrieved.key).toStrictEqual(formedContract.key)
       expect(retrieved.value).toBeDefined()
       
       // Verify the content matches what we saved
@@ -83,7 +83,7 @@ describe('Datatype Seed Contracts', () => {
   it('should create multiple datatypes and cues and fetch via range query (Stage 3)', async () => {
     const libHop = await startRealLibraryHop()
 
-    const lsKeyStage3 = Buffer.from('stage3-ls')
+    const lsKeyStage3 = 'stage3-ls'
     const datatypes = [
       { name: 'Blood Pressure', desc: 'mmHg' },
       { name: 'Oxygen Saturation', desc: 'Percentage' },
