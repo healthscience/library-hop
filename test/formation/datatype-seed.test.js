@@ -80,7 +80,7 @@ describe('Datatype Seed Contracts', () => {
     expect(cueContract.value.refcontract).toBe('cue')
   })
 
-  it('should create multiple datatypes and cues and fetch via range query (Stage 3)', async () => {
+  it('should create multiple datatypes and cues and fetch via range query  (Stage 3)', async () => {
     const libHop = await startRealLibraryHop()
 
     const lsKeyStage3 = 'stage3-ls'
