@@ -30,10 +30,16 @@ class GelleContracts extends EventEmitter {
     if (message.task.trim() === 'GET') {
       // public or private library?
       if (message.privacy === 'private') {
-        let gelleLib = await this.liveHolepunch.BeeData.getGelle(100)
+        const key = message.key || (message.data && message.data.key)
+        if (!key) {
+          console.error('gelleManage: GET private gelle missing key in message', message)
+          return
+        }
+        let gelleLib = await this.liveHolepunch.BeeData.getGelle(key)
       } else if (message.privacy === 'public') {
         if (message.reftype === 'start-gelle') {
-          let gelleHistory = await this.liveHolepunch.BeeData.getGelleHistory('')
+          const lsKey = message.lskey || (message.data && message.data.lskey) || ''
+          let gelleHistory = await this.liveHolepunch.BeeData.getGelleHistory(lsKey)
           this.callbackGelleStart(gelleHistory)
         } else {
           let publibGelle = await this.liveHolepunch.BeeData.saveGelle(message.data)
@@ -53,9 +59,9 @@ class GelleContracts extends EventEmitter {
       }
     } else if (message.task.trim() === 'DEL') {
       if (message.privacy === 'private') {
-        let delFeedback = this.liveHolepunch.BeeData.deleteBentoGelle(message.data)
+        let delFeedback = this.liveHolepunch.BeeData.deleteGelle(message.data)
       } else if (message.privacy === 'public') {
-        let delFeedback = this.liveHolepunch.BeeData.deleteBentoGelle(message.data)
+        let delFeedback = this.liveHolepunch.BeeData.deleteGelle(message.data)
       }
     }
   }  

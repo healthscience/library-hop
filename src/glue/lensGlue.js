@@ -30,11 +30,17 @@ class LensGlue extends EventEmitter {
     if (message.task.trim() === 'GET') {
       // public or private library?
       if (message.privacy === 'private') {
-        let lensGlueLib = await this.liveHolepunch.BeeData.getLensglue(100)
+        const key = message.key || (message.data && message.data.key)
+        if (!key) {
+          console.error('lensglueManage: GET private lensglue missing key in message', message)
+          return
+        }
+        let lensGlueLib = await this.liveHolepunch.BeeData.getLensglue(key)
         // 
       } else if (message.privacy === 'public') {
         if (message.reftype === 'start-lensglue') {
-          let lensglueHistory = await this.liveHolepunch.BeeData.getLensglueHistory('lensglue')
+          const lsKey = message.lskey || (message.data && message.data.lskey) || 'lensglue'
+          let lensglueHistory = await this.liveHolepunch.BeeData.getLensglueHistory(lsKey)
           this.callbackLensglueStart(lensglueHistory)
         } else {
           let publibLensglue = await this.liveHolepunch.BeeData.saveLensglue(message.data)
@@ -44,7 +50,8 @@ class LensGlue extends EventEmitter {
     } else if (message.task.trim() === 'PUT') {
       if (message.privacy === 'private') {
         // need to form contract and save to hypberbee
-        let saveContract = await this.saveLensglueProtocol(message)
+        const lsKey = message.lskey || (message.data && message.data.lskey)
+        let saveContract = await this.saveLensglueProtocol(lsKey, message)
         let saveMessage = {}
         saveMessage.type = 'library'
         saveMessage.action = 'lensglue-genesis'
@@ -54,7 +61,8 @@ class LensGlue extends EventEmitter {
         // pass to save manager, file details extract, prep contract
       } else if (message.privacy === 'public') {
         // need check if composer needed to form contract and then save
-        let saveContract = await this.saveLensglueProtocol(message)
+        const lsKey = message.lskey || (message.data && message.data.lskey)
+        let saveContract = await this.saveLensglueProtocol(lsKey, message)
         let saveMessage = {}
         saveMessage.type = 'library'
         saveMessage.action = 'lensglue-contract'
@@ -93,7 +101,8 @@ class LensGlue extends EventEmitter {
    * @method firstLensglue
   */
   firstLensglue = async function (message) {
-    let saveContract = await this.saveLensglueProtocol(message)
+    const lsKey = message.lskey || (message.data && message.data.lskey)
+    let saveContract = await this.saveLensglueProtocol(lsKey, message)
     let checkContract = await this.liveHolepunch.BeeData.getLensglue(saveContract.key)
     return checkContract
   }
@@ -146,11 +155,11 @@ class LensGlue extends EventEmitter {
   */
   callbackLensglueStart = function (data) {
     let lensglueData = {}
-    lensglueData.type = 'library'
-    lensglueData.action = 'life-strap'
-    lensglueData.task = 'bringtobe-start'
+    lensglueData.type = 'bentobox'
+    lensglueData.reftype = 'lensglue-history'
+    lensglueData.action = 'start'
     lensglueData.data = data
-    this.emit('lifestrap-awaken', lensglueData)
+    this.liveLib.emit('libmessage', JSON.stringify(lensglueData))
   }
 
   /**
@@ -160,7 +169,7 @@ class LensGlue extends EventEmitter {
   callbackLensglue = function (data) {
     let lensglueData = {}
     lensglueData.type = 'peerlibrary'
-    lensglueData.refcontract = 'lifestrap-new'
+    lensglueData.refcontract = 'lensglue-new'
     lensglueData.data = data
     this.liveLib.emit('libmessage', JSON.stringify(lensglueData))
   }

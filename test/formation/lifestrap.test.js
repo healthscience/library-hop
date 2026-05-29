@@ -18,7 +18,7 @@ describe('Lifestrap Contract Lifecycle', () => {
     }
 
     // 1. Save Lifestrap (uses saveLifestrapProtocol internally)
-    const checkContract = await libHop.liveLifestrapUtil.firstLifeStrap(lifestrapData)
+    const checkContract = await libHop.liveLifestrapUtil.seedLifeStrap(lifestrapData)
     
     expect(checkContract).toBeDefined()
     expect(checkContract.value.concept.story).toBe('The beginning of a new journey')
@@ -43,7 +43,7 @@ describe('Lifestrap Contract Lifecycle', () => {
         inquiry: 'Original story'
       }
     }
-    const genesis = await libHop.liveLifestrapUtil.firstLifeStrap(genesisData)
+    const genesis = await libHop.liveLifestrapUtil.seedLifeStrap(genesisData)
 
     const updateData = {
       task: 'UPDATE',

@@ -11,6 +11,7 @@
 */
 import util from 'util'
 import EventEmitter from 'events'
+import LibrarySeed from './beebee/librarySeed.js'
 import LoomCycle from './beebee/loomCycle.js'
 import BentoBoxOperations from './beebee/bentoboxDS.js'
 import LibComposer from 'librarycomposer'
@@ -38,6 +39,7 @@ class LibraryHop extends EventEmitter {
     super()
     this.liveHolepunch = contextAgents.network
     this.hopCryptoLive = contextAgents.crypto
+    this.seedLibrary = new LibrarySeed(this)
     this.lifeLoom = new LoomCycle(this)
     this.liveBentoBoxOps = new BentoBoxOperations(this.liveHolepunch)
     this.libComposer = new LibComposer(contextAgents)
@@ -97,7 +99,7 @@ class LibraryHop extends EventEmitter {
     } else if (message.action.trim() === 'lifestrap') {
       await this.liveLifestrapUtil.lifestrapManage(message)
     } else if (message.action.trim() === 'genesis-datatypes-cues') {
-      // await this.generateDatatypeCues()
+      console.log('seed condution of cues please-----------')
       // prime peer on network or off line new peer
       await this.cogGlue.seedGlueBegin()
     } else if (message.action.trim() === 'besearch') {
@@ -183,7 +185,7 @@ class LibraryHop extends EventEmitter {
           } else {
             publicData = await this.liveHolepunch.BeeData.getPublicLibraryRefRange('lifesrap', 'datatype', 100)
           }
-          this.callbacklibrary(publibData)
+          this.callbacklibrary(publicData)
         }
       }
     } else if (message.task.trim() === 'PUT') {
@@ -321,7 +323,7 @@ class LibraryHop extends EventEmitter {
     if (saveData.reftype === 'question') {
       formedContract = this.libComposer.liveComposer.questionComposer(saveData.data)
     } else if (saveData.reftype === 'datatype') {
-      const lsKey = saveData.lsKey || 'common!'
+      const lsKey = saveData.lsKey || 'common'
       formedContract = this.libComposer.liveComposer.datatypeComposer(lsKey, saveData.data)
       formedContract.key = formedContract.hash
     } else if (saveData.reftype === 'compute') {

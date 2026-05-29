@@ -30,11 +30,17 @@ class OrgoContracts extends EventEmitter {
     if (message.task.trim() === 'GET') {
       // public or private library?
       if (message.privacy === 'private') {
-        let orgoLib = await this.liveHolepunch.BeeData.getOrgo(100)
+        const key = message.key || (message.data && message.data.key)
+        if (!key) {
+          console.error('orgoManage: GET private orgo missing key in message', message)
+          return
+        }
+        let orgoLib = await this.liveHolepunch.BeeData.getOrgo(key)
         // this.callbackOrgoLib(message.data, orgoLib)
       } else if (message.privacy === 'public') {
         if (message.reftype === 'start-orgo') {
-          let orgoHistory = await this.liveHolepunch.BeeData.getOrgoHistory('')
+          const lsKey = message.lskey || (message.data && message.data.lskey) || ''
+          let orgoHistory = await this.liveHolepunch.BeeData.getOrgoHistory(lsKey)
           this.callbackOrgoStart(orgoHistory)
         } else {
           let publibOrgo = await this.liveHolepunch.BeeData.saveOrgo(message.data)
@@ -54,9 +60,9 @@ class OrgoContracts extends EventEmitter {
       }
     } else if (message.task.trim() === 'DEL') {
       if (message.privacy === 'private') {
-        let delFeedback = this.liveHolepunch.BeeData.deleteBentoOrgo(message.data)
+        let delFeedback = this.liveHolepunch.BeeData.deleteOrgo(message.data)
       } else if (message.privacy === 'public') {
-        let delFeedback = this.liveHolepunch.BeeData.deleteBentoOrgo(message.data)
+        let delFeedback = this.liveHolepunch.BeeData.deleteOrgo(message.data)
       }
     }
   }  

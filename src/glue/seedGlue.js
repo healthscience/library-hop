@@ -4,6 +4,7 @@ import Orrery from '../seed/orrery.js'
 import Body from '../seed/body.js'
 import Earth from '../seed/earth.js'
 import Environment from '../seed/environment.js'
+import { cue } from 'librarycomposer/src/validation/validate.js'
 
 /**
  * SeedGlue class to onboard founding seed cues
@@ -39,7 +40,8 @@ class SeedGlue {
       task: 'PUT',
       data: primeLS
     }
-    this.primeStrap = await this.parent.liveLifestrapUtil.firstLifeStrap(messageHOP)
+    // make a common  key for indexing seed cues orgo cues datatype etc.
+    let lsPrimekey = 'common' // this.primeStrap.key
 
     const seedLists = [
       { name: 'hopspeak', data: this.orrery.HOPspeak(), color: '#9b59b6' },
@@ -59,23 +61,17 @@ class SeedGlue {
       totalCues += seed.data.length
     }
 
-    console.log(`Starting onboarding of founding seed cues... Total: ${totalCues}`)
-
     let currentCount = 0
 
     for (const seed of seedLists) {
-      console.log(`Processing category: ${seed.name}`)
       for (const mark of seed.data) {
         // Form and save datatype contract
-        const contractData = await this.formContract(this.primeStrap.key, 'datatype', 'reference', mark)
+        const contractData = await this.formContract(lsPrimekey, 'datatype', 'reference', mark)
         
-        if (contractData && contractData.contract) {
-          console.log(`Datatype saved: ${seed.name} - ${mark.data.name}`)
-          
+        if (contractData && contractData.contract) {      
           // Form and save cue contract
-          const cueContract = await this.formContract(this.primeStrap.key, 'cue', 'reference', contractData.contract, seed.color)
+          const cueContract = await this.formContract(lsPrimekey, 'cue', 'reference', contractData.contract, seed.color)
           if (cueContract && cueContract.contract) {
-            console.log(`Cue saved: ${seed.name} - ${mark.data.name}`)
             currentCount++
 
             // Inform BentoBoxDS of progress
@@ -96,7 +92,7 @@ class SeedGlue {
     // query the cues and datatypes with lifestrap key and return to bentoboxDS
     let datatypeRefList = []
     try {
-      datatypeRefList = await this.liveHolepunch.BeeData.getPublicLibraryRefRange(this.primeStrap.key, 'datatype', null)
+      datatypeRefList = await this.liveHolepunch.BeeData.getPublicLibraryRefRange(lsPrimekey, 'datatype', null)
     } catch (err) {
       console.warn('Failed to fetch datatypeRefList', err)
     }
@@ -104,10 +100,13 @@ class SeedGlue {
     // Count verification
     let formedCues = []
     try {
-      formedCues = await this.liveHolepunch.BeeData.getPublicLibraryRefRange(this.primeStrap.key, 'cue', null)
+      formedCues = await this.liveHolepunch.BeeData.getCuesHistory(lsPrimekey, 'cue', null)
     } catch (err) {
       console.warn('Failed to fetch formedCues', err)
     }
+    // now integrate datatype contract into the cue contract
+    let embCueContracts = this.integrateReferenceContracts(formedCues, datatypeRefList)
+
     const verificationSuccess = formedCues.length === totalCues
 
     let libraryData = {
@@ -115,6 +114,7 @@ class SeedGlue {
       action: 'seed-base-biology',
       privacy: 'public',
       data: {
+        cueContracts: embCueContracts,
         referenceContracts: datatypeRefList,
         verification: {
           success: verificationSuccess,
@@ -192,6 +192,49 @@ class SeedGlue {
     let color = '#' + Math.floor(Math.random() * 16777215).toString(16)
     return color
   }
+
+  /**
+  * insert datatype contract into cue contract
+  * @method integrateReferenceContracts
+  */
+  integrateReferenceContracts (cueContracts, datatypeContracts) {
+    if (!Array.isArray(cueContracts) || !Array.isArray(datatypeContracts)) return []
+
+    const cuesList = []
+    const dtMap = new Map()
+
+    // Helper to ensure we have a hex string for the map key
+    const toHex = (key) => {
+      if (!key) return null
+      if (typeof key === 'string') return key
+      if (Buffer.isBuffer(key)) return key.toString('hex')
+      // Handle JSON serialized buffers if necessary
+      if (key.type === 'Buffer' && Array.isArray(key.data)) return Buffer.from(key.data).toString('hex')
+      return key.toString()
+    }
+
+    // Create a map for O(1) lookups of datatypes
+    for (const dtContract of datatypeContracts) {
+      const key = toHex(dtContract.key)
+      if (key) {
+        dtMap.set(key, dtContract.value || dtContract.contract || dtContract)
+      }
+    }
+
+    for (const contract of cueContracts) {
+      if (!contract.value?.concept?.datatype) continue
+
+      const matchKey = toHex(contract.value.concept.datatype)
+      
+      if (dtMap.has(matchKey)) {
+        // Replace the raw buffer key with the full datatype contract
+        contract.value.concept.datatype = dtMap.get(matchKey)
+        cuesList.push(contract)
+      }
+    }
+    return cuesList
+  }
+
 }
 
 export default SeedGlue

@@ -30,7 +30,16 @@ class LifestrapContracts extends EventEmitter {
     if (message.task.trim() === 'GET') {
       // public or private library?
       if (message.privacy === 'private') {
-        let lifestrapLib = await this.liveHolepunch.BeeData.getLifestrap(100)
+        let key = message.key || (message.data && message.data.key)
+        // handle Buffer JSON representation
+        if (key && key.type === 'Buffer' && Array.isArray(key.data)) {
+          key = Buffer.from(key.data)
+        }
+        if (!key) {
+          console.error('lifestrapManage: GET private lifestrap missing key in message', message)
+          return
+        }
+        let lifestrapLib = await this.liveHolepunch.BeeData.getLifestrap(key)
         // this.callbackLifestrapLib(message.data, lifestrapLib)
       } else if (message.privacy === 'public') {
         if (message.reftype === 'start-lifestrap') {
@@ -79,7 +88,6 @@ class LifestrapContracts extends EventEmitter {
       if (message.privacy === 'private') {
         // convert hex key to binary
         let binKey = this.liveLib.convertHexToBinary(message.data)
-        console.log(binKey)
         // private
         this.liveHolepunch.BeeData.deleteLifestrap(binKey)
       } else if (message.privacy === 'public') {
@@ -93,8 +101,7 @@ class LifestrapContracts extends EventEmitter {
    * first time formation of prime lifestory for bring to be biology contract
    * @method firstLifeStrap
   */
-  firstLifeStrap = async function (message) {
-    console.log('firstLifeStrap firs ever ever evet', message)
+  seedLifeStrap = async function (message) {
     let saveContract = await this.saveLifestrapProtocol(message)
     let checkContract = await this.liveHolepunch.BeeData.getLifestrap(saveContract.key)
     return checkContract
