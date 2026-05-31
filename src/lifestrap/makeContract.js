@@ -114,14 +114,9 @@ class LifestrapContracts extends EventEmitter {
   */
   saveLifestrapProtocol = async function (saveData) {
     let formedContract = this.libComposer.liveLifestrap.lifestrapPrepare(saveData)
-    // lifestrapPrepare returns { id, key, contract }
-    // saveLifestrap expects an object with key and value (contract)
-    const wrapped = {
-      key: formedContract.key,
-      contract: formedContract.contract
-    }
-    await this.liveHolepunch.BeeData.saveLifestrap(wrapped)
-    let checkContract = await this.liveHolepunch.BeeData.getLifestrap(formedContract.key)
+    await this.liveHolepunch.BeeData.saveLifestrap(formedContract)
+    
+    let checkContract = await this.liveHolepunch.BeeData.getLifestrap(formedContract.hash)
     return checkContract
   }
 

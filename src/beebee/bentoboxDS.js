@@ -24,7 +24,7 @@ class BentoBoxOperations {
     } else if (o.action === 'chat-start') {
       // self verified get Account Info, cues, markers, bentoboxes etc.  Get most used (all for now)
       // account peer relationships
-      let bbPeers = await this.parent.liveHolepunch.BeeData.getPeersHistory('lsempty', 'peer', 100)
+      let bbPeers = await this.parent.liveHolepunch.BeeData.getPeersHistory('hopeer', 100)
       this.parent.callbackPeerHistory(bbPeers)        
       // besearch active
       let besearchStart = await this.parent.liveHolepunch.BeeData.getBesearchHistory('lsempty', 'besearch')

@@ -13,6 +13,8 @@ import util from 'util'
 import EventEmitter from 'events'
 import LibrarySeed from './beebee/librarySeed.js'
 import LoomCycle from './beebee/loomCycle.js'
+import WarmHopeers from './beebee/hoPeers.js'
+
 import BentoBoxOperations from './beebee/bentoboxDS.js'
 import LibComposer from 'librarycomposer'
 import BiomarkersUtility from './seed/biomarkerUtility.js'
@@ -41,6 +43,7 @@ class LibraryHop extends EventEmitter {
     this.hopCryptoLive = contextAgents.crypto
     this.seedLibrary = new LibrarySeed(this)
     this.lifeLoom = new LoomCycle(this)
+    this.warmHopeers = new WarmHopeers(this)
     this.liveBentoBoxOps = new BentoBoxOperations(this.liveHolepunch)
     this.libComposer = new LibComposer(contextAgents)
     this.liveContractsUtil = new ContractsUtil(this.liveHolepunch, this.libComposer)

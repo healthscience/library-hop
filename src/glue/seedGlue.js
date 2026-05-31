@@ -152,18 +152,11 @@ class SeedGlue {
     let saved = null
     let validContract = {}
     if (category === 'cue') {
-      let contractReady = {
-        key: formedContract.hash,
-        contract: formedContract.contract
-      }
-      saved = await this.liveHolepunch.BeeData.saveCues(contractReady)
+      saved = await this.liveHolepunch.BeeData.saveCues(formedContract)
       validContract = await this.liveHolepunch.BeeData.getCues(formedContract.hash)
     } else if (category === 'datatype') {
-      let contractReady = {
-        key: formedContract.hash,
-        contract: formedContract.contract
-      }
-      saved = await this.liveHolepunch.BeeData.savePubliclibraryRef(contractReady)
+      console.log('datatype contract', formedContract)
+      saved = await this.liveHolepunch.BeeData.savePubliclibraryRef(formedContract)
       validContract = await this.liveHolepunch.BeeData.getPublicLibraryRef(formedContract.hash)
     }
 

@@ -51,8 +51,14 @@ class PeerNetwork extends EventEmitter {
       }
     } else if (message.task.trim() === 'PUT') {
       if (message.privacy === 'private') { 
+        console.log('PUT === new=== private peer network save')
+        console.log(message.data)
         // save relationship
         let saveContract = await this.savePeerProtocol(message.data)
+        console.log('return from save peer contract protocol')
+        console.log(saveContract)
+        // set warm peers list to keep track
+        this.liveLib.emit('set-warmpeer', saveContract)
         let saveMessage = {}
         saveMessage.type = 'account'
         saveMessage.action = 'peer-new-relationship'
@@ -88,7 +94,7 @@ class PeerNetwork extends EventEmitter {
           }
           let peerContract = await this.liveHolepunch.BeeData.getPeer(publickey)
           let peerPair = {}
-          peerPair.publickey = peerContract.key
+          peerPair.publickey = peerContract.key.toString('hex')
           peerPair.name = peerContract.value.name
           peerPair.longterm = peerContract.value.longterm
           peerPair.topic = message.data.topic
@@ -101,10 +107,10 @@ class PeerNetwork extends EventEmitter {
           this.liveLib.emit('complete-topic-save', updatePeer)
           // need to infom, peer setting topic is live?
         } else if (message.reftype === "update-peer-name") {
-          let publicKey = message.data.peerkey
+          let publicKey = message.data.peerkey.toString('hex')
           let peerContract = await this.liveHolepunch.BeeData.getPeer(publicKey)
           let peerPair = {}
-          peerPair.publickey = peerContract.key
+          peerPair.publickey = peerContract.key.toString('hex')
           peerPair.name = message.data.name
           peerPair.longterm = peerContract.value.longterm
           peerPair.topic = peerContract.value.topic
@@ -124,15 +130,21 @@ class PeerNetwork extends EventEmitter {
   *
   */
   savePeerProtocol = async function (saveData) {
-    // let formedContract = this.libComposer.livePeer.peerPrepare(saveData)
+    let formedContract = this.libComposer.livePeer.peerPrepare('hopeer', saveData)
+    console.log('peerNetwork.js savePeerProtocol formedContract')
+    console.log(formedContract)
     // console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
-    let saveContract = await this.liveHolepunch.BeeData.savePeer(saveData)
+    await this.liveHolepunch.BeeData.savePeer(formedContract)
+    let checkContract = await this.liveHolepunch.BeeData.getPeer(formedContract.hash)
+    // change key from buffer to hex
+    let hexKey = checkContract.key.toString('hex')
+    checkContract.key = hexKey
     // format message for return
     let saveMessage = {}
     saveMessage.type = 'library'
     saveMessage.action = 'peer-relationship'
     saveMessage.task = 'save-complete'
-    saveMessage.data = saveContract
+    saveMessage.data = checkContract
     return saveMessage
   }
 
