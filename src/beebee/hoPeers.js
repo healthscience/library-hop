@@ -16,8 +16,6 @@ export default class HopeerWarm {
   async getWarmHopeers () {
 
     let warmpeerList = await this.beeData.getPeersHistory('hopeer')
-    console.log('warm peer beging')
-    console.log(warmpeerList)
     return warmpeerList
   }
 

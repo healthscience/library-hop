@@ -22,6 +22,6 @@
   "dependencies": {
     "color": "^5.0.3",
     "csv-parser": "^3.0.0",
-    "librarycomposer": "^0.7.4"
+    "librarycomposer": "^0.7.5"
   }
 }

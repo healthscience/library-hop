@@ -51,19 +51,15 @@ class PeerNetwork extends EventEmitter {
       }
     } else if (message.task.trim() === 'PUT') {
       if (message.privacy === 'private') { 
-        console.log('PUT === new=== private peer network save')
-        console.log(message.data)
         // save relationship
         let saveContract = await this.savePeerProtocol(message.data)
-        console.log('return from save peer contract protocol')
-        console.log(saveContract)
         // set warm peers list to keep track
         this.liveLib.emit('set-warmpeer', saveContract)
         let saveMessage = {}
         saveMessage.type = 'account'
         saveMessage.action = 'peer-new-relationship'
         saveMessage.task = 'save-complete'
-        saveMessage.data = saveContract
+        saveMessage.data = saveContract.data
         // emits back to HOP library level - inform beebee saved
         this.liveLib.emit('libmessage', JSON.stringify(saveMessage))
         // if first time warm peer then complete that connection flow
@@ -73,12 +69,13 @@ class PeerNetwork extends EventEmitter {
 
       }
     } else if (message.task.trim() === 'DEL') {
+      let buffKey = Buffer.from(message.data.key, 'hex')
       if (message.privacy === 'private') {
         // private
-        let delFeedback = this.liveHolepunch.BeeData.deletePeer(message.data.key)
+        let delFeedback = this.liveHolepunch.BeeData.deletePeer(buffKey)
       } else if (message.privacy === 'public') {
         // public
-        let delFeedback = this.liveHolepunch.BeeData.deletePeer(message.data.key)
+        let delFeedback = this.liveHolepunch.BeeData.deletePeer(buffKey)
       }
     } else if (message.task.trim() === 'UPDATE') {
       if (message.privacy === 'private') {
@@ -92,7 +89,9 @@ class PeerNetwork extends EventEmitter {
           } else {
             publickey = message.data.publickey
           }
-          let peerContract = await this.liveHolepunch.BeeData.getPeer(publickey)
+          // need to look at warm peer and match to live public key to get  peer contract key
+          let peerMatchUp = this.liveHolepunch.matchWarmSaveLiveKey(publickey)
+          let peerContract = peerMatchUp // await this.liveHolepunch.BeeData.getPeer(peerMatchUp.key)
           let peerPair = {}
           peerPair.publickey = peerContract.key.toString('hex')
           peerPair.name = peerContract.value.name
@@ -101,13 +100,17 @@ class PeerNetwork extends EventEmitter {
           peerPair.settopic = setTopic
           peerPair.live = false
           peerPair.livePeerkey = ''
-          let updatePeer = await this.liveHolepunch.BeeData.savePeer(peerPair)
-          // need to inform beebee
-          updatePeer.value.live = true
-          this.liveLib.emit('complete-topic-save', updatePeer)
+          let updatePeer = await this.updatePeerProtocol(peerPair, peerContract)
+          // new get the peer to check
+          // turn key to buffer
+          let keyBuff =  Buffer.from(peerContract.key, 'hex')
+          let checkUpdatePeer = await this.liveHolepunch.BeeData.getPeer(keyBuff)
+          // need to inform beebee peer is live and topic is set.
+          checkUpdatePeer.value.concept.live = true
+          this.liveLib.emit('complete-topic-save', checkUpdatePeer)
           // need to infom, peer setting topic is live?
         } else if (message.reftype === "update-peer-name") {
-          let publicKey = message.data.peerkey.toString('hex')
+          const publicKey = Buffer.from(message.data.contractKey, 'hex')
           let peerContract = await this.liveHolepunch.BeeData.getPeer(publicKey)
           let peerPair = {}
           peerPair.publickey = peerContract.key.toString('hex')
@@ -117,8 +120,10 @@ class PeerNetwork extends EventEmitter {
           peerPair.settopic = peerContract.value.settopic
           peerPair.live = false
           peerPair.livePeerkey = ''
-          let updatePeer = await this.liveHolepunch.BeeData.savePeer(peerPair)
-          this.liveLib.emit('complete-name-updatesave', updatePeer)
+          // need to go through formal update protocol
+          let updatePeer = await this.updatePeerNameProtocol(peerPair, peerContract) // await this.liveHolepunch.BeeData.savePeer(peerPair)
+          let checkUpdatePeer = await this.liveHolepunch.BeeData.getPeer(updatePeer.hash)
+          this.liveLib.emit('complete-name-updatesave', checkUpdatePeer)
         }
       }
     }
@@ -131,8 +136,6 @@ class PeerNetwork extends EventEmitter {
   */
   savePeerProtocol = async function (saveData) {
     let formedContract = this.libComposer.livePeer.peerPrepare('hopeer', saveData)
-    console.log('peerNetwork.js savePeerProtocol formedContract')
-    console.log(formedContract)
     // console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
     await this.liveHolepunch.BeeData.savePeer(formedContract)
     let checkContract = await this.liveHolepunch.BeeData.getPeer(formedContract.hash)
@@ -146,6 +149,26 @@ class PeerNetwork extends EventEmitter {
     saveMessage.task = 'save-complete'
     saveMessage.data = checkContract
     return saveMessage
+  }
+
+  /**
+   * 
+   * @method updatePeerProtocol
+  */
+  updatePeerProtocol = async function (peerUpate, peerContract) {
+    let updateContract = this.libComposer.livePeer.updatePreparePeer(peerUpate, peerContract)
+    await this.liveHolepunch.BeeData.savePeer(updateContract)
+    return true
+  }
+
+  /**
+   * 
+   * @method updatePeerNameProtocol
+  */
+  updatePeerNameProtocol = async function (peerUpate, peerContract) {
+    let updateContract = this.libComposer.livePeer.updatePrepareNamePeer(peerUpate, peerContract)
+    await this.liveHolepunch.BeeData.savePeer(updateContract)
+    return updateContract
   }
 
 }
