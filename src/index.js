@@ -16,6 +16,7 @@ import LoomCycle from './beebee/loomCycle.js'
 import WarmHopeers from './beebee/hoPeers.js'
 
 import BentoBoxOperations from './beebee/bentoboxDS.js'
+import BeebeeDialogue from './dialogue/chatPath.js'
 import LibComposer from 'librarycomposer'
 import BiomarkersUtility from './seed/biomarkerUtility.js'
 import CuesUtility from './seed/cuesUtility.js'
@@ -48,6 +49,7 @@ class LibraryHop extends EventEmitter {
     this.libComposer = new LibComposer(contextAgents)
     this.liveContractsUtil = new ContractsUtil(this.liveHolepunch, this.libComposer)
     this.liveCAccountUtil = new AccountUtil(this, this.liveHolepunch, this.libComposer)
+    this.liveDialogue = new BeebeeDialogue(this, this.liveHolepunch, this.libComposer, this.hopCryptoLive)
     this.liveCuesUtil = new CuesUtil(this, this.liveHolepunch, this.libComposer)
     this.liveModelUtil = new ModelUtil(this, this.liveHolepunch, this.libComposer)
     this.liveMediaUtil = new MediaUtil(this, this.liveHolepunch, this.libComposer)
@@ -94,6 +96,8 @@ class LibraryHop extends EventEmitter {
   *
   */
   libraryManage = async function (message) {
+    console.log('library manage')
+    console.log(message)
     // need break this up  each action should have sub type
     // nxp, contracts modules and reference
     if (message.action.trim() === 'contracts') {
@@ -111,6 +115,9 @@ class LibraryHop extends EventEmitter {
       await this.liveTraining.trainingManage(message)
     } else if (message.action.trim() === 'cues') {
       await this.liveCuesUtil.cueManage(message)
+    } else if (message.action === 'dialogue-chat') {
+      console.log('pass on to bee bee chat dialogue')
+      this.liveDialogue.dialogueManage(message)
     } else if (message.action.trim() === 'orgo') {
       await this.liveOrgoUtil.orgoManage(message)
     } else if (message.action.trim() === 'gelle') {
@@ -335,6 +342,8 @@ class LibraryHop extends EventEmitter {
        formedContract = this.libComposer.liveComposer.packagingComposer(saveData.data)
     } else if (saveData.reftype === 'visualise') {
        formedContract = this.libComposer.liveComposer.visualiseComposer(saveData.data)
+    } else if (saveData.reftype === 'dialogue') {
+      console.log('pass on to bee bee chat dialogue')
     } else if (saveData.reftype === 'orgo') {
        formedContract = this.libComposer.liveComposer.orgoComposer(saveData.data)
     } else if (saveData.reftype === 'gelle') {
@@ -623,26 +632,6 @@ class LibraryHop extends EventEmitter {
   }
 
   /**
-   * @method prepareChat
-   */
-  prepareChat = async function (chatItem) {
-    // form key for storage
-    // lifestrap id and cueID in first time is the chat hash of the message
-    // 1. Content Hash (The 'What')
-    const contentHash = '#' // hopCrypto.hash(chatItem);
-    let heliStamp = 0
-    let chatKey = this.hopCryptoLive.createDialogueKey(contentHash, contentHash, heliStamp, contentHash)
-    // form save structure
-    let saveChatItem = {}
-    saveChatItem.hash = chatKey
-    saveChatItem.contract = chatItem
-    let bentoChat = await this.liveHolepunch.BeeData.saveBentochat(saveChatItem)
-    // retrieve the chat item and return to beebee
-    let chatItemCheck = await this.liveHolepunch.BeeData.getBentochat(chatKey)
-    this.callbackBentochat(chatItemCheck)
-  }
-
-  /**
    * convers hex keys form bbDS and return to binary
    * @method convertHexToBinary
    * 
@@ -850,20 +839,6 @@ class LibraryHop extends EventEmitter {
     libraryData.type = 'peerlifeboard'
     libraryData.lifeboard = data
     this.emit('libmessage', JSON.stringify(libraryData))
-  }
-
-  /**
-  * call back
-  * @method callbackBentochat
-  */
-  callbackBentochat = function (data) {
-    // pass to sort data into ref contract types
-    let bentoboxReturn = {}
-    bentoboxReturn.type = 'chat'
-    bentoboxReturn.action = 'save'
-    bentoboxReturn.reftype = 'chat-history-item'
-    bentoboxReturn.data = data
-    this.emit('libmessage', JSON.stringify(bentoboxReturn))
   }
 
   /**

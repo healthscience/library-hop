@@ -39,7 +39,8 @@ class LensGlue extends EventEmitter {
         // 
       } else if (message.privacy === 'public') {
         if (message.reftype === 'start-lensglue') {
-          const lsKey = message.lskey || (message.data && message.data.lskey) || 'lensglue'
+          console.log('start glue uery called 111')
+          const lsKey = 'lensglue'
           let lensglueHistory = await this.liveHolepunch.BeeData.getLensglueHistory(lsKey)
           this.callbackLensglueStart(lensglueHistory)
         } else {
@@ -103,7 +104,7 @@ class LensGlue extends EventEmitter {
   firstLensglue = async function (message) {
     const lsKey = message.lskey || (message.data && message.data.lskey)
     let saveContract = await this.saveLensglueProtocol(lsKey, message)
-    let checkContract = await this.liveHolepunch.BeeData.getLensglue(saveContract.key)
+    let checkContract = await this.liveHolepunch.BeeData.getLensglue(saveContract.contract.key)
     return checkContract
   }
 

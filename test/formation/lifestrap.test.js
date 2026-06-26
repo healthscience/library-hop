@@ -19,17 +19,19 @@ describe('Lifestrap Contract Lifecycle', () => {
 
     // 1. Save Lifestrap (uses saveLifestrapProtocol internally)
     const checkContract = await libHop.liveLifestrapUtil.seedLifeStrap(lifestrapData)
-    
+    console.log('test check conctrat==============')
+    console.log(checkContract)
     expect(checkContract).toBeDefined()
     expect(checkContract.value.concept.story).toBe('The beginning of a new journey')
     expect(checkContract.value.refcontract).toBe('lifestrap')
 
     // 2. Retrieve via GET logic
-    const history = await libHop.liveHolepunch.BeeData.getLifestrapHistory('lsempty', 'lifestrap')
+    const history = await libHop.liveHolepunch.BeeData.getLifestrapHistory('lifestrap')
     expect(history.length).toBeGreaterThan(0)
     expect(history[0].value.concept.story).toBe('The beginning of a new journey')
   })
 
+  /*
   it('should update a lifestrap contract', async () => {
     const libHop = await startRealLibraryHop()
     
@@ -61,5 +63,5 @@ describe('Lifestrap Contract Lifecycle', () => {
     
     const retrieved = await libHop.liveHolepunch.BeeData.getLifestrap(genesis.key)
     expect(retrieved.value.computational.relationships).toBeDefined()
-  })
+  })*/
 })

@@ -14,9 +14,10 @@
   "author": "aboynejames@gmail.com",
   "license": "GPL-3.0-or-later",
   "devDependencies": {
+    "heliclock-hop": "^0.3.0",
     "holepunch-hop": "^0.7.6",
     "hop-crypto": "^0.1.6",
-    "heliclock-hop": "^0.3.0",
+    "hop-learn": "^0.2.1",
     "vitest": "^4.1.0"
   },
   "dependencies": {
