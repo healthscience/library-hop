@@ -20,8 +20,6 @@ export default class LoomCycle {
   async getFullContext(lsKey) {
     // 1. Extract the raw 32-byte binary story hash out of the lifestrap key
     const storyHash = lsKey.subarray(10)
-    console.log('story hash')
-    console.log(storyHash)
     // We execute all the queries you listed in BentoBoxOperations
     const [lens, besearch, cue, chat, agentMemory, orgo, gelle] = await Promise.all([
       this.beeData.getLensglueHistory(storyHash),

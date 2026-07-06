@@ -19,8 +19,6 @@ describe('Lifestrap Contract Lifecycle', () => {
 
     // 1. Save Lifestrap (uses saveLifestrapProtocol internally)
     const checkContract = await libHop.liveLifestrapUtil.seedLifeStrap(lifestrapData)
-    console.log('test check conctrat==============')
-    console.log(checkContract)
     expect(checkContract).toBeDefined()
     expect(checkContract.value.concept.story).toBe('The beginning of a new journey')
     expect(checkContract.value.refcontract).toBe('lifestrap')

@@ -28,7 +28,6 @@ class ChatContracts extends EventEmitter {
   *
   */
   dialogueManage = async function (message) {
-    console.log('dialouge chat paths')
     if (message.task.trim() === 'GET') {
       // public or private library?
       if (message.privacy === 'private') {
@@ -107,9 +106,8 @@ class ChatContracts extends EventEmitter {
   *
   */
   saveDialogueProtocol = async function (saveData) {
-    const lsKey = saveData.lsKey || 'common!'
+    const lsKey = 'chat'
     let formedContract = this.prepareChat(saveData) // this.libComposer.dialogueComposer(lsKey, saveData.data)
-    // console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
     // let saveContract = await this.liveHolepunch.BeeData.saveDialoguechat(formedContract)
 
     // let checkContract = await this.liveHolepunch.BeeData.getDialoguechat(formedContract.hash)
@@ -136,7 +134,6 @@ class ChatContracts extends EventEmitter {
   * @method prepareChat
   */
   prepareChat = async function (chatItem) {
-    console.log(chatItem)
     // form key for storage
     // lifestrap id and cueID in first time is the chat hash of the message
     // 1. Content Hash (The 'What')

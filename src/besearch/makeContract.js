@@ -51,8 +51,6 @@ class BesearchContracts extends EventEmitter {
         }
       }
     } else if (message.task.trim() === 'PUT') {
-      console.log('besearch put')
-      console.log(message)
       if (message.privacy === 'private') { 
         // pass to save manager, file details extract, prep contract
         let saveContract = await this.saveBesearchProtocol(message)
@@ -90,7 +88,6 @@ class BesearchContracts extends EventEmitter {
   */
   saveBesearchProtocol = async function (saveData) {
     let formedContract = this.libComposer.liveBesearch.besearchPrepare(saveData)
-    // console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
     let saveContract = await this.liveHolepunch.BeeData.saveBesearch(formedContract)
     return saveContract
   }

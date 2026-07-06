@@ -84,7 +84,6 @@ class ModelContracts extends EventEmitter {
   */
   saveModelProtocol = async function (saveData) {
     let formedContract = this.libComposer.liveModel.modelPrepare(saveData)
-    // console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
     let saveContract = await this.liveHolepunch.BeeData.saveModel(formedContract)
     // format message for return
     let saveMessage = {}

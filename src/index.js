@@ -181,19 +181,21 @@ class LibraryHop extends EventEmitter {
     if (message.task.trim() === 'GET') {
       // public or private library?
       if (message.privacy === 'private') {
-        let peerLib = await this.liveHolepunch.BeeData.getPeerLibraryRefRange('datatype', 100)
+        let peerLib = await this.liveHolepunch.BeeData.getPeerLibraryRefRange('datatype', '', 100)
         // this.callbackPeerLibAllBoard(message.data, privateALL)
         this.callbackPeerLib(message.data, peerLib)
       } else if (message.privacy === 'public') {
         if (message.reftype === 'refresh-publiclibrary') {
           this.startLibrary()
         } else {
+          console.log('public library path get')
           // form query key
           let publicData = {}
           if (this.CogGlue?.primeStrap) {
-           publicData = await this.liveHolepunch.BeeData.getPublicLibraryRefRange(this.CogGlue?.primeStrap, '', 100)
+           publicData = await this.liveHolepunch.BeeData.getPublicLibraryRefRange(this.CogGlue?.primeStrap, 'link', 100)
           } else {
-            publicData = await this.liveHolepunch.BeeData.getPublicLibraryRefRange('lifesrap', 'datatype', 100)
+            console.log('straith path')
+            publicData = await this.liveHolepunch.BeeData.getPublicLibraryRefRange('datatype', null, 500)
           }
           this.callbacklibrary(publicData)
         }
@@ -333,7 +335,7 @@ class LibraryHop extends EventEmitter {
     if (saveData.reftype === 'question') {
       formedContract = this.libComposer.liveComposer.questionComposer(saveData.data)
     } else if (saveData.reftype === 'datatype') {
-      const lsKey = saveData.lsKey || 'common'
+      const lsKey = saveData.lsKey || 'datatype'
       formedContract = this.libComposer.liveComposer.datatypeComposer(lsKey, saveData.data)
       formedContract.key = formedContract.hash
     } else if (saveData.reftype === 'compute') {
@@ -342,26 +344,20 @@ class LibraryHop extends EventEmitter {
        formedContract = this.libComposer.liveComposer.packagingComposer(saveData.data)
     } else if (saveData.reftype === 'visualise') {
        formedContract = this.libComposer.liveComposer.visualiseComposer(saveData.data)
-    } else if (saveData.reftype === 'dialogue') {
-      console.log('pass on to bee bee chat dialogue')
-    } else if (saveData.reftype === 'orgo') {
-       formedContract = this.libComposer.liveComposer.orgoComposer(saveData.data)
-    } else if (saveData.reftype === 'gelle') {
-       formedContract = this.libComposer.liveComposer.gelleComposer(saveData.data)
-    } else if (saveData.reftype === 'lensglue') {
-       formedContract = this.libComposer.liveComposer.lensglueComposer(saveData.data)
     } else if (saveData.reftype === 'experiment') {
       // formedContract = this.libComposer. 
     } else if (saveData.reftype === 'module') {
     }
     // console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
     await this.liveHolepunch.BeeData.savePubliclibraryRef(formedContract)
+    // check contract save
+    let checkSaveRefCont = await this.liveHolepunch.BeeData.getPublicLibraryRef(formedContract.hash)
     // format message for return
     let saveMessage = {}
     saveMessage.type = 'library'
     saveMessage.action = 'reference-contract'
     saveMessage.task = 'save-complete'
-    saveMessage.data = formedContract
+    saveMessage.data = checkSaveRefCont
     return saveMessage
   }
 

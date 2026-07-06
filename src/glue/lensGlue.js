@@ -39,7 +39,6 @@ class LensGlue extends EventEmitter {
         // 
       } else if (message.privacy === 'public') {
         if (message.reftype === 'start-lensglue') {
-          console.log('start glue uery called 111')
           const lsKey = 'lensglue'
           let lensglueHistory = await this.liveHolepunch.BeeData.getLensglueHistory(lsKey)
           this.callbackLensglueStart(lensglueHistory)

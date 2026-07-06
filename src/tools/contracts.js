@@ -329,7 +329,6 @@ class LibContracts extends EventEmitter {
   *
   */
   prepareBlindSafeFlowStucture = function (moduleContracts, refContracts, fileInfo, LLMdata) {
-    // console.log(util.inspect(refContracts, {showHidden: false, depth: null}))
     let safeFlowQuery = {}
     let modContracts = []
     let modKeys = []
@@ -426,7 +425,6 @@ class LibContracts extends EventEmitter {
     for (let modC of modContracts) {
       modKeys.push(modC.key)
     }
-    // console.log(util.inspect(modContracts, {showHidden: false, depth: null}))
     // SafeFow Structure
     safeFlowQuery.modules = modContracts
     safeFlowQuery.reftype = 'ignore'

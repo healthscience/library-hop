@@ -5,6 +5,7 @@ import Body from '../seed/body.js'
 import Earth from '../seed/earth.js'
 import Environment from '../seed/environment.js'
 import { cue } from 'librarycomposer/src/validation/validate.js'
+import { lstat } from 'fs'
 
 /**
  * SeedGlue class to onboard founding seed cues
@@ -142,7 +143,8 @@ class SeedGlue {
         break
       case 'cue':
         let buildCueInputs = this.cueBuilder(mark, color)
-        formedContract = this.libComposer.liveCues.cueComposer(lifestrapID, buildCueInputs)
+        let binLsKey = Buffer.from(lifestrapID)
+        formedContract = this.libComposer.liveCues.cueComposer(binLsKey, buildCueInputs)
         break
       default:
         console.error(`Unknown contract category: ${category}`)
@@ -155,7 +157,6 @@ class SeedGlue {
       saved = await this.liveHolepunch.BeeData.saveCues(formedContract)
       validContract = await this.liveHolepunch.BeeData.getCues(formedContract.hash)
     } else if (category === 'datatype') {
-      console.log('datatype contract', formedContract)
       saved = await this.liveHolepunch.BeeData.savePubliclibraryRef(formedContract)
       validContract = await this.liveHolepunch.BeeData.getPublicLibraryRef(formedContract.hash)
     }
@@ -167,15 +168,48 @@ class SeedGlue {
    * form cue contract content
    */
   cueBuilder = function (dataIn, color) {
+    // save datatype index key as a string
+    let dtKeyString = dataIn.key.toString('hex') // this.binaryKeyToString(dataIn.key) 
     let cueInputs = {
-      datatype: dataIn.key,
+      lsKey: 'common',
+      description: 'first cue in network',
+      concept: {
+        datatypeRef: dtKeyString
+      },
       color: color || this.colorPicker(),
       type: 'cue',
       category: 'cue',
       network: 'cold',
       links: []
     }
+
     return cueInputs
+  }
+
+  /**
+   * Unpacks a composite binary Hyperbee key into a clean, readable string path.
+   * Handles variable prefixes like "common!link!", "datatype!link!", or "{hash}!cue!"
+   * * @param {Buffer} keyBuffer - The raw key buffer from Hyperbee
+   * @returns {string} The fully readable string path
+   */
+  binaryKeyToString = function(keyBuffer) {
+    // 33 is the decimal ASCII code for the '!' character
+    const lastDelimiterIndex = keyBuffer.lastIndexOf(33);
+    
+    if (lastDelimiterIndex === -1) {
+      // Fallback if there is no delimiter: convert the entire buffer to hex
+      return keyBuffer.toString('hex');
+    }
+
+    // Split right after the final '!' delimiter
+    const prefixSegment = keyBuffer.subarray(0, lastDelimiterIndex + 1);
+    const hashSegment = keyBuffer.subarray(lastDelimiterIndex + 1);
+
+    // Convert the text prefix to utf8 and the raw binary hash to clean hex
+    const prefixString = prefixSegment.toString('utf8');
+    const hashString = hashSegment.toString('hex');
+
+    return `${prefixString}${hashString}`;
   }
 
   /**

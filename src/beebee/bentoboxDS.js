@@ -56,8 +56,7 @@ class BentoBoxOperations {
       // get the bentobox
       let bBoxes = await this.parent.liveHolepunch.BeeData.getBentoBoxHistory('lsempty', 'box')
       this.parent.callbackBentoBoxes(bBoxes)
-      // get the @teach history
-      // console.log('teach history called')
+      // get the @experience history
       let beebeeTeachHistory = await this.parent.liveHolepunch.BeeData.getBeeBeeLearnHistory('lsempty', 'learn')
       this.parent.callbackBeeBeeLearn(beebeeTeachHistory)
     } else if (o.task.trim() === 'get') {

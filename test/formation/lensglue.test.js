@@ -28,8 +28,6 @@ describe('Lensglue Contract Lifecycle', () => {
     let patternMatch = await hopLearn.lifeFlow(lifestrapContract.value.concept.story, 'HomeoRange')
     expect(patternMatch).toBeDefined()
 
-    console.log('pattern back')
-    console.log(patternMatch)
     /**
      * 
      * @method prepareLifestrapLens
@@ -46,16 +44,11 @@ describe('Lensglue Contract Lifecycle', () => {
     }
 
     let lensglueContract = await prepareLifestrapLens(lifestrapContract.key, patternMatch)
-    console.log('lens glue contract saved over')
-    console.log(lensglueContract)
 
     // 1. Cleanly slice the 10-byte 'lifestrap!' prefix to get the raw 32-byte ID buffer
     const rawLifestrapId = lifestrapContract.key.subarray(10)
     const checkContract = await libHop.liveHolepunch.BeeData.getLensglueHistory(rawLifestrapId)
-    
-    console.log('test check lensglue contract==============')
-    console.log(checkContract)
-    console.log(checkContract.value)
+
     expect(checkContract[0]).toBeDefined()
     expect(checkContract[0].value.refcontract).toBe('lensglue')
   })

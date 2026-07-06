@@ -82,13 +82,10 @@ class BeeBeeLearnContracts extends EventEmitter {
   *
   */
   saveBeeBeeLearnProtocol = async function (saveData) {
-    console.log('saveBeeBeeLearnProtocol')
-    console.log(saveData)
     let formedContract = {}
     formedContract.id = hashObject(saveData.data)
     formedContract.session = saveData.data
     // verified already // this.libComposer.liveTeach.teachPrepare(saveData)
-    // console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
     let saveContract = await this.liveHolepunch.BeeData.saveBeeBeeLearn(formedContract)
     // format message for return
     let saveMessage = {}

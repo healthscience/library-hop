@@ -17,11 +17,11 @@ export default class LibrarySeed {
   async getSeedLibrary () {
 
     let lsPrimekey = 'common'
-    let cuesLibrary = await this.beeData.getCuesHistory('common', 'cue')
+    let cuesLibrary = await this.beeData.getCuesHistory(lsPrimekey, 'cue')
     
     let datatypeRefList = []
     try {
-      datatypeRefList = await this.beeData.getPublicLibraryRefRange(lsPrimekey, 'datatype', null)
+      datatypeRefList = await this.beeData.getPublicLibraryRefRange(lsPrimekey, 'datatype')
     } catch (err) {
       console.warn('Failed to fetch datatypeRefList', err)
     }
@@ -29,7 +29,7 @@ export default class LibrarySeed {
     let embCueContracts = this.integrateReferenceContracts(cuesLibrary, datatypeRefList)
     let seedLib = {}
     seedLib.cueContracts = embCueContracts
-    seedLib.referenceContracts = datatypeRefList
+    seedLib.datatypeContracts = datatypeRefList
     return seedLib
 
   }

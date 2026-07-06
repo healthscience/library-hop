@@ -82,7 +82,6 @@ class ResearchContracts extends EventEmitter {
   */
   saveResearchProtocol = async function (saveData) {
     let formedContract = this.libComposer.liveResearch.researchPrepare(saveData)
-    // console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
     let saveContract = await this.liveHolepunch.BeeData.saveResearch(formedContract)
     // format message for return
     let saveMessage = {}
