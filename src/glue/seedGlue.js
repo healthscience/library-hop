@@ -93,7 +93,7 @@ class SeedGlue {
     // query the cues and datatypes with lifestrap key and return to bentoboxDS
     let datatypeRefList = []
     try {
-      datatypeRefList = await this.liveHolepunch.BeeData.getPublicLibraryRefRange(lsPrimekey, 'datatype', null)
+      datatypeRefList = await this.liveHolepunch.BeeData.getPublicLibraryRefRange(lsPrimekey, null, null)
     } catch (err) {
       console.warn('Failed to fetch datatypeRefList', err)
     }
@@ -101,7 +101,7 @@ class SeedGlue {
     // Count verification
     let formedCues = []
     try {
-      formedCues = await this.liveHolepunch.BeeData.getCuesHistory(lsPrimekey, 'cue', null)
+      formedCues = await this.liveHolepunch.BeeData.getCuesHistory(lsPrimekey, null, null)
     } catch (err) {
       console.warn('Failed to fetch formedCues', err)
     }
@@ -116,7 +116,7 @@ class SeedGlue {
       privacy: 'public',
       data: {
         cueContracts: embCueContracts,
-        referenceContracts: datatypeRefList,
+        datatypeContracts: datatypeRefList,
         verification: {
           success: verificationSuccess,
           expected: totalCues,

@@ -83,7 +83,6 @@ class ProductContracts extends EventEmitter {
   */
   saveProductProtocol = async function (saveData) {
     let formedContract = this.libComposer.liveProduct.productPrepare(saveData)
-    // console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
     let saveContract = await this.liveHolepunch.BeeData.saveProduct(formedContract)
     // format message for return
     let saveMessage = {}

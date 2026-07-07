@@ -149,9 +149,9 @@ class ChatContracts extends EventEmitter {
     let saveChatItem = {}
     saveChatItem.hash = storageKey
     saveChatItem.contract = chatItem.dialogue
-    await this.liveHolepunch.BeeData.saveDialoguechat(saveChatItem)
+    await this.liveHolepunch.BeeData.Chat.saveDialoguechat(saveChatItem)
     // retrieve the chat item and return to beebee
-    let chatItemCheck = await this.liveHolepunch.BeeData.getDialoguechat(storageKey)
+    let chatItemCheck = await this.liveHolepunch.BeeData.Chat.getDialoguechat(storageKey)
 
 
     let keyIndex =

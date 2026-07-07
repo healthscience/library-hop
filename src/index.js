@@ -96,8 +96,6 @@ class LibraryHop extends EventEmitter {
   *
   */
   libraryManage = async function (message) {
-    console.log('library manage')
-    console.log(message)
     // need break this up  each action should have sub type
     // nxp, contracts modules and reference
     if (message.action.trim() === 'contracts') {
@@ -116,7 +114,6 @@ class LibraryHop extends EventEmitter {
     } else if (message.action.trim() === 'cues') {
       await this.liveCuesUtil.cueManage(message)
     } else if (message.action === 'dialogue-chat') {
-      console.log('pass on to bee bee chat dialogue')
       this.liveDialogue.dialogueManage(message)
     } else if (message.action.trim() === 'orgo') {
       await this.liveOrgoUtil.orgoManage(message)
@@ -176,8 +173,6 @@ class LibraryHop extends EventEmitter {
   *
   */
   contractsManage = async function (message) {
-    // console.log('library mange')
-    // console.log(message)
     if (message.task.trim() === 'GET') {
       // public or private library?
       if (message.privacy === 'private') {
@@ -188,13 +183,11 @@ class LibraryHop extends EventEmitter {
         if (message.reftype === 'refresh-publiclibrary') {
           this.startLibrary()
         } else {
-          console.log('public library path get')
           // form query key
           let publicData = {}
           if (this.CogGlue?.primeStrap) {
            publicData = await this.liveHolepunch.BeeData.getPublicLibraryRefRange(this.CogGlue?.primeStrap, 'link', 100)
           } else {
-            console.log('straith path')
             publicData = await this.liveHolepunch.BeeData.getPublicLibraryRefRange('datatype', null, 500)
           }
           this.callbacklibrary(publicData)
@@ -348,7 +341,7 @@ class LibraryHop extends EventEmitter {
       // formedContract = this.libComposer. 
     } else if (saveData.reftype === 'module') {
     }
-    // console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
+
     await this.liveHolepunch.BeeData.savePubliclibraryRef(formedContract)
     // check contract save
     let checkSaveRefCont = await this.liveHolepunch.BeeData.getPublicLibraryRef(formedContract.hash)
@@ -394,7 +387,6 @@ class LibraryHop extends EventEmitter {
     // need to source latest compute module contract from library as need latest contract
     let latestComputeModule = {}
     for (let mod of modulesUpdate) {
-      //console.log(mod)
       if (mod !== null) {
         if (mod.value.style === 'compute') {
           // latestComputeModule = await this.liveContractsUtil.latestModuleContract('compute', mod)
@@ -408,8 +400,6 @@ class LibraryHop extends EventEmitter {
     for (let mod of modulesUpdate) {
       if (mod !== null) {
         if (mod.value.style === 'compute') {
-          // console.log('compute contract pickedout')
-          // console.log(util.inspect(mod, {showHidden: false, depth: null}))
           // update controls
           // what are exsting controls set?  keep and update
           let controlKeys = Object.keys(mod.value.info.controls)
@@ -431,9 +421,7 @@ class LibraryHop extends EventEmitter {
         }
       }
     }
-    // console.log('updated modules contracts')
-    // console.log(queryUpdate)
-    // console.log(util.inspect(queryUpdate, {showHidden: false, depth: null}))
+
     let dataNXP = {}
     dataNXP.type = 'update-hopquery'
     dataNXP.action = 'safeflow'

@@ -25,7 +25,7 @@ export default class LoomCycle {
       this.beeData.getLensglueHistory(storyHash),
       this.beeData.getBesearchHistory(lsKey, 'besearch'),
       this.beeData.getCuesHistory(lsKey, 'cue'),
-      this.beeData.getDialoguechatHistory('chat', storyHash),
+      this.beeData.Chat.getDialoguechatHistory('chat', storyHash),
       this.beeData.getModelHistory(lsKey), // resonate agents memory
       this.beeData.getOrgoHistory(lsKey),
       this.beeData.getGelleHistory(lsKey)

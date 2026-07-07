@@ -50,6 +50,9 @@ class CuesContracts extends EventEmitter {
           this.callbackcues(publibCues)
         }
       }
+    } else if (message.task.trim() === 'RELATIONSHIP') {
+      console.log('form index for key stucture')
+      let relSet = this.relationshipProtocol(message)
     } else if (message.task.trim() === 'PUT') {
       if (message.privacy === 'private') { 
         // pass to save manager, file details extract, prep contract
@@ -145,12 +148,182 @@ class CuesContracts extends EventEmitter {
   }
 
   /**
-  * default gaia cues
-  * @method syncGAIA
-  *
+   * 
+   * build relatship index keys between peers
+   * @method  
   */
-  syncGAIA = async function () {
-  
+  relationshipProtocol = function (message) {
+    console.log('routed to cues relationship protocol')
+    if (message.reftype === 'new') {
+      let buildFacia = this.savePureEdge(message.data.source, message.data.target, message.data.relationship )
+    } else if (message.reftype === 'del') {
+      let delFacia = this.severEdge(message.data)
+    } else if (message.reftype === 'graft') {
+     let evolveFacia = this.graftFascialLayer(message.data)
+    } else if (message.reftype === 'evolve') {
+      let discoverFacia = this.evolveEdge()
+    }
+    return true
+  }
+
+  /**
+   * Forges an immutable, key-only biological edge between two cues.
+   * The value remains totally empty for maximum synchronization efficiency.
+  */
+  async savePureEdge(sourceHash, targetList, relationshipType) {
+    console.log('new pure edge')
+      const reciprocals = this.reciprocalRelationship()
+      const metabolicBatch = this.liveHolepunch.BeeData.Cues
+    // loop over target(s)
+    for (let target of targetList) {
+
+      const forwardKey = this.composeBinaryEdgeKey(sourceHash, relationshipType, target) // `edge!${sourceHash}!${relationshipType}!${target}`;
+      console.log('forward index key binary')
+      console.log(forwardKey)
+      const reverseKey = this.composeBinaryEdgeKey(target, relationshipType, sourceHash) // `edge!${target}!${reciprocals[relationshipType] || 'flux'}!${sourceHash}`;
+      // Pass an empty string or Buffer.alloc(0). Hyperbee handles this perfectly.
+      await metabolicBatch.saveCues({ hash: forwardKey, contract: '' });
+      await metabolicBatch.saveCues({ hash: reverseKey, contract: '' })
+      // check index key formed
+      let checkIndex = await metabolicBatch.getCues(forwardKey)
+      console.log(checkIndex)
+    }
+  }
+
+  /**
+   * Completely severs an existing relationship boundary.
+  */
+  async severEdge(sourceHash, targetHash, relationshipType) {
+    const reciprocals = this.reciprocalRelationship()
+
+    const forwardKey = `edge!${sourceHash}!${relationshipType}!${targetHash}`;
+    const reverseKey = `edge!${targetHash}!${reciprocals[relationshipType] || 'flux'}!${sourceHash}`;
+
+    const metabolicBatch = this.liveHolepunch.BeeData.Cues.batch()
+    // Execute as a clean, atomic batch operation
+    await metabolicBatch.deleteBentocue(forwardKey);
+    await metabolicBatch.deleteBentocue(reverseKey);
+    await metabolicBatch.flush();
+  }
+
+  /**
+   * Evolves a relationship from an old type to a new type atomically.
+  */
+  async evolveEdge(sourceHash, targetHash, oldType, newType) {
+    const reciprocals = this.reciprocalRelationship()
+
+    // Generate old keys
+    const oldForward = `edge!${sourceHash}!${oldType}!${targetHash}`;
+    const oldReverse = `edge!${targetHash}!${reciprocals[oldType] || 'flux'}!${sourceHash}`;
+
+    // Generate upgraded keys
+    const newForward = `edge!${sourceHash}!${newType}!${targetHash}`;
+    const newReverse = `edge!${targetHash}!${reciprocals[newType] || 'flux'}!${sourceHash}`;
+
+    // Commit everything together so the graph is never in an invalid midway state
+    const metabolicBatch = await this.liveHolepunch.BeeData.batch()
+    await metabolicBatch.deleteBentocue(oldForward);
+    await metabolicBatch.deleteBentocue(oldReverse);
+    await metabolicBatch.saveCues(newForward, '');
+    await metabolicBatch.saveCues(newReverse, '');
+    await metabolicBatch.flush();
+  }
+
+  /**
+   * Grafts a new intermediate structural layer smoothly into the fascial matrix 
+   * between two existing symbiotically paired cues.
+   * * Example: Inserting 'Inner Ear' into the fascia between 'Ear' and 'Cochlea'.
+  */
+  async graftFascialLayer(sourceHash, targetHash, currentFlow, intermediateHash) {
+    // Opening an atomic metabolic transaction window on the cues Hyperbee
+    const metabolicBatch = await this.liveHolepunch.BeeData
+    
+    // Symmetrical flows running through the connective tissue
+    const reciprocals = this.reciprocalRelationship()
+
+    const reverseFlow = reciprocals[currentFlow] || 'flux';
+
+    // Step 1: Sever the direct historic path to make space for the new tissue layer
+    metabolicBatch.del(`edge!${sourceHash}!${currentFlow}!${targetHash}`);
+    metabolicBatch.del(`edge!${targetHash}!${reverseFlow}!${sourceHash}`);
+
+    // Step 2: Form an anastomosis from the source substrate to the new intermediate layer
+    metabolicBatch.put(`edge!${sourceHash}!${currentFlow}!${intermediateHash}`, '');
+    metabolicBatch.put(`edge!${intermediateHash}!${reverseFlow}!${sourceHash}`, '');
+
+    // Step 3: Form an anastomosis from the new intermediate layer to the terminal target
+    metabolicBatch.put(`edge!${intermediateHash}!${currentFlow}!${targetHash}`, '');
+    metabolicBatch.put(`edge!${targetHash}!${reverseFlow}!${intermediateHash}`, '');
+
+    // Step 4: Flush the atomic synthesis directly into the local persistent B-tree
+    await metabolicBatch.flush();
+  }
+
+  /**
+   * what is opposite relationship
+   * @method  reciprocalRelationship
+   * 
+  */
+  reciprocalRelationship = function () {
+    const fascialReciprocals = {
+      // 1. Structural Containment Boundaries
+      upstream: 'downstream',        // Escalating up to macro systems
+      downstream: 'upstream',        // Descending into micro components
+
+      // 2. Trans-Peer Alignment
+      resonance: 'resonance',        // Horizontal, non-hierarchical peer synchronization
+
+      // 3. Dynamic Instrument Tracking
+      gauge: 'calibrated_by',        // Binds a physical concept node to an active telemetry channel
+      calibrated_by: 'gauge',
+
+      // 4. Inward Sensory Input
+      afferent: 'efferent',          // Inward-receiving impulse from a hardware device
+      efferent: 'afferent',          // Outward-sending command path
+
+      // 5. Synthesis Execution
+      metabolize: 'ingredient_of',    // Node acts as a driver for a computational knowledge function
+      ingredient_of: 'metabolize',
+
+      // 6. Fluid/Unsettled State
+      flux: 'flux'                   // Speculative, non-stabilized connection
+    };
+    return fascialReciprocals
+  }
+
+  /**
+  * A simple local utility to bind binary segments together with a delimiter (0x21)
+  * @method composeBinaryEdgeKey 
+  */
+  composeBinaryEdgeKey = function (sourceBuffer, flowString, targetBuffer) {
+    const prefixBytes = new TextEncoder().encode('edge!');
+    const flowBytes = new TextEncoder().encode(flowString);
+    const delimiter = new Uint8Array([0x21]); // ASCII for '!'
+
+    // Calculate the absolute combined layout size
+    const totalLength = 
+      prefixBytes.length + 
+      sourceBuffer.length + 
+      delimiter.length + 
+      flowBytes.length + 
+      delimiter.length + 
+      targetBuffer.length;
+
+    const edgeKeyBuffer = new Uint8Array(totalLength);
+
+    // Structural Stacking of the bytes
+    let offset = 0;
+    edgeKeyBuffer.set(prefixBytes, offset); offset += prefixBytes.length;
+    edgeKeyBuffer.set(sourceBuffer, offset); offset += sourceBuffer.length;
+    edgeKeyBuffer.set(delimiter, offset); offset += delimiter.length;
+    edgeKeyBuffer.set(flowBytes, offset); offset += flowBytes.length;
+    edgeKeyBuffer.set(delimiter, offset); offset += delimiter.length;
+    edgeKeyBuffer.set(targetBuffer, offset);
+    console.log('buffer ineredd')
+    console.log(edgeKeyBuffer.buffer)
+    console.log(edgeKeyBuffer.byteOffset)
+    console.log(edgeKeyBuffer.byteLength)
+    return Buffer.from(edgeKeyBuffer.buffer, edgeKeyBuffer.byteOffset, edgeKeyBuffer.byteLength);
   }
 
   /**

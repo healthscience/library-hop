@@ -150,7 +150,6 @@ class PeerNetwork extends EventEmitter {
   */
   savePeerProtocol = async function (saveData) {
     let formedContract = this.libComposer.livePeer.peerPrepare('hopeer', saveData)
-    // console.log(util.inspect(formedContract, {showHidden: false, depth: null}))
     await this.liveHolepunch.BeeData.savePeer(formedContract)
     let checkContract = await this.liveHolepunch.BeeData.getPeer(formedContract.hash)
     // change key from buffer to hex
