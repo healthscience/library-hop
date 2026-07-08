@@ -21,10 +21,13 @@ export default class LoomCycle {
     // 1. Extract the raw 32-byte binary story hash out of the lifestrap key
     const storyHash = lsKey.subarray(10)
     // We execute all the queries you listed in BentoBoxOperations
-    const [lens, besearch, cue, chat, agentMemory, orgo, gelle] = await Promise.all([
+    const [cue, lens, besearch, chat, agentMemory, orgo, gelle] = await Promise.all([
+      // cues seed and relationships (where to get cues that matter for this lifestrap story?  Or seed library)
+      this.beeData.getCuesHistory(lsKey, 'cue'),
+      // chase down cue relationshipos
+      // this.conductionTrace(cuesList)
       this.beeData.getLensglueHistory(storyHash),
       this.beeData.getBesearchHistory(lsKey, 'besearch'),
-      this.beeData.getCuesHistory(lsKey, 'cue'),
       this.beeData.Chat.getDialoguechatHistory('chat', storyHash),
       this.beeData.getModelHistory(lsKey), // resonate agents memory
       this.beeData.getOrgoHistory(lsKey),

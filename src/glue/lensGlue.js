@@ -118,22 +118,22 @@ class LensGlue extends EventEmitter {
     
     // 2. Save the Content (The Dictionary Entry)
     let saveContract = {
-      key: formedContract.contentKey,
+      hash: formedContract.contentKey,
       contract: formedContract.contract
     }
     await this.liveHolepunch.BeeData.saveLensglue(saveContract)
-    let checkContract = await this.liveHolepunch.BeeData.getLensglue(saveContract.key)
+    let checkContract = await this.liveHolepunch.BeeData.getLensglue(saveContract.hash)
      
     // 3. Save the Stitch (The Relationship)
     // FIX: Use 'stitchHash' to match the return object
     let saveLSIndex = {
-      key: formedContract.stitchHash, 
+      hash: formedContract.stitchHash, 
       contract: formedContract.contract
     }
     
     // This was failing because saveLSIndex.key was undefined
     await this.liveHolepunch.BeeData.saveLensglue(saveLSIndex)
-     let checkContractIndex = await this.liveHolepunch.BeeData.getLensglue(saveLSIndex.key)
+     let checkContractIndex = await this.liveHolepunch.BeeData.getLensglue(saveLSIndex.hash)
     
     return { index: checkContractIndex, contract: checkContract }
   }

@@ -1,3 +1,5 @@
+import RelationshipFascia from "./fascia/relationshipFacia.js"
+
 /**
  * Library Seed
  * Location: library-hop
@@ -7,6 +9,7 @@ export default class LibrarySeed {
   constructor(parent) {
     this.parent = parent
     this.beeData = parent.liveHolepunch.BeeData
+    this.relFascia = new RelationshipFascia(this.parent)
   }
 
   /**

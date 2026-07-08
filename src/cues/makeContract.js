@@ -51,7 +51,6 @@ class CuesContracts extends EventEmitter {
         }
       }
     } else if (message.task.trim() === 'RELATIONSHIP') {
-      console.log('form index for key stucture')
       let relSet = this.relationshipProtocol(message)
     } else if (message.task.trim() === 'PUT') {
       if (message.privacy === 'private') { 
@@ -153,7 +152,6 @@ class CuesContracts extends EventEmitter {
    * @method  
   */
   relationshipProtocol = function (message) {
-    console.log('routed to cues relationship protocol')
     if (message.reftype === 'new') {
       let buildFacia = this.savePureEdge(message.data.source, message.data.target, message.data.relationship )
     } else if (message.reftype === 'del') {
@@ -171,22 +169,18 @@ class CuesContracts extends EventEmitter {
    * The value remains totally empty for maximum synchronization efficiency.
   */
   async savePureEdge(sourceHash, targetList, relationshipType) {
-    console.log('new pure edge')
-      const reciprocals = this.reciprocalRelationship()
-      const metabolicBatch = this.liveHolepunch.BeeData.Cues
+    const reciprocals = this.reciprocalRelationship()
+    const metabolicBatch = this.liveHolepunch.BeeData.Cues
     // loop over target(s)
     for (let target of targetList) {
 
       const forwardKey = this.composeBinaryEdgeKey(sourceHash, relationshipType, target) // `edge!${sourceHash}!${relationshipType}!${target}`;
-      console.log('forward index key binary')
-      console.log(forwardKey)
       const reverseKey = this.composeBinaryEdgeKey(target, relationshipType, sourceHash) // `edge!${target}!${reciprocals[relationshipType] || 'flux'}!${sourceHash}`;
       // Pass an empty string or Buffer.alloc(0). Hyperbee handles this perfectly.
       await metabolicBatch.saveCues({ hash: forwardKey, contract: '' });
       await metabolicBatch.saveCues({ hash: reverseKey, contract: '' })
       // check index key formed
       let checkIndex = await metabolicBatch.getCues(forwardKey)
-      console.log(checkIndex)
     }
   }
 
@@ -319,10 +313,6 @@ class CuesContracts extends EventEmitter {
     edgeKeyBuffer.set(flowBytes, offset); offset += flowBytes.length;
     edgeKeyBuffer.set(delimiter, offset); offset += delimiter.length;
     edgeKeyBuffer.set(targetBuffer, offset);
-    console.log('buffer ineredd')
-    console.log(edgeKeyBuffer.buffer)
-    console.log(edgeKeyBuffer.byteOffset)
-    console.log(edgeKeyBuffer.byteLength)
     return Buffer.from(edgeKeyBuffer.buffer, edgeKeyBuffer.byteOffset, edgeKeyBuffer.byteLength);
   }
 
