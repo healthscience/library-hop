@@ -30,6 +30,7 @@ export default class LibrarySeed {
     }
 
     let embCueContracts = this.integrateReferenceContracts(cuesLibrary, datatypeRefList)
+
     let seedLib = {}
     seedLib.cueContracts = embCueContracts
     seedLib.datatypeContracts = datatypeRefList
@@ -73,6 +74,10 @@ export default class LibrarySeed {
       if (dtMap.has(matchKey)) {
         // Replace the raw buffer key with the full datatype contract
         contract.value.concept.datatype = dtMap.get(matchKey)
+        cuesList.push(contract)
+      } else {
+        // assume compound cue add
+        contract.value.concept.datatype = { key: 'compound', refcontract: 'datatype', concept:  { name: contract.value.concept.name }, computational: {}, space: {}, time: {} }
         cuesList.push(contract)
       }
     }

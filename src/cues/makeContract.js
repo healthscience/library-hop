@@ -9,7 +9,7 @@
 * @license    http://www.gnu.org/licenses/old-licenses/gpl-3.0.html
 * @version    $Id$
 */
-import util from 'util'
+// import util from 'util'
 import EventEmitter from 'events'
 
 class CuesContracts extends EventEmitter {
@@ -51,7 +51,7 @@ class CuesContracts extends EventEmitter {
         }
       }
     } else if (message.task.trim() === 'RELATIONSHIP') {
-      let relSet = this.relationshipProtocol(message)
+      let relSet = await this.relationshipProtocol(message)
     } else if (message.task.trim() === 'PUT') {
       if (message.privacy === 'private') { 
         // pass to save manager, file details extract, prep contract
@@ -151,16 +151,27 @@ class CuesContracts extends EventEmitter {
    * build relatship index keys between peers
    * @method  
   */
-  relationshipProtocol = function (message) {
+  relationshipProtocol = async function (message) {
+    let saveContract = {}
     if (message.reftype === 'new') {
-      let buildFacia = this.savePureEdge(message.data.source, message.data.target, message.data.relationship )
+      let saveContract = this.savePureEdge(message.data.sourceContract, message.data.targetContract, message.data.relationship )
     } else if (message.reftype === 'del') {
-      let delFacia = this.severEdge(message.data)
+      let saveContract = this.severEdge(message.data)
     } else if (message.reftype === 'graft') {
-     let evolveFacia = this.graftFascialLayer(message.data)
+     let saveContract = this.graftFascialLayer(message.data)
     } else if (message.reftype === 'evolve') {
-      let discoverFacia = this.evolveEdge()
+      let saveContract = this.evolveEdge(message.data)
+    } else if (message.reftype === 'compound') {
+      let saveContract = await this.synthesizeCompoundCue(message.data)
+      // inform bee bentoboxds
+      let saveMessage = {}
+      saveMessage.type = 'library'
+      saveMessage.action = 'cue-contract'
+      saveMessage.task = 'save-complete'
+      saveMessage.data = saveContract
+      this.liveLib.emit('libmessage', JSON.stringify(saveMessage))
     }
+
     return true
   }
 
@@ -168,14 +179,14 @@ class CuesContracts extends EventEmitter {
    * Forges an immutable, key-only biological edge between two cues.
    * The value remains totally empty for maximum synchronization efficiency.
   */
-  async savePureEdge(sourceHash, targetList, relationshipType) {
+  async savePureEdge(sourceContract, targetList, relationshipType) {
     const reciprocals = this.reciprocalRelationship()
     const metabolicBatch = this.liveHolepunch.BeeData.Cues
     // loop over target(s)
     for (let target of targetList) {
 
-      const forwardKey = this.composeBinaryEdgeKey(sourceHash, relationshipType, target) // `edge!${sourceHash}!${relationshipType}!${target}`;
-      const reverseKey = this.composeBinaryEdgeKey(target, relationshipType, sourceHash) // `edge!${target}!${reciprocals[relationshipType] || 'flux'}!${sourceHash}`;
+      const forwardKey = this.composeBinaryEdgeKey(sourceContract.key, relationshipType, target) // `edge!${sourceHash}!${relationshipType}!${target}`;
+      const reverseKey = this.composeBinaryEdgeKey(target.key, relationshipType, sourceContract.key) // `edge!${target}!${reciprocals[relationshipType] || 'flux'}!${sourceHash}`;
       // Pass an empty string or Buffer.alloc(0). Hyperbee handles this perfectly.
       await metabolicBatch.saveCues({ hash: forwardKey, contract: '' });
       await metabolicBatch.saveCues({ hash: reverseKey, contract: '' })
@@ -314,6 +325,39 @@ class CuesContracts extends EventEmitter {
     edgeKeyBuffer.set(delimiter, offset); offset += delimiter.length;
     edgeKeyBuffer.set(targetBuffer, offset);
     return Buffer.from(edgeKeyBuffer.buffer, edgeKeyBuffer.byteOffset, edgeKeyBuffer.byteLength);
+  }
+
+  /**
+   * 
+   * @method combineCueKeys 
+  */
+  synthesizeCompoundCue = async function (data) {
+    let compoundData = {}
+    compoundData.concept = {}
+    compoundData.name = this.compoundName(data.sourceContract.value.concept.datatype.concept.name, data.targetContract)
+    compoundData.concept.datatypeRef = { key: 'compound', refcontract: 'datatype', concept:  { name: compoundData.name }, computational: {}, space: {}, time: {} }
+    compoundData.compoundKeys = data
+    // form new datatype and cue contracts
+    // this.seedCues.couplingDTcueFormation('common', data)
+    const lsKey = Buffer.from('common')
+    let formedContract = this.libComposer.liveCues.cueCompoundComposer(lsKey, compoundData)
+    // save with lifestrap index key only
+    await this.liveHolepunch.BeeData.saveCues(formedContract)
+    let checkContract = await this.liveHolepunch.BeeData.getCues(formedContract.hash)
+    return checkContract
+  }
+
+  /**
+   * 
+   * method @compoundName
+  */
+  compoundName = function (source, targetList) {
+    let compoundName = ''
+    compoundName += source
+    for (let cue of targetList) {
+      compoundName += ' ' + cue.value.concept.datatype.concept.name
+    }
+    return compoundName
   }
 
   /**

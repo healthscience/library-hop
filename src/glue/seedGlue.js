@@ -4,8 +4,6 @@ import Orrery from '../seed/orrery.js'
 import Body from '../seed/body.js'
 import Earth from '../seed/earth.js'
 import Environment from '../seed/environment.js'
-import { cue } from 'librarycomposer/src/validation/validate.js'
-import { lstat } from 'fs'
 
 /**
  * SeedGlue class to onboard founding seed cues
@@ -28,7 +26,7 @@ class SeedGlue {
   /**
    * onboard founding seed cues
    * @method onboardFoundingCues
-   */
+  */
   onboardFoundingCues = async function () {
     // first generate or retrieve the prime-lifestrap
     let primeLS = {}
@@ -53,7 +51,10 @@ class SeedGlue {
       { name: 'life', data: this.body.prepareDTlifeMessage(), color: '#e67e22' },
       { name: 'aging', data: this.body.prepareDTagingMessage(), color: '#d35400' },
       { name: 'planet', data: this.earth.prepareDTplanetMessage(), color: '#3498db' },
-      { name: 'body', data: this.body.prepareDTbodyMessage(), color: '#e74c3c' }
+      { name: 'body', data: this.body.prepareDTbodyMessage(), color: '#e74c3c' },
+      { name: 'biology', data: this.body.prepareBiologyLanguage(), color: '#e74c3c' },
+      { name: 'orientation', data: this.body.prepareOrientationLanguage(), color: '#e74c3c' },
+      { name: 'metrics', data: this.body.prepareMetricLanguage(), color: '#e74c3c' }
     ]
 
     // Calculate total expected cues
@@ -127,6 +128,33 @@ class SeedGlue {
     
     this.parent.emit('libmessage', JSON.stringify(libraryData))
     return verificationSuccess
+  }
+
+  /**
+   * 
+   * @method couplingDTcueFormation
+   * 
+   * 
+  */
+  couplingDTcueFormation = async function (lsPrimekey, mark) {
+
+    const colorCue = this.colorPicker()
+    // Form and save cue contract
+    const cueContract = await this.formContract(lsPrimekey, 'cue', 'reference', contractData.contract, colorCue)
+    if (cueContract && cueContract.contract) {
+      // currentCount++
+
+      // Inform BentoBoxDS of progress
+      let progressMessage = {
+        type: 'library',
+        action: 'seed-progress',
+        current: currentCount,
+        total: totalCues,
+        category: seed.name,
+        item: mark.data.name
+      }
+      this.parent.emit('libmessage', JSON.stringify(progressMessage))
+    }
   }
 
   /**

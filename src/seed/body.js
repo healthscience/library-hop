@@ -16,6 +16,35 @@ class Body {
     let bodyParts = []
     bodyParts.push({ name: 'Human', description: 'life animal sapien species', wikipedia: 'Human' })
     bodyParts.push({ name: 'Body', description: 'body of life', wikipedia: 'Human_body' })
+    // parts
+    bodyParts.push({ name: 'Torso', description: 'trunk of body', wikipedia: 'Torso' })
+    bodyParts.push({ name: 'Arm', description: 'The upper limb of the body stretching from shoulder to wrist', wikipedia: 'Arm' });
+    bodyParts.push({ name: 'Leg', description: 'The lower weight-bearing limb stretching from hip to ankle', wikipedia: 'Human_leg' });
+    bodyParts.push({ name: 'Ear', description: 'The sensory organ responsible for hearing and balance', wikipedia: 'Ear' });
+    bodyParts.push({ name: 'Nose', description: 'The prominent midline organ for smelling and respiration entry', wikipedia: 'Human_nose' });
+    bodyParts.push({ name: 'Hand', description: 'The prehensile terminal organ of the upper limb containing fingers', wikipedia: 'Hand' });
+    bodyParts.push({ name: 'Finger', description: 'An individual articulating digit of the hand', wikipedia: 'Finger' });
+    bodyParts.push({ name: 'Foot', description: 'The terminal weight-bearing structure of the lower limb', wikipedia: 'Foot' });
+    bodyParts.push({ name: 'Toe', description: 'An individual articulating digit of the foot', wikipedia: 'Toe' });
+    bodyParts.push({ name: 'Neck', description: 'Cervical region connecting the head to the torso', wikipedia: 'Neck' });
+    bodyParts.push({ name: 'Shoulder', description: 'Proximal joint connecting the upper limb to the torso', wikipedia: 'Shoulder' });
+    bodyParts.push({ name: 'Elbow', description: 'Hinge joint connecting the upper arm to the forearm', wikipedia: 'Elbow' });
+    bodyParts.push({ name: 'Wrist', description: 'Distal joint connecting the forearm to the hand', wikipedia: 'Wrist' });
+    bodyParts.push({ name: 'Hip', description: 'Pelvic joint connecting the lower limb to the torso', wikipedia: 'Hip' });
+    bodyParts.push({ name: 'Knee', description: 'Central hinge joint of the lower limb connecting the thigh to the leg', wikipedia: 'Knee' });
+    bodyParts.push({ name: 'Ankle', description: 'Distal joint connecting the leg to the foot', wikipedia: 'Ankle' });
+    bodyParts.push({ name: 'Foot', description: 'Terminal weight-bearing structure of the lower limb', wikipedia: 'Foot' });
+
+    bodyParts.push({ name: 'Eye', description: 'Organ of visual sensory perception', wikipedia: 'Human_eye' });
+    bodyParts.push({ name: 'Mouth', description: 'Oral cavity for ingestion, vocalization, and digestion entry', wikipedia: 'Mouth' });
+    bodyParts.push({ name: 'Jaw', description: 'Structural framework of the mouth housing teeth and controlling bite force', wikipedia: 'Jaw' });
+
+    bodyParts.push({ name: 'Spine', description: 'Vertebral column providing central structural support and nervous conduit', wikipedia: 'Vertebral_column' });
+    bodyParts.push({ name: 'Chest', description: 'Thoracic region of the upper torso housing cardiorespiratory organs', wikipedia: 'Thorax' });
+    bodyParts.push({ name: 'Abdomen', description: 'Mid-torso region housing primary digestive systems', wikipedia: 'Abdomen' });
+    bodyParts.push({ name: 'Pelvis', description: 'Lower torso framework supporting visceral organs and anchoring locomotion', wikipedia: 'Pelvis' });
+
+    // organs
     bodyParts.push({ name: 'Human organs', description: 'List_of_organs_of_the_human_body', wikipedia: 'List_of_organs_of_the_human_body' })
     bodyParts.push({ name: 'Skeleton system', description: 'Human musculoskeleta system', wikipedia: 'Human_musculoskeletal_system' })
     bodyParts.push({ name: 'Skeleton', description: '', wikipedia: 'Human_skeleton' })
@@ -50,7 +79,6 @@ class Body {
     bodyParts.push({ name: 'Liver', description: 'Liver', wikipedia: 'Liver' })
     bodyParts.push({ name: 'Gallbladder', description: 'Gallbladder', wikipedia: 'Gallbladder' })
     bodyParts.push({ name: 'Mesentery', description: 'Mesentery', wikipedia: 'Mesentery' })
-    bodyParts.push({ name: 'Pancreas', description: 'Pancreas', wikipedia: 'Pancreas' })
     bodyParts.push({ name: 'Anal canal', description: 'Anal canal', wikipedia: 'Anal_canal' })
 
     bodyParts.push({ name: 'Breathing system', description: 'take in air to lungs', wikipedia: 'Respiratory_system' })
@@ -156,6 +184,212 @@ class Body {
       gaiaJack.push(refContract)
     }
     return gaiaJack
+  }
+
+
+  /**
+   * @method prepareBiologyLanguage
+   * @returns
+  */
+  prepareBiologyLanguage = function () {
+
+    let bodyParts = []
+    // Cellular Scale
+    bodyParts.push({ name: 'Cell', description: 'The basic structural, functional, and biological unit of all known organisms', wikipedia: 'Cell_(biology)' });
+    bodyParts.push({ name: 'Organelle', description: 'A specialized subunit within a cell that has a specific cellular function', wikipedia: 'Organelle' });
+    bodyParts.push({ name: 'DNA', description: 'Deoxyribonucleic acid; the hereditary material containing genetic instructions', wikipedia: 'DNA' });
+    bodyParts.push({ name: 'RNA', description: 'Ribonucleic acid; the essential molecule for translating genetic code into proteins', wikipedia: 'RNA' });
+    bodyParts.push({ name: 'Mitochondria', description: 'The double-membrane organelle responsible for generating cellular chemical energy (ATP)', wikipedia: 'Mitochondrion' });
+    bodyParts.push({ name: 'Cell Membrane', description: 'The semipermeable biological barrier separating the interior of a cell from the outside environment', wikipedia: 'Cell_membrane' });
+    bodyParts.push({ name: 'Nucleus', description: 'The membrane-enclosed organelle harboring the cellular genome', wikipedia: 'Cell_nucleus' });
+    bodyParts.push({ name: 'Ribosome', description: 'The cellular machine that catalyzes biological protein synthesis', wikipedia: 'Ribosome' });
+    bodyParts.push({ name: 'Stem Cell', description: 'Undifferentiated biological cells capable of turning into specialized cell types', wikipedia: 'Stem_cell' });
+
+    // Somatic Fluids
+    bodyParts.push({ name: 'Blood', description: 'The primary circulating fluid delivering oxygen and nutrients throughout the body', wikipedia: 'Blood' });
+    bodyParts.push({ name: 'Sweat', description: 'The watery fluid excreted by sweat glands for thermoregulation', wikipedia: 'Perspiration' });
+    bodyParts.push({ name: 'Saliva', description: 'The extracellular digestive fluid produced by salivary glands in the mouth', wikipedia: 'Saliva' });
+    bodyParts.push({ name: 'Lymph', description: 'The clear interstitial fluid containing white blood cells that flows through the lymphatic system', wikipedia: 'Lymph' });
+    bodyParts.push({ name: 'Tears', description: 'The watery protective fluid secreted by lacrimal glands to lubricate the eyes', wikipedia: 'Tears' });
+    bodyParts.push({ name: 'Urine', description: 'The liquid metabolic waste stream filtered from the blood by the kidneys', wikipedia: 'Urine' });
+    bodyParts.push({ name: 'Bile', description: 'The dark-green fluid produced by the liver that aids lipid digestion in the duodenum', wikipedia: 'Bile' });
+    bodyParts.push({ name: 'Interstitial Fluid', description: 'The solution that bathes and surrounds the tissue cells of multicellular animals', wikipedia: 'Interstitial_fluid' });
+
+    // Biomolecular Materials
+    bodyParts.push({ name: 'Protein', description: 'Large biomolecules comprised of amino acid chains performing vital biological actions', wikipedia: 'Protein' });
+    bodyParts.push({ name: 'Lipid', description: 'Hydrophobic molecules acting as energy stores and structural cell membrane components', wikipedia: 'Lipid' });
+    bodyParts.push({ name: 'Glucose', description: 'The primary simple sugar circulating in blood used as metabolic fuel', wikipedia: 'Glucose' });
+    bodyParts.push({ name: 'Hormone', description: 'Chemical signaling molecules transported by the circulatory system to regulate physiology', wikipedia: 'Hormone' });
+    bodyParts.push({ name: 'Collagen', description: 'The main structural protein found in extracellular matrices and connective tissues', wikipedia: 'Collagen' });
+
+    let gaiaJack = []
+    for (let wiki of bodyParts) {
+      const refContract = {}
+      refContract.type = 'library'
+      refContract.action = 'contracts'
+      refContract.reftype = 'datatype'
+      refContract.task = 'PUT'
+      refContract.privacy = 'public'
+      let dtSettings = {}
+      dtSettings.primary = true
+      dtSettings.name = wiki.name
+      dtSettings.description = wiki.description
+      dtSettings.wiki = 'https://en.wikipedia.org/wiki/' + wiki.wikipedia
+      dtSettings.rdf = 'https://dbpedia.org/page/' + wiki.wikipedia
+      dtSettings.measurement = 'Integer'
+      dtSettings.datatypeType = 'datatype'
+      refContract.data = dtSettings
+      gaiaJack.push(refContract)
+    }
+    return gaiaJack    
+
+  }
+
+
+    /**
+   * @method prepareBiologyLanguage
+   * @returns
+  */
+  prepareMetricLanguage = function () {
+
+    // Define the raw physical and biological metrics with descriptive anchors
+    const somaticMetrics = [
+      { 
+        name: 'Degrees of Freedom', 
+        description: 'The number of independent dimensions/planes in which a joint or tissue can move (DOF)', 
+        wikipedia: 'Degrees_of_freedom_(mechanics)' 
+      },
+      { 
+        name: 'Volume', 
+        description: 'The three-dimensional space occupied by a liquid or solid tissue compartment (cm³)', 
+        wikipedia: 'Volume' 
+      },
+      { 
+        name: 'Flexion Limit', 
+        description: 'The absolute mechanical boundary for bending movement at a joint segment (degrees)', 
+        wikipedia: 'Flexion' 
+      },
+      { 
+        name: 'Surface Area', 
+        description: 'The total outward-facing boundary surface area of an organ or tissue system (m²)', 
+        wikipedia: 'Surface_area' 
+      },
+      { 
+        name: 'Extension Limit', 
+        description: 'The absolute mechanical boundary for straightening movement at a joint segment (degrees)', 
+        wikipedia: 'Extension_(kinesiology)' 
+      },
+      { 
+        name: 'Thickness', 
+        description: 'The cross-sectional depth or thickness of a tissue membrane, dermis, or wall (mm)', 
+        wikipedia: 'Thickness' 
+      },
+      { 
+        name: 'Torque Threshold', 
+        description: 'The rotational force limit before localized structural tissue or joint failure occurs (Nm)', 
+        wikipedia: 'Torque' 
+      },
+      { 
+        name: 'Material Density', 
+        description: 'The volumetric mass density of bone, muscle, or structural fluid systems (kg/m³)', 
+        wikipedia: 'Density' 
+      },
+      { 
+        name: 'Resonance Frequency', 
+        description: 'The natural oscillating frequency of target tissue structures under localized vibrational stress (Hz)', 
+        wikipedia: 'Resonance' 
+      },
+      { 
+        name: 'Elastic Modulus', 
+        description: 'Young\'s Modulus of elasticity; the measure of structural tissue stiffness and recovery under stress (Pa)', 
+        wikipedia: 'Young%27s_modulus' 
+      }
+    ];
+
+    let gaiaJack = [];
+
+    for (let metric of somaticMetrics) {
+      const refContract = {};
+      refContract.type = 'library';
+      refContract.action = 'contracts';
+      refContract.reftype = 'datatype';
+      refContract.task = 'PUT';
+      refContract.privacy = 'public';
+
+      let dtSettings = {};
+      dtSettings.primary = true;
+      dtSettings.name = metric.name;
+      dtSettings.description = metric.description;
+      dtSettings.wiki = 'https://en.wikipedia.org/wiki/' + metric.wikipedia;
+      dtSettings.rdf = 'https://dbpedia.org/page/' + metric.wikipedia;
+      
+      // High-precision physical readings are mapped as Float/Decimal rather than simple Integers
+      dtSettings.measurement = 'Float'; 
+      dtSettings.datatypeType = 'biological_metric'; // Isolated datatype sub-class
+
+      refContract.data = dtSettings;
+      gaiaJack.push(refContract);
+    }
+
+    return gaiaJack;
+  }
+
+  /**
+   * @method prepareOrientationLanguage
+   * @returns
+  */
+  prepareOrientationLanguage = function () {
+
+    // Spatial Core Axes
+    let bodyParts = []
+    // relative body direction  common sense held
+    bodyParts.push({ name: 'Left', description: '', wikipedia: 'Body-relative_direction' });
+    bodyParts.push({ name: 'Right', description: '', wikipedia: 'Body-relative_direction' });
+    bodyParts.push({ name: 'Backward', description: '', wikipedia: 'Body-relative_direction' });
+    bodyParts.push({ name: 'Forward', description: '', wikipedia: 'Body-relative_direction' });
+    bodyParts.push({ name: 'Up', description: '', wikipedia: 'Body-relative_direction' });
+    bodyParts.push({ name: 'Down', description: '', wikipedia: 'Body-relative_direction' });
+
+    // biology direction terms
+    bodyParts.push({ name: 'Skyward', description: 'Upward direction toward the head along the vertical axis', wikipedia: 'Anatomical_terms_of_location#Superior_and_inferior' });
+    bodyParts.push({ name: 'Earthward', description: 'Downward direction toward the feet along the vertical axis', wikipedia: 'Anatomical_terms_of_location#Superior_and_inferior' });
+    bodyParts.push({ name: 'Portside', description: 'The absolute left side from the perspective of the peer', wikipedia: 'Port_and_starboard' });
+    bodyParts.push({ name: 'Starboard', description: 'The absolute right side from the perspective of the peer', wikipedia: 'Port_and_starboard' });
+    bodyParts.push({ name: 'Outward', description: 'Forward-facing direction toward the gaze and chest', wikipedia: 'Anatomical_terms_of_location#Anterior_and_posterior' });
+    bodyParts.push({ name: 'Spineward', description: 'Backward-facing direction toward the support column and spine', wikipedia: 'Anatomical_terms_of_location#Anterior_and_posterior' });
+
+    // Symmetrical Planes
+    bodyParts.push({ name: 'Midline', description: 'The vertical plane running down the center splitting port and starboard', wikipedia: 'Sagittal_plane' });
+    bodyParts.push({ name: 'Horizon', description: 'The horizontal plane splitting the skyward and earthward halves', wikipedia: 'Transverse_plane' });
+    bodyParts.push({ name: 'Depth', description: 'The vertical doorway plane splitting outward front from spineward back', wikipedia: 'Coronal_plane' });
+
+    // Proximity & Depth Layers
+    bodyParts.push({ name: 'Anchor', description: 'Proximally located point closest to the central mass or origin', wikipedia: 'Anatomical_terms_of_location#Proximal_and_distal' });
+    bodyParts.push({ name: 'Terminal', description: 'Distally located point furthest out along an appendage', wikipedia: 'Anatomical_terms_of_location#Terminal' });
+    bodyParts.push({ name: 'Fascial', description: 'Superficial layers closer to the outer surface of the body', wikipedia: 'Anatomical_terms_of_location#Superficial_and_deep' });
+    bodyParts.push({ name: 'Core', description: 'Deep structural layers positioned far inside the outer surface', wikipedia: 'Anatomical_terms_of_location#Superficial_and_deep' });
+  
+    let gaiaJack = []
+    for (let wiki of bodyParts) {
+      const refContract = {}
+      refContract.type = 'library'
+      refContract.action = 'contracts'
+      refContract.reftype = 'datatype'
+      refContract.task = 'PUT'
+      refContract.privacy = 'public'
+      let dtSettings = {}
+      dtSettings.primary = true
+      dtSettings.name = wiki.name
+      dtSettings.description = wiki.description
+      dtSettings.wiki = 'https://en.wikipedia.org/wiki/' + wiki.wikipedia
+      dtSettings.rdf = 'https://dbpedia.org/page/' + wiki.wikipedia
+      dtSettings.measurement = 'Integer'
+      dtSettings.datatypeType = 'datatype'
+      refContract.data = dtSettings
+      gaiaJack.push(refContract)
+    }
+    return gaiaJack    
+  
   }
 
   /**
