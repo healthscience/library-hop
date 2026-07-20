@@ -530,65 +530,87 @@ class LibraryHop extends EventEmitter {
   * @method saveFileManager
   */
   saveFileManager = async function (save) {
+    console.log('save file manager')
+    console.log(save)
     let fileList = []
     fileList.push(save.data)
     save.data = fileList
-    // route for different type of processing before save, add PandasAI (via beebee?)
-    // how many files coming in?
+
     let fileCount = save.data.length
     for (let i = 0; i < fileCount; i++) {
-      if (save.data[i].type === 'sqlite') {
-        let fileInfo = await this.liveHolepunch.DriveFiles.saveSqliteFirst(save.data[i].type, save.data[i].name, save.data[i].content)
-        let fileFeedback = {}
-        fileFeedback.success = true
-        fileFeedback.path = fileInfo.filename
-        fileFeedback.columns = fileInfo.header
-        fileFeedback.tables = fileInfo.tables
-        let storeFeedback = {}
-        storeFeedback.type = 'library'
-        storeFeedback.action = 'save-file'
-        storeFeedback.task = 'sqlite'
-        storeFeedback.data = fileFeedback
-        this.emit('libmessage', JSON.stringify(storeFeedback))
-        // next load sqlite db and ask for table names
-        // then pass on to BeeBee
-      } else if (save.data[i].type === 'application/json') {
-        if (save.data[i].source === 'local') {
-          // await liveParser.localJSONfile(o, ws)
-        } else if (save.data[i].source === 'web') {
-          // liveParser.webJSONfile(o, ws)
+      const currentFile = save.data[i]
+      const fileType = currentFile.type
+      let checkFileSave = {}
+      let fileInfo
+      let taskType = 'binary'
+
+      // 1. Write the key/metadata using fileComposer
+      let blobIndex = ''
+
+      // 2. Delegate binary/content save to Hyperdrive based on type
+      if (fileType === 'sqlite') {
+        blobIndex = await this.libComposer.liveFile.prepareBlobIndex(fileType, currentFile, fileType)
+        fileInfo = await this.liveHolepunch.DriveFiles.saveSqliteFirst(blobIndex, currentFile)
+        taskType = 'sqlite'
+      } else if (fileType === 'application/json') {
+        blobIndex = await this.libComposer.liveFile.prepareBlobIndex(fileType, currentFile, fileType)
+        fileInfo = await this.liveHolepunch.DriveFiles.hyperdriveJSONSaveSpec(blobIndex, currentFile)
+        taskType = 'json'
+      } else if (fileType === 'text/csv' || fileType === 'csv') {
+        taskType = 'csv'
+        if (currentFile.info && currentFile.info.source === 'local') {
+          blobIndex = await this.libComposer.liveFile.prepareBlobIndex(fileType, currentFile, fileType)
+          fileInfo = await this.liveHolepunch.DriveFiles.hyperdriveCSVmanager(blobIndex, currentFile)
+        } else {
+          blobIndex = await this.libComposer.liveFile.prepareBlobIndex(fileType, currentFile, fileType)
+          let saveFeedback = await this.liveHolepunch.DriveFiles.saveCSVfilecontent(blobIndex, currentFile)
         }
-      } else if (save.data[i].type === 'text/csv' || save.data[i].type === 'csv') {
-        // save protocol original file save and JSON for HOP
-        if (save.data[i].info.source === 'local') {
-          let fileInfo = await this.liveHolepunch.DriveFiles.hyperdriveCSVmanager(save)
-          let fileFeedback = {}
-          fileFeedback.success = true
-          fileFeedback.path = fileInfo.filename
-          fileFeedback.columns = fileInfo.header.splitwords
-          fileFeedback.file = save.data[i]
-          let storeFeedback = {}
-          storeFeedback.type = 'library'
-          storeFeedback.action = 'save-file'
-          storeFeedback.task = 'csv'
-          storeFeedback.data = fileFeedback
-          this.emit('libmessage', JSON.stringify(storeFeedback))
-          // now inform SafeFlow that data needs charting
-          this.emit('library-data', fileFeedback)
-        } else if (save.data[i].info.source === 'web') {
-          let saveFeedback = await this.liveHolepunch.DriveFiles.saveCSVfilecontent(save)
-          let fileFeedback = {}
-          fileFeedback.success = true
-          fileFeedback.data = saveFeedback
-          let storeFeedback = {}
-          storeFeedback.type = 'library'
-          storeFeedback.action = 'save-file'
-          storeFeedback.data = fileFeedback
-          this.emit('libmessage', JSON.stringify(storeFeedback))
+      } else {
+        console.log('current file info')
+        console.log(currentFile)
+        let ext = ''
+        // application/wasm, application/javascript, image, video, audio, etc.
+        if (currentFile.type === 'application/wasm' || currentFile.type === 'application/javascript' || currentFile.type === 'text/javascript' || currentFile.type === 'application/x-javascript') {         
+          // determine extension
+          ext = 'bin'
+          if (currentFile.type === 'application/wasm') ext = 'wasm'
+          else if (currentFile.type === 'application/javascript' || currentFile.type === 'text/javascript' || currentFile.type === 'application/x-javascript') ext = 'js'
         }
-      } else if (save.data[i].type === 'spreadsheet') {
-        // need to pass to pandasAI
+          
+        blobIndex = await this.libComposer.liveFile.prepareBlobIndex(fileType, currentFile, ext)
+        currentFile.path = blobIndex
+        console.log('current file to save info')
+        console.log(currentFile)
+        fileInfo = await this.liveHolepunch.DriveFiles.hyperdriveBinarySaveSpec(currentFile)
+        // check file saved as expected
+        checkFileSave = await this.liveHolepunch.DriveFiles.hyperdriveLocalfile(blobIndex.blobPath)
+        console.log('file save comoplete BIN e.g JS')
+        console.log(checkFileSave)
       }
+
+      // 3. Format and dispatch feedback message
+      if (checkFileSave) {
+        let fileFeedback = {
+          success: true,
+          path: fileInfo.filename || fileInfo.path,
+          columns: fileInfo.header || (fileInfo.headerinfo && fileInfo.headerinfo.headerinfo),
+          tables: fileInfo.tables,
+          file: currentFile,
+          blob: blobIndex
+        }
+
+        let storeFeedback = {
+          type: 'library',
+          action: 'save-file',
+          task: taskType,
+          data: fileFeedback
+        }
+
+        this.emit('libmessage', JSON.stringify(storeFeedback))
+      } else {
+        console.log('file save incomplete')
+      }
+
     }
   }
 
@@ -597,14 +619,9 @@ class LibraryHop extends EventEmitter {
   * @method saveStreamFileManager
   */
   saveStreamFileManager = async function (saveData) {
-    if (saveData.data.filesize === saveData.data.offset) {
-      await this.liveHolepunch.DriveFiles.streamSaveComplete(saveData.data.chunk)
-    } else if (saveData.data.firstchunk === true) {
-      await this.liveHolepunch.DriveFiles.hyperdriveStreamSave('/test/large.csv', saveData.data.chunk, true)
-    } else {
-      // stream chunk to save
-      await this.liveHolepunch.DriveFiles.streamSavedata('/test/large.csv', saveData.data.chunk)
-    }
+    console.log('save stream manager')
+    console.log(saveData)
+    await this.liveHolepunch.DriveFiles.hyperdriveStreamSaveSpec(saveData.data)
   }
 
   /**
