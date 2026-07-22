@@ -73,9 +73,13 @@ class OrgoContracts extends EventEmitter {
   *
   */
   saveOrgoProtocol = async function (saveData) {
-    let formedContract = this.libComposer.liveOrgo.orgoPrepare(saveData)
-    let saveContract = await this.liveHolepunch.BeeData.saveOrgo(formedContract)
-    return saveContract
+    let formedContract = this.libComposer.liveOrgo.orgoComposer(saveData.data)
+    console.log('formed orgo contract')
+    console.log(formedContract)
+    await this.liveHolepunch.BeeData.saveOrgo(formedContract)
+    let checkContract = await this.liveHolepunch.BeeData.getOrgo(formedContract.hash)
+    console.log(checkContract)
+    return checkContract
   }
 
   /**

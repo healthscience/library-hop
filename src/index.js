@@ -34,7 +34,7 @@ import TrainingUtil from './contracts/training/makeContract.js'
 import CogGlue from './glue/cogGlue.js'
 import OrgoUtil from './contracts/orgo/makeOrgoContract.js'
 import GelleUtil from './contracts/gelle/makeGelleContract.js'
-import ExoCueUtil from './excue/exoCueContract.js'
+import ExoCueUtil from './contracts/exocue/exoCueContract.js'
 import LensGlue from './glue/lensGlue.js'
 
 class LibraryHop extends EventEmitter {
