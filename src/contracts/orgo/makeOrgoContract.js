@@ -59,10 +59,11 @@ class OrgoContracts extends EventEmitter {
         this.liveLib.emit('libmessage', JSON.stringify(saveMessage))
       }
     } else if (message.task.trim() === 'DEL') {
+      let binKey = this.liveLib.convertHexToBinary(message.data)
       if (message.privacy === 'private') {
-        let delFeedback = this.liveHolepunch.BeeData.deleteOrgo(message.data)
+        let delFeedback = this.liveHolepunch.BeeData.deleteOrgo(binKey)
       } else if (message.privacy === 'public') {
-        let delFeedback = this.liveHolepunch.BeeData.deleteOrgo(message.data)
+        let delFeedback = this.liveHolepunch.BeeData.deleteOrgo(binKey)
       }
     }
   }  
