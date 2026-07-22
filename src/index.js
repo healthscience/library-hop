@@ -21,19 +21,20 @@ import LibComposer from 'librarycomposer'
 import BiomarkersUtility from './seed/biomarkerUtility.js'
 import CuesUtility from './seed/cuesUtility.js'
 import ContractsUtil from './tools/contracts.js'
-import LifestrapUtil from './lifestrap/makeContract.js'
+import LifestrapUtil from './contracts/lifestrap/makeContract.js'
 import AccountUtil from './account/peerNetwork.js'
-import CuesUtil from './cues/makeContract.js'
+import CuesUtil from './contracts/cues/makeContract.js'
 import ModelUtil from './models/agentMange.js'
-import MediaUtil from './media/makeContract.js'
-import ResearchUtil from './research/makeContract.js'
-import MarkerUtil from './marker/makeContract.js'
-import ProductUtil from './product/makeContract.js'
-import BesearchUtil from './besearch/makeContract.js'
-import TrainingUtil from './training/makeContract.js'
+import MediaUtil from './contracts/media/makeContract.js'
+import ResearchUtil from './contracts/research/makeContract.js'
+import MarkerUtil from './contracts/marker/makeContract.js'
+import ProductUtil from './contracts/product/makeContract.js'
+import BesearchUtil from './contracts/besearch/makeContract.js'
+import TrainingUtil from './contracts/training/makeContract.js'
 import CogGlue from './glue/cogGlue.js'
-import OrgoUtil from './orgo/makeOrgoContract.js'
-import GelleUtil from './gelle/makeGelleContract.js'
+import OrgoUtil from './contracts/orgo/makeOrgoContract.js'
+import GelleUtil from './contracts/gelle/makeGelleContract.js'
+import ExoCueUtil from './excue/exoCueContract.js'
 import LensGlue from './glue/lensGlue.js'
 
 class LibraryHop extends EventEmitter {
@@ -65,6 +66,7 @@ class LibraryHop extends EventEmitter {
     this.cogGlue = new CogGlue(this, this.liveHolepunch, this.libComposer, this.hopCryptoLive, this.cuesUtility)
     this.liveOrgoUtil = new OrgoUtil(this, this.liveHolepunch, this.libComposer)
     this.liveGelleUtil = new GelleUtil(this, this.liveHolepunch, this.libComposer)
+    this.liveExoCueUtil = new ExoCueUtil(this, this.liveHolepunch, this.libComposer)
     this.lensGlue = new LensGlue(this, this.liveHolepunch, this.libComposer, this.hopCryptoLive, this.cuesUtility)
     this.publicLibrary = {} // public library modules and reference contracts
     this.peerLibdata = {}  // peers private library store
@@ -119,6 +121,8 @@ class LibraryHop extends EventEmitter {
       await this.liveOrgoUtil.orgoManage(message)
     } else if (message.action.trim() === 'gelle') {
       await this.liveGelleUtil.gelleManage(message)
+    } else if (message.action.trim() === 'exocue') {
+      await this.liveExoCueUtil.exoCueManage(message)      
     } else if (message.action.trim() === 'lensglue') {
       await this.lensGlue.lensGlueManage(message)
     } else if (message.action.trim() === 'source') {
@@ -530,8 +534,6 @@ class LibraryHop extends EventEmitter {
   * @method saveFileManager
   */
   saveFileManager = async function (save) {
-    console.log('save file manager')
-    console.log(save)
     let fileList = []
     fileList.push(save.data)
     save.data = fileList
@@ -566,8 +568,6 @@ class LibraryHop extends EventEmitter {
           let saveFeedback = await this.liveHolepunch.DriveFiles.saveCSVfilecontent(blobIndex, currentFile)
         }
       } else {
-        console.log('current file info')
-        console.log(currentFile)
         let ext = ''
         // application/wasm, application/javascript, image, video, audio, etc.
         if (currentFile.type === 'application/wasm' || currentFile.type === 'application/javascript' || currentFile.type === 'text/javascript' || currentFile.type === 'application/x-javascript') {         
@@ -579,13 +579,9 @@ class LibraryHop extends EventEmitter {
           
         blobIndex = await this.libComposer.liveFile.prepareBlobIndex(fileType, currentFile, ext)
         currentFile.path = blobIndex
-        console.log('current file to save info')
-        console.log(currentFile)
         fileInfo = await this.liveHolepunch.DriveFiles.hyperdriveBinarySaveSpec(currentFile)
         // check file saved as expected
         checkFileSave = await this.liveHolepunch.DriveFiles.hyperdriveLocalfile(blobIndex.blobPath)
-        console.log('file save comoplete BIN e.g JS')
-        console.log(checkFileSave)
       }
 
       // 3. Format and dispatch feedback message
@@ -619,8 +615,6 @@ class LibraryHop extends EventEmitter {
   * @method saveStreamFileManager
   */
   saveStreamFileManager = async function (saveData) {
-    console.log('save stream manager')
-    console.log(saveData)
     await this.liveHolepunch.DriveFiles.hyperdriveStreamSaveSpec(saveData.data)
   }
 
