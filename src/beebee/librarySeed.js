@@ -84,4 +84,20 @@ export default class LibrarySeed {
     return cuesList
   }
 
+  /**
+   * get exoCue orgo & gelle reference contract available
+   * @method getGraftContracts
+  */
+  async getGraftContracts () {
+      const [exoCue, orgo, gelle] = await Promise.all([
+
+      this.beeData.getExoCueHistory('exocue', null),
+      this.beeData.getOrgoHistory('orgo', null),
+      this.beeData.getGelleHistory('gelle', null)
+    ]);
+
+    return { exoCue, orgo, gelle };
+
+  }
+
 }

@@ -75,7 +75,6 @@ class GelleContracts extends EventEmitter {
     let formedContract = this.libComposer.liveGelle.gellePrepare(saveData.data)
     let saveContract = await this.liveHolepunch.BeeData.saveGelle(formedContract)
     let checkContract = await this.liveHolepunch.BeeData.getGelle(formedContract.hash)
-    console.log(checkContract)
     return checkContract
   }
 
