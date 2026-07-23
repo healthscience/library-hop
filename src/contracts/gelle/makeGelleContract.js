@@ -72,9 +72,11 @@ class GelleContracts extends EventEmitter {
   *
   */
   saveGelleProtocol = async function (saveData) {
-    let formedContract = this.libComposer.liveGelle.gellePrepare(saveData)
+    let formedContract = this.libComposer.liveGelle.gellePrepare(saveData.data)
     let saveContract = await this.liveHolepunch.BeeData.saveGelle(formedContract)
-    return saveContract
+    let checkContract = await this.liveHolepunch.BeeData.getGelle(formedContract.hash)
+    console.log(checkContract)
+    return checkContract
   }
 
   /**

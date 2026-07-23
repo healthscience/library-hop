@@ -270,6 +270,11 @@ class Body {
         wikipedia: 'Flexion' 
       },
       { 
+        name: 'somaticFlexion', 
+        description: 'bending movement at a joint segment (degrees)', 
+        wikipedia: 'somaticFlexion' 
+      },
+      { 
         name: 'Surface Area', 
         description: 'The total outward-facing boundary surface area of an organ or tissue system (m²)', 
         wikipedia: 'Surface_area' 
@@ -303,7 +308,39 @@ class Body {
         name: 'Elastic Modulus', 
         description: 'Young\'s Modulus of elasticity; the measure of structural tissue stiffness and recovery under stress (Pa)', 
         wikipedia: 'Young%27s_modulus' 
+      },
+      {
+        name: 'Radius',
+        description: 'center circle to edge from center',
+        wikipedia: 'Radius'
+      },
+      {
+        name: 'Length',
+        description: 'direction of measurement',
+        wikipedia: 'Length'
+      },
+      {
+        name: 'Width',
+        description: 'direction of measurement',
+        wikipedia: 'Width'
+      },
+      {
+        name: 'Height',
+        description: 'direction of measurement',
+        wikipedia: 'Height'
+      },
+      {
+        name: 'somaticPosture',
+        description: 'mesh structure',
+        wikipedia: 'somaticPosture'
+      },
+      {
+        name: 'fascialTone',
+        description: 'fascial mesh',
+        wikipedia: 'fascialTone'
       }
+
+
     ];
 
     let gaiaJack = [];
