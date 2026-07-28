@@ -555,6 +555,7 @@ class LibraryHop extends EventEmitter {
         fileInfo = await this.liveHolepunch.DriveFiles.saveSqliteFirst(blobIndex, currentFile)
         taskType = 'sqlite'
       } else if (fileType === 'application/json') {
+        console.log('json file')
         blobIndex = await this.libComposer.liveFile.prepareBlobIndex(fileType, currentFile, fileType)
         fileInfo = await this.liveHolepunch.DriveFiles.hyperdriveJSONSaveSpec(blobIndex, currentFile)
         taskType = 'json'
@@ -570,13 +571,13 @@ class LibraryHop extends EventEmitter {
       } else {
         let ext = ''
         // application/wasm, application/javascript, image, video, audio, etc.
-        if (currentFile.type === 'application/wasm' || currentFile.type === 'application/javascript' || currentFile.type === 'text/javascript' || currentFile.type === 'application/x-javascript') {         
+        if (currentFile.type === 'application/wasm' || currentFile.type === 'application/javascript' || currentFile.type === 'text/javascript' || currentFile.type === 'application/x-javascript' || currentFile.type === 'json') {         
           // determine extension
           ext = 'bin'
           if (currentFile.type === 'application/wasm') ext = 'wasm'
           else if (currentFile.type === 'application/javascript' || currentFile.type === 'text/javascript' || currentFile.type === 'application/x-javascript') ext = 'js'
+          else if (currentFile.type === 'json') ext = 'json'
         }
-          
         blobIndex = await this.libComposer.liveFile.prepareBlobIndex(fileType, currentFile, ext)
         currentFile.path = blobIndex
         fileInfo = await this.liveHolepunch.DriveFiles.hyperdriveBinarySaveSpec(currentFile)
@@ -594,15 +595,30 @@ class LibraryHop extends EventEmitter {
           file: currentFile,
           blob: blobIndex
         }
+        console.log(fileFeedback)
+        // check intent of file upload
+        if (currentFile.fileIntent === 'overlay-data') {
+          console.log('file intent is overlay. get message to beebee or direct to SafeFlow-ECS systems')
+          const incomingStory = {
+            type: "HOPstory",
+            intent: "review-schema",
+            story: {
+              path: blobIndex.blobPath
+            }
+          }
+          this.emit('beebee-sf', incomingStory)
+        } else {
+          console.log('send file data back to BentoBoxDS')
+            let storeFeedback = {
+            type: 'library',
+            action: 'save-file',
+            task: taskType,
+            data: fileFeedback
+          }
 
-        let storeFeedback = {
-          type: 'library',
-          action: 'save-file',
-          task: taskType,
-          data: fileFeedback
+          this.emit('libmessage', JSON.stringify(storeFeedback))
+
         }
-
-        this.emit('libmessage', JSON.stringify(storeFeedback))
       } else {
         console.log('file save incomplete')
       }

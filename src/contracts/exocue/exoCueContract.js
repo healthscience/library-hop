@@ -26,7 +26,7 @@ class ExoCueContracts extends EventEmitter {
   * @method ExoCueManage
   *
   */
-  ExoCueManage = async function (message) {
+  exoCueManage = async function (message) {
     if (message.task.trim() === 'GET') {
       // public or private library?
       if (message.privacy === 'private') {
@@ -53,7 +53,7 @@ class ExoCueContracts extends EventEmitter {
         let saveContract = await this.saveExoCueProtocol(message)
         let saveMessage = {}
         saveMessage.type = 'library'
-        saveMessage.action = 'ExoCue-contract'
+        saveMessage.action = 'exocue-contract'
         saveMessage.task = 'save-complete'
         saveMessage.data = saveContract
         this.liveLib.emit('libmessage', JSON.stringify(saveMessage))
@@ -73,8 +73,9 @@ class ExoCueContracts extends EventEmitter {
   *
   */
   saveExoCueProtocol = async function (saveData) {
-    let formedContract = this.libComposer.liveExoCue.ExoCuePrepare(saveData)
+    let formedContract = this.libComposer.liveExoCue.exoCuePrepare(saveData.data)
     let saveContract = await this.liveHolepunch.BeeData.saveExoCue(formedContract)
+    let checkContract = await this.liveHolepunch.BeeData.getExoCue(formedContract.hash)
     return saveContract
   }
 
