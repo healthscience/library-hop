@@ -35,6 +35,7 @@ import CogGlue from './glue/cogGlue.js'
 import OrgoUtil from './contracts/orgo/makeOrgoContract.js'
 import GelleUtil from './contracts/gelle/makeGelleContract.js'
 import ExoCueUtil from './contracts/exocue/exoCueContract.js'
+import OverlayUtil from './contracts/overlay/overlayMakeContract.js'
 import LensGlue from './glue/lensGlue.js'
 
 class LibraryHop extends EventEmitter {
@@ -67,6 +68,7 @@ class LibraryHop extends EventEmitter {
     this.liveOrgoUtil = new OrgoUtil(this, this.liveHolepunch, this.libComposer)
     this.liveGelleUtil = new GelleUtil(this, this.liveHolepunch, this.libComposer)
     this.liveExoCueUtil = new ExoCueUtil(this, this.liveHolepunch, this.libComposer)
+    this.liveOverlayUtil = new OverlayUtil(this, this.liveHolepunch, this.libComposer)
     this.lensGlue = new LensGlue(this, this.liveHolepunch, this.libComposer, this.hopCryptoLive, this.cuesUtility)
     this.publicLibrary = {} // public library modules and reference contracts
     this.peerLibdata = {}  // peers private library store
@@ -122,7 +124,9 @@ class LibraryHop extends EventEmitter {
     } else if (message.action.trim() === 'gelle') {
       await this.liveGelleUtil.gelleManage(message)
     } else if (message.action.trim() === 'exocue') {
-      await this.liveExoCueUtil.exoCueManage(message)      
+      await this.liveExoCueUtil.exoCueManage(message)
+    } else if (message.action.trim() === 'overlay') {
+      await this.liveOverlayUtil.overlayManage(message)      
     } else if (message.action.trim() === 'lensglue') {
       await this.lensGlue.lensGlueManage(message)
     } else if (message.action.trim() === 'source') {
