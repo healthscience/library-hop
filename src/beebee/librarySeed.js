@@ -1,3 +1,4 @@
+import LibraryMemory from './libraryMemory.js'
 import RelationshipFascia from "./fascia/relationshipFacia.js"
 
 /**
@@ -9,6 +10,7 @@ export default class LibrarySeed {
   constructor(parent) {
     this.parent = parent
     this.beeData = parent.liveHolepunch.BeeData
+    this.libMemory = new LibraryMemory()
     this.relFascia = new RelationshipFascia(this.parent)
   }
 
@@ -30,6 +32,9 @@ export default class LibrarySeed {
     }
 
     let embCueContracts = this.integrateReferenceContracts(cuesLibrary, datatypeRefList)
+
+    // put to library memory
+    this.memoryRegister(embCueContracts)
 
     let seedLib = {}
     seedLib.cueContracts = embCueContracts
@@ -89,15 +94,31 @@ export default class LibrarySeed {
    * @method getGraftContracts
   */
   async getGraftContracts () {
-      const [exoCue, orgo, gelle] = await Promise.all([
+      const [exoCue, orgo, gelle, overlay] = await Promise.all([
 
       this.beeData.getExoCueHistory('exocue', null),
       this.beeData.getOrgoHistory('orgo', null),
-      this.beeData.getGelleHistory('gelle', null)
+      this.beeData.getGelleHistory('gelle', null),
+      this.beeData.getOverlayHistory('overlay', null)
     ]);
+    // put to library memory
+    this.memoryRegister(exoCue)
+    this.memoryRegister(orgo)
+    this.memoryRegister(gelle)
+    this.memoryRegister(overlay)
+    
+    return { exoCue, orgo, gelle, overlay };
 
-    return { exoCue, orgo, gelle };
+  }
 
+  /**
+   * 
+   * @method memoryRegiser
+  */
+  memoryRegister (contractList) {
+    for (let contract of contractList) {
+      this.libMemory.register(contract.key, contract.value)
+    }
   }
 
 }

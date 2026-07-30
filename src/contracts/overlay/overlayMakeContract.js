@@ -53,7 +53,7 @@ class OverlayContracts extends EventEmitter {
         let saveContract = await this.saveOverlayProtocol(message)
         let saveMessage = {}
         saveMessage.type = 'library'
-        saveMessage.action = 'Overlay-contract'
+        saveMessage.action = 'overlay-contract'
         saveMessage.task = 'save-complete'
         saveMessage.data = saveContract
         this.liveLib.emit('libmessage', JSON.stringify(saveMessage))
@@ -76,7 +76,7 @@ class OverlayContracts extends EventEmitter {
     let formedContract = this.libComposer.liveOverlay.overlayPrepare(saveData.data)
     let saveContract = await this.liveHolepunch.BeeData.saveOverlay(formedContract)
     let checkContract = await this.liveHolepunch.BeeData.getOverlay(formedContract.hash)
-    return saveContract
+    return checkContract
   }
 
   /**
