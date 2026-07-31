@@ -10,7 +10,6 @@ class ContractRegistry {
 
   // Called on HOP startup during seed/graft hydration
   register(contractHash, contractData) {
-    console.log('register re cont for map')
     const key = Buffer.isBuffer(contractHash) ? contractHash.toString('hex') : contractHash;
     this.contracts.set(key, contractData);
   }
