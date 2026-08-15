@@ -105,6 +105,9 @@ class LibraryHop extends EventEmitter {
     if (message.action.trim() === 'contracts') {
       // pass on to function to manage
       this.contractsManage(message)
+    } else if (message.action.trim() === 'files') {
+      // pass on to function to manage
+      this.filesManage(message)
     } else if (message.action.trim() === 'lifestrap') {
       await this.liveLifestrapUtil.lifestrapManage(message)
     } else if (message.action.trim() === 'genesis-datatypes-cues') {
@@ -181,6 +184,7 @@ class LibraryHop extends EventEmitter {
   *
   */
   contractsManage = async function (message) {
+
     if (message.task.trim() === 'GET') {
       // public or private library?
       if (message.privacy === 'private') {
@@ -204,9 +208,6 @@ class LibraryHop extends EventEmitter {
     } else if (message.task.trim() === 'PUT') {
       // public or private library?
       if (message.privacy === 'private') { 
-        // pass to save manager, file details extract, prep contract
-        let saveFeedback = await this.saveFileManager(message)
-        // this.emit('libmessage', JSON.stringify(saveFeedback))
       } else if (message.privacy === 'public') {
         if (message?.reftype === 'confirm-add') {
           // direct or via cue space share?
@@ -219,7 +220,6 @@ class LibraryHop extends EventEmitter {
       }
     } else if (message.task.trim() === 'PUT-stream') {
       if (message.privacy === 'private') {
-        await this.saveStreamFileManager(message)
        } else if (message.privacy === 'privacy') {
 
        }
@@ -270,23 +270,43 @@ class LibraryHop extends EventEmitter {
   }
 
   /**
-  * gain access to file source data
-  * @method sourcedataMange
+  * options for file storage
+  * @method filesManage
   *
   */
-  sourcedataMange = async function (message) {
-    if (message.task === 'GET') {
-      if (message.reftype === 'sqlite') {
-        if (message.data.query === 'tables') {
-          let columnData = await this.liveHolepunch.DriveFiles.SQLiteSourceSetup(message.data)
-          // return columns
-          this.callbackColumns(columnData, message.reftype)
-        } else if (message.data.query === 'devices') {
-          let deviceData = await this.liveHolepunch.DriveFiles.SQLiteDeviceSetup(message.data)
-          this.callbackColumns(deviceData, message.reftype)
-        }
+  filesManage = async function (message) {
+
+    if (message.task.trim() === 'GET') {
+      // public or private library?
+      if (message.privacy === 'private') {
+
+      } else if (message.privacy === 'public') {
+
       }
-    }
+    } else if (message.task.trim() === 'PUT') {
+      // public or private library?
+      if (message.privacy === 'private') { 
+        // pass to save manager, file details extract, prep contract
+        let saveFeedback = await this.saveFileManager(message, 'private')
+        // this.emit('libmessage', JSON.stringify(saveFeedback))
+      } else if (message.privacy === 'public') {
+        await this.saveFileManager(message, 'public')
+      }
+    } else if (message.task.trim() === 'PUT-stream') {
+      if (message.privacy === 'private') {
+        await this.saveStreamFileManager(message)
+       } else if (message.privacy === 'privacy') {
+
+       }
+    } else if (message.task.trim() === 'DEL') {
+      if (message.privacy === 'private') {
+        // private
+        this.liveHolepunch.BeeData.deleteRefcontPeerlibrary(message.data)
+      } else if (message.privacy === 'public') {
+        // public
+        this.liveHolepunch.BeeData.deleteRefcontPubliclibrary(message.data)
+      }
+    } 
   }
 
   /**
@@ -537,7 +557,14 @@ class LibraryHop extends EventEmitter {
   * save file manager
   * @method saveFileManager
   */
-  saveFileManager = async function (save) {
+  saveFileManager = async function (save, privacy) {
+    // set the store
+    let driveStore = {}
+    if (privacy === 'private') {
+      driveStore = this.liveHolepunch.DriveFiles.peerDrive
+    } else if (privacy === 'public') {
+      driveStore = this.liveHolepunch.DriveFiles.publicDrive
+    }
     let fileList = []
     fileList.push(save.data)
     save.data = fileList
@@ -556,21 +583,21 @@ class LibraryHop extends EventEmitter {
       // 2. Delegate binary/content save to Hyperdrive based on type
       if (fileType === 'sqlite') {
         blobIndex = await this.libComposer.liveFile.prepareBlobIndex(fileType, currentFile, fileType)
-        fileInfo = await this.liveHolepunch.DriveFiles.saveSqliteFirst(blobIndex, currentFile)
+        fileInfo = await driveStore.saveSqliteFirst(blobIndex, currentFile)
         taskType = 'sqlite'
       } else if (fileType === 'application/json') {
         console.log('json file')
         blobIndex = await this.libComposer.liveFile.prepareBlobIndex(fileType, currentFile, fileType)
-        fileInfo = await this.liveHolepunch.DriveFiles.hyperdriveJSONSaveSpec(blobIndex, currentFile)
+        fileInfo = await driveStore.hyperdriveJSONSaveSpec(blobIndex, currentFile)
         taskType = 'json'
       } else if (fileType === 'text/csv' || fileType === 'csv') {
         taskType = 'csv'
         if (currentFile.info && currentFile.info.source === 'local') {
           blobIndex = await this.libComposer.liveFile.prepareBlobIndex(fileType, currentFile, fileType)
-          fileInfo = await this.liveHolepunch.DriveFiles.hyperdriveCSVmanager(blobIndex, currentFile)
+          fileInfo = await driveStore.hyperdriveCSVmanager(blobIndex, currentFile)
         } else {
           blobIndex = await this.libComposer.liveFile.prepareBlobIndex(fileType, currentFile, fileType)
-          let saveFeedback = await this.liveHolepunch.DriveFiles.saveCSVfilecontent(blobIndex, currentFile)
+          let saveFeedback = await driveStore.saveCSVfilecontent(blobIndex, currentFile)
         }
       } else {
         let ext = ''
@@ -584,9 +611,9 @@ class LibraryHop extends EventEmitter {
         }
         blobIndex = await this.libComposer.liveFile.prepareBlobIndex(fileType, currentFile, ext)
         currentFile.path = blobIndex
-        fileInfo = await this.liveHolepunch.DriveFiles.hyperdriveBinarySaveSpec(currentFile)
+        fileInfo = await driveStore.hyperdriveBinarySaveSpec(currentFile)
         // check file saved as expected
-        checkFileSave = await this.liveHolepunch.DriveFiles.hyperdriveLocalfile(blobIndex.blobPath)
+        checkFileSave = await driveStore.hyperdriveLocalfile(blobIndex.blobPath)
       }
 
       // 3. Format and dispatch feedback message
@@ -599,10 +626,10 @@ class LibraryHop extends EventEmitter {
           file: currentFile,
           blob: blobIndex
         }
-        console.log(fileFeedback)
+ 
         // check intent of file upload
         if (currentFile.fileIntent === 'overlay-data') {
-          console.log('file intent is overlay. get message to beebee or direct to SafeFlow-ECS systems')
+
           const incomingStory = {
             type: "HOPstory",
             intent: "review-schema",
