@@ -284,6 +284,8 @@ class LibraryHop extends EventEmitter {
 
       }
     } else if (message.task.trim() === 'PUT') {
+      console.log('save file')
+      console.log(message)
       // public or private library?
       if (message.privacy === 'private') { 
         // pass to save manager, file details extract, prep contract

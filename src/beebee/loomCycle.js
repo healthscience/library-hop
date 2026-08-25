@@ -30,8 +30,7 @@ export default class LoomCycle {
       this.beeData.getBesearchHistory(lsKey, 'besearch'),
       this.beeData.Chat.getDialoguechatHistory('chat', storyHash),
       this.beeData.getModelHistory(lsKey), // resonate agents memory
-      this.beeData.getOrgoHistory(lsKey),
-      this.beeData.getGelleHistory(lsKey)
+      this.beeData.getOrgoHistory(lsKey)
     ]);
 
     let lsKeytrack = { ls: lsKey, lens: storyHash }
