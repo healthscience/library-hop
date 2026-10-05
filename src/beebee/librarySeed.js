@@ -22,6 +22,7 @@ export default class LibrarySeed {
   async getSeedLibrary () {
 
     let lsPrimekey = 'common'
+
     let cuesLibrary = await this.beeData.getCuesHistory(lsPrimekey, null)
     
     let datatypeRefList = []

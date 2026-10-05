@@ -36,7 +36,10 @@ class CuesContracts extends EventEmitter {
   *
   */
   cueManage = async function (message) {
+    console.log('cue mange')
+    console.log(message)
     if (message.task.trim() === 'GET') {
+      console.log('cue GET')
       // public or private library?
       if (message.privacy === 'private') {
         let cuesLib = await this.liveHolepunch.BeeData.getCues(100)
@@ -46,7 +49,10 @@ class CuesContracts extends EventEmitter {
           let cuesHistory = await this.liveHolepunch.BeeData.getCuesHistory('')
           this.callbackCuesStart(cuesHistory)
         } else {
-          let publibCues = await this.liveHolepunch.BeeData.saveCues(message.data)
+          console.log('yes get public cues please')
+          let publibCues = await this.liveHolepunch.BeeData.getCuesHistory(message.data, null)
+          console.log('cues history')
+          console.log(publibCues)
           this.callbackcues(publibCues)
         }
       }
@@ -380,8 +386,9 @@ class CuesContracts extends EventEmitter {
   */
   callbackcues = function (data) {
     let cueData = {}
-    cueData.type = 'peerlibrary'
-    cueData.refcontract = 'cue-new'
+    cueData.type = 'library'
+    cueData.action = 'cues-history'
+    cueData.refcontract = 'cues-history'
     cueData.data = data
     this.liveLib.emit('libmessage', JSON.stringify(cueData))
   }

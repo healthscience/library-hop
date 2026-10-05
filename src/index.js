@@ -14,6 +14,7 @@ import EventEmitter from 'events'
 import LibrarySeed from './beebee/librarySeed.js'
 import LoomCycle from './beebee/loomCycle.js'
 import WarmHopeers from './beebee/hoPeers.js'
+import OsmosisPath from './beebee/osmosisPath.js'
 
 import BentoBoxOperations from './beebee/bentoboxDS.js'
 import BeebeeDialogue from './dialogue/chatPath.js'
@@ -40,15 +41,17 @@ import LensGlue from './glue/lensGlue.js'
 
 class LibraryHop extends EventEmitter {
 
-  constructor(contextAgents) {
+  constructor(wiring) {
     super()
-    this.liveHolepunch = contextAgents.network
-    this.hopCryptoLive = contextAgents.crypto
+    this.wiring = wiring
+    this.liveHolepunch = wiring.network
+    this.hopCryptoLive = wiring.crypto
     this.seedLibrary = new LibrarySeed(this)
     this.lifeLoom = new LoomCycle(this)
     this.warmHopeers = new WarmHopeers(this)
+    this.replicateOsmosis = new OsmosisPath(this, wiring)
     this.liveBentoBoxOps = new BentoBoxOperations(this.liveHolepunch)
-    this.libComposer = new LibComposer(contextAgents)
+    this.libComposer = new LibComposer(wiring)
     this.liveContractsUtil = new ContractsUtil(this.liveHolepunch, this.libComposer)
     this.liveCAccountUtil = new AccountUtil(this, this.liveHolepunch, this.libComposer)
     this.liveDialogue = new BeebeeDialogue(this, this.liveHolepunch, this.libComposer, this.hopCryptoLive)
@@ -85,6 +88,17 @@ class LibraryHop extends EventEmitter {
   }
 
   /**
+  * set osmosis in wiring
+  * @method setOsmosis
+  *
+  */
+  setOsmosis = function (osmosis) {
+    this.wiring.osmosis = osmosis
+    this.replicateOsmosis.setOsmosis()
+  }
+  
+
+  /**
   * start library 
   * @method systemsContracts
   *
@@ -114,6 +128,15 @@ class LibraryHop extends EventEmitter {
       // console.log('seed condution of cues please-----------')
       // prime peer on network or off line new peer
       await this.cogGlue.seedGlueBegin()
+    } else if (message.action.trim() === 'start-osmosis') {
+      this.replicateOsmosis.startOsmosis(message.data)
+      let outOsmosis = {}
+      outOsmosis.type = 'peer-library'
+      outOsmosis.action = 'osmosis-over'
+      outOsmosis.query = false
+      outOsmosis.data = ''
+
+
     } else if (message.action.trim() === 'besearch') {
       await this.liveBesearch.besearchManage(message)
     } else if (message.action.trim() === 'beebee-teach') {
@@ -284,8 +307,7 @@ class LibraryHop extends EventEmitter {
 
       }
     } else if (message.task.trim() === 'PUT') {
-      console.log('save file')
-      console.log(message)
+
       // public or private library?
       if (message.privacy === 'private') { 
         // pass to save manager, file details extract, prep contract
@@ -588,7 +610,6 @@ class LibraryHop extends EventEmitter {
         fileInfo = await driveStore.saveSqliteFirst(blobIndex, currentFile)
         taskType = 'sqlite'
       } else if (fileType === 'application/json') {
-        console.log('json file')
         blobIndex = await this.libComposer.liveFile.prepareBlobIndex(fileType, currentFile, fileType)
         fileInfo = await driveStore.hyperdriveJSONSaveSpec(blobIndex, currentFile)
         taskType = 'json'
@@ -641,7 +662,6 @@ class LibraryHop extends EventEmitter {
           }
           this.emit('beebee-sf', incomingStory)
         } else {
-          console.log('send file data back to BentoBoxDS')
             let storeFeedback = {
             type: 'library',
             action: 'save-file',
