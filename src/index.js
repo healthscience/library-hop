@@ -13,7 +13,7 @@ import util from 'util'
 import EventEmitter from 'events'
 import LibrarySeed from './beebee/librarySeed.js'
 import LoomCycle from './beebee/loomCycle.js'
-import WarmHopeers from './beebee/hoPeers.js'
+import WarmHopeers from './beebee/hopPeers.js'
 import OsmosisPath from './beebee/osmosisPath.js'
 
 import BentoBoxOperations from './beebee/bentoboxDS.js'
@@ -75,6 +75,7 @@ class LibraryHop extends EventEmitter {
     this.lensGlue = new LensGlue(this, this.liveHolepunch, this.libComposer, this.hopCryptoLive, this.cuesUtility)
     this.publicLibrary = {} // public library modules and reference contracts
     this.peerLibdata = {}  // peers private library store
+    this.listenHolepunch() // listen for network events
   }
 
   /**
@@ -290,6 +291,70 @@ class LibraryHop extends EventEmitter {
     } else if (message.task.trim() === 'update-hopquery') {
      this.updateQueryContracts(message.bbid, message)
     }
+  }
+
+
+  /**
+  * listen for task from holepunch-hop
+  * @method listenHolepunch
+  *
+  */
+  listenHolepunch = async function (message) {
+
+    this.liveHolepunch.on('peer-incoming-save', async (data) => {
+      // save direct to library account contract, when save that will inform beeebee in BentoboxDS
+      let libMessageout = {}
+      libMessageout.type = 'library'
+      libMessageout.action = 'account'
+      libMessageout.reftype = 'new-peer'
+      libMessageout.privacy = 'private'
+      libMessageout.task = 'PUT'
+      libMessageout.data = data
+      libMessageout.bbid = ''
+      await this.libraryManage(libMessageout)
+    })
+
+
+    this.liveHolepunch.on('peer-record-save', async (data) => {
+      let libMessageout = {}
+      libMessageout.type = 'library'
+      libMessageout.action = 'account'
+      libMessageout.reftype = 'new-peer-topic'
+      libMessageout.privacy = 'private'
+      libMessageout.task = 'PUT'
+      libMessageout.data = data
+      libMessageout.bbid = ''
+      await this.libraryManage(libMessageout)
+    })
+
+    this.liveHolepunch.on('peer-topic-update', async (data) => {
+      let libMessageout = {}
+      libMessageout.type = 'library'
+      libMessageout.action = 'account'
+      libMessageout.reftype = 'new-peer-topic'
+      libMessageout.privacy = 'private'
+      libMessageout.task = 'UPDATE'
+      libMessageout.data = data
+      libMessageout.bbid = ''
+      await this.libraryManage(libMessageout)
+    })
+
+    this.liveHolepunch.on('peer-codename-update', async (data) => {
+      let libMessageout = {
+        type: 'library',
+        action: 'account',
+        reftype: 'update-peer-name',
+        privacy: 'private',
+        task: 'UPDATE',
+        data: {
+          contractKey: data.contractKey,
+          name: data.name
+        },
+        bbid: ''
+      }
+      await this.libMessageout(libMessageout)
+    })
+  
   }
 
   /**
