@@ -51,10 +51,6 @@ class PeerNetwork extends EventEmitter {
       if (message.privacy === 'private') {
         // save relationship
         let saveContract = await this.savePeerProtocol(message.data)
-        console.log('save PROTOFOL OVER PUT')
-        console.log(saveContract)
-        console.log(saveContract.data.value)
-        console.log('save compolete')
         // set warm peers list to keep track
         this.liveLib.emit('set-warmpeer', saveContract)
         let saveMessage = {}
@@ -65,7 +61,7 @@ class PeerNetwork extends EventEmitter {
         // emits back to HOP library level - inform beebee saved
         this.liveLib.emit('libmessage', JSON.stringify(saveMessage))
         // if first time warm peer then complete that connection flow
-        this.liveLib.emit('complete-warmpeer', saveContract.data.key)
+        this.liveLib.emit('complete-warmpeer', saveContract)
       } else if (message.privacy === 'public') {
         // need check if composer needed to form contract and then save
       }
