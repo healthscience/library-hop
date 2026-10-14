@@ -53,15 +53,7 @@ class PeerNetwork extends EventEmitter {
         let saveContract = await this.savePeerProtocol(message.data)
         // set warm peers list to keep track
         this.liveLib.emit('set-warmpeer', saveContract)
-        let saveMessage = {}
-        saveMessage.type = 'account'
-        saveMessage.action = 'peer-new-relationship'
-        saveMessage.task = 'save-complete'
-        saveMessage.data = saveContract.data
-        // emits back to HOP library level - inform beebee saved
-        this.liveLib.emit('libmessage', JSON.stringify(saveMessage))
-        // if first time warm peer then complete that connection flow
-        this.liveLib.emit('complete-warmpeer', saveContract)
+
       } else if (message.privacy === 'public') {
         // need check if composer needed to form contract and then save
       }
@@ -118,22 +110,23 @@ class PeerNetwork extends EventEmitter {
             livePeerkey: ''
           }
 
-          await this.updatePeerProtocol(peerPair, peerContract)
+          /* await this.updatePeerProtocol(peerPair, peerContract)
 
           let keyBuff = Buffer.isBuffer(peerContract.key) ? peerContract.key : Buffer.from(peerContract.key, 'hex')
           let checkUpdatePeer = await this.liveHolepunch.BeeData.getPeer(keyBuff)
 
           checkUpdatePeer.value.concept.live = true
-          this.liveLib.emit('complete-topic-save', checkUpdatePeer)
+          this.liveLib.emit('complete-topic-save', checkUpdatePeer) */
 
         } else if (message.reftype === "update-peer-name") {
-          const rawContractKey = message.data.contractKey
+         /* const rawContractKey = message.data.contractKey
 
           let updatePeer = await this.updatePeerNameProtocol(peerPair, peerContract)
           let checkUpdatePeer = await this.liveHolepunch.BeeData.getPeer(updatePeer.hash)
 
           this.liveLib.emit('complete-peer-contract', checkUpdatePeer || updatePeer)
           this.liveLib.emit('complete-name-updatesave', checkUpdatePeer || updatePeer)
+          */
         }
       }
     }
@@ -145,13 +138,13 @@ class PeerNetwork extends EventEmitter {
   *
   */
   savePeerProtocol = async function (saveData) {
-    console.log('LIB-HOP  save PPER PROTOCOL')
+
     let formedContract = this.libComposer.livePeer.peerPrepare('hopeer', saveData.data)
     await this.liveHolepunch.BeeData.savePeer(formedContract)
     let checkContract = await this.liveHolepunch.BeeData.getPeer(formedContract.hash)
 
-    let hexKey = Buffer.isBuffer(checkContract.key) ? checkContract.key.toString('hex') : checkContract.key
-    checkContract.key = hexKey
+    // let hexKey = Buffer.isBuffer(checkContract.key) ? checkContract.key.toString('hex') : checkContract.key
+    // checkContract.key = hexKey
 
     let saveMessage = {
       type: 'library',
