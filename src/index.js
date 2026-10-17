@@ -208,8 +208,6 @@ class LibraryHop extends EventEmitter {
   *
   */
   contractsManage = async function (message) {
-    console.log('library contradt manage')
-    console.log(message)
     if (message.task.trim() === 'GET') {
       // public or private library?
       if (message.privacy === 'private') {

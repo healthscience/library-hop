@@ -1,5 +1,6 @@
 import LibraryMemory from './libraryMemory.js'
 import RelationshipFascia from "./fascia/relationshipFacia.js"
+import { datatype } from 'librarycomposer/src/validation/validate.js'
 
 /**
  * Library Seed
@@ -49,6 +50,9 @@ export default class LibrarySeed {
   * @method integrateReferenceContracts
   */
   integrateReferenceContracts (cueContracts, datatypeContracts) {
+    console.log('integrate cues and DT')
+    console.log(cueContracts)
+    console.log(datatypeContracts)
     if (!Array.isArray(cueContracts) || !Array.isArray(datatypeContracts)) return []
 
     const cuesList = []
