@@ -208,7 +208,8 @@ class LibraryHop extends EventEmitter {
   *
   */
   contractsManage = async function (message) {
-
+    console.log('library contradt manage')
+    console.log(message)
     if (message.task.trim() === 'GET') {
       // public or private library?
       if (message.privacy === 'private') {
@@ -219,12 +220,13 @@ class LibraryHop extends EventEmitter {
         if (message.reftype === 'refresh-publiclibrary') {
           this.startLibrary()
         } else {
+          console.log('START GET PUBLIC LIB')
           // form query key
           let publicData = {}
           if (this.CogGlue?.primeStrap) {
            publicData = await this.liveHolepunch.BeeData.getPublicLibraryRefRange(this.CogGlue?.primeStrap, 'link', 100)
           } else {
-            publicData = await this.liveHolepunch.BeeData.getPublicLibraryRefRange('datatype', null, 500)
+            publicData = await this.liveHolepunch.BeeData.getPublicLibraryRefRange(message.data, null, 500)
           }
           this.callbacklibrary(publicData)
         }
