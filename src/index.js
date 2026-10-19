@@ -126,7 +126,6 @@ class LibraryHop extends EventEmitter {
     } else if (message.action.trim() === 'lifestrap') {
       await this.liveLifestrapUtil.lifestrapManage(message)
     } else if (message.action.trim() === 'genesis-datatypes-cues') {
-      // console.log('seed condution of cues please-----------')
       // prime peer on network or off line new peer
       await this.cogGlue.seedGlueBegin()
     } else if (message.action.trim() === 'start-osmosis') {
@@ -218,7 +217,6 @@ class LibraryHop extends EventEmitter {
         if (message.reftype === 'refresh-publiclibrary') {
           this.startLibrary()
         } else {
-          console.log('START GET PUBLIC LIB')
           // form query key
           let publicData = {}
           if (this.CogGlue?.primeStrap) {

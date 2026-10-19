@@ -50,9 +50,7 @@ export default class LibrarySeed {
   * @method integrateReferenceContracts
   */
   integrateReferenceContracts (cueContracts, datatypeContracts) {
-    console.log('integrate cues and DT')
-    console.log(cueContracts)
-    console.log(datatypeContracts)
+
     if (!Array.isArray(cueContracts) || !Array.isArray(datatypeContracts)) return []
 
     const cuesList = []
